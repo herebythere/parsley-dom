@@ -1,3 +1,6 @@
+import { compose, draw } from "../src/parsley-dom.ts";
+import { codeDemo } from "./code_demo.ts";
+
 const whatIsParsley = `
 Parsley is a library that creates chunks of interactive XML.
 `;
@@ -5,7 +8,7 @@ Parsley is a library that creates chunks of interactive XML.
 const whatIsParsleyDOM = ` Parsley-DOM is an interface to Parsley
 and lets you create chunks of interactive DOM.`;
 
-const parsleyIsDifferent = `In fact, this page is rendered in Parsely-DOM.
+const parsleyIsDifferent = `This page is rendered in Parsely-DOM.
 But it works a little differently than other rendering libraries.`
 
 const parsleyIsUnique = `Parsley has no dependencies and it's unique in that
@@ -14,56 +17,39 @@ it isn't concerned with the content rendered.`;
 const parsleyNoDependenices = `It does not rely on DOM Templates
 or JSX and is fully capable of being ported to other languages.`;
 
-// code examples
-const parsleyBasics = `Parsley starts with a "Chunker". Which is basically
-three functions: update, connect, and disconnect.`;
 
-const parsleyChunker = `
-// return a template
-const update = () => {
-  return draw\`<p>hello, world!</p>\`;
-};
-
-// take initial params and return initial state
-connect = (params) => state;
-
-// a chance to observe state on disconnect
-disconnect = (state) => void;
-`;
-
-
-const parsleyCreateChunkFactory = `
-The compose function takes update, connect, and disconnect and
-creates a 'chunk factory' that will produce chunks of DOM.
-`;
-
-const parsleySyntax = `
-const chunkFactory = compose<Params, State>({
-  update: ({params, state}) => {
-    return draw\`<p>hello, world!</p>\`;
-  },
-  connect: (params) => state,
-  disconnect: (state) => void,
-})
-`;
-
-const parsleyHelloWorld = `
-const helloWorld = compose<void, void>({
-  update: () => {
-    return draw\`<p>hello, world!</p>\`;
-  },
+const introDemo = compose<void, void>({
   connect: () => {},
+  update: () => {
+    return draw`
+      <h1>Parsley-DOM</h1>
+      <p>Brian Taylor Vann</p>
+      <section>
+        <h2>Quick Start</h2>
+        <p>${whatIsParsley}</p>
+        <p>${whatIsParsleyDOM}</p>
+      </section>
+    `;
+  },
   disconnect: () => {},
-})
-const helloWorldChunk = helloWorld();
+});
 
-`;
+const outroDemo = compose<void, void>({
+  connect: () => {},
+  update: () => {
+    return draw`
+      <section>
+        <h2>Notes</h2>
+        <p>${parsleyIsUnique}</p>
+        <p>${parsleyNoDependenices}</p>
+        <p>${parsleyIsDifferent}</p>  
+      </section>
+    `;
+  },
+  disconnect: () => {},
+});
 
-const parsleyHelloChunk = `
-const helloWorldChunk = helloWorld();
+const introDemoChunk = introDemo();
+const outroDemoChunk = outroDemo();
 
-helloWorld.getSiblings(); // [<p>]
-}
-`;
-
-
+export { introDemoChunk, outroDemoChunk };
