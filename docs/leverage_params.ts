@@ -1,79 +1,158 @@
-import { codeDemo } from "./code_demo.ts";
+import type { Banger } from "../src/parsley-dom.ts";
 
 import { compose, draw } from "../src/parsley-dom.ts";
+import { codeDemo } from "./code_demo.ts";
 
-const actualElements = `
-Parsley-DOM works with actual HTMLElements and DOM Events that flow
-from descendants to parents.
-`;
-
-const callbackParameters = `
-It's also possible to pass callback functions from parents
-to descendants through parameters.
-`;
-
-const counterShellDemoCode = `
-interface CountDisplayParams {
-    index: number,
-    value: number,
+interface CounterState {
+  count: number;
+  banger: Banger;
+  increase: EventListener;
+  decrease: EventListener;
 }
 
-const countDisplay = compose<CountDisplayParams, void>({
-    update: ({params}) => {
-        const modulated = params.index * params.value;
+class Counter implements CounterState {
+  count: number;
+  banger: Banger;
 
-        return draw\`
-            <h4>\$\{params.index\}:</h4>
-            <p>\$\{modulated\}</p>
-        \`;
-    },
-    connect: () => {},
-    disconnect: () => {},
+  constructor(banger: Banger) {
+    this.count = 0;
+    this.banger = banger;
+  }
+  increase = () => {
+    this.count += 1;
+    this.banger.bang();
+  };
+  decrease = () => {
+    this.count -= 1;
+    this.banger.bang();
+  };
+}
+
+const countDisplay = compose<number, void>({
+  connect: () => {},
+  update: ({params: count}) => {
+    return draw`<p>${count} </p>`;
+  },
+  disconnect: () => {},
 })
-`;
 
-const counterWithChildrenDemoCode = `
+const descendants = [
+  countDisplay(0),
+  countDisplay(0),
+  countDisplay(0),
+]
+
+const updateDescendants = (count: number) => {
+  let index = 0;
+  while (index < descendants.length) {
+    const descendant = descendants[index];
+    const value = Math.pow(2, index * count);
+    descendant.update(value);
+
+    index += 1;
+  }
+}
+
 const counterWithDescendants = compose<void, Counter>({
-    update: ({state}) => {
-        return draw\`
-            <h3>\$\{textDescendant\}</h3>
-            <input
-              type="button"
-              value="- 1"
-              @click="\$\{state.decrease\}">
-            </input>
-            <input
-              type="button"
-              value="+ 1"
-              @click="\$\{state.increase\}">
-            </input>
-            <p>counters:</p>
-            <div>
-              \$\{[
-                countDisplay({index: 2, value: state.count}),
-                countDisplay({index: 4, value: state.count}),
-              ]\}
-            </div>
-        \`;
-    },
-    connect: ({banger}) => {
-        return new Counter(banger);
-    },
-    disconnect: () => {},
+  connect: ({banger}) => {
+    return new Counter(banger);
+  },
+  update: ({state}) => {
+    updateDescendants(state.count);
+
+    return draw`
+      <h3>"Counter"</h3>
+      <p>sums:</p>
+      <div>
+        ${descendants}
+      </div>
+      <input
+        type="button"
+        value="- 1"
+        @click="${state.decrease}">
+      </input>
+      <input
+        type="button"
+        value="+ 1"
+        @click="${state.increase}">
+      </input>
+    `;
+  },
+  disconnect: () => {},
 })
 
 const counterWithDescendantsChunk = counterWithDescendants();
-`;
 
+const actualElements = `Parsley-DOM works with actual HTMLElements and DOM Events.`;
+
+const callbackParameters = `It's also possible to pass callback functions from parents
+to descendants through parameters.`;
+
+const counterShellDemoCode = `const countDisplay = compose<number, void>({
+  connect: () => {},
+  update: ({params: count}) => {
+    return draw\`<p>\$\{count\}</p>\`;
+  },
+  disconnect: () => {},
+})`;
+
+const counterWithSavedChildrenDemoCode = `const descendants = [
+  countDisplay(0),
+  countDisplay(0),
+  countDisplay(0),
+]
+
+const updateDescendants = (num: number) => {
+  let index = 0;
+  while (index < descendants.length) {
+    const descendant = descendants[index];
+    const value = Math.pow(2, index + 1) * count;
+    descendant.update(value);
+
+    index += 1;
+  }
+}
+
+const counterWithDescendants = compose<void, Counter>({
+  connect: ({banger}) => {
+    return new Counter(banger);
+  },
+  update: ({state}) => {
+    updateDescendants(state.count);
+
+    return draw\`
+      <h3>\$\{textDescendant\}</h3>
+      <p>sums:</p>
+      <div>
+        \$\{descendants\}
+      </div>
+      <input
+        type="button"
+        value="- 1"
+        @click="\$\{state.decrease\}">
+      </input>
+      <input
+        type="button"
+        value="+ 1"
+        @click="\$\{state.increase\}">
+      </input>
+    \`;
+  },
+  disconnect: () => {},
+})
+
+const counterWithDescendantsChunk = counterWithDescendants();`;
 
 const counterShellCode = codeDemo(counterShellDemoCode);
-const counterWithChildrenCode = codeDemo(counterWithChildrenDemoCode);
+const counterWithSavedChildrenCode = codeDemo(counterWithSavedChildrenDemoCode);
 
-const leverageParamsDemoFactory = compose<void, void>({
-    update: () => {
-      return draw`
-        <h2>Leverage Parameters</h2>
-        <h3>Parameter Flow</h3>
+const paramsDemoFactory = compose<void, void>({
+  connect: () => {},
+  update: () => {
+    return draw`
+      <section>
+        <h2>Parameters and Descendants</h2>
+        <h3>Data Flow</h3>
         <p>
           Parsley-DOM passes parameters from <span>chunk</span>
           to <span>chunk</span> unidirectionally from parent
@@ -81,24 +160,37 @@ const leverageParamsDemoFactory = compose<void, void>({
         </p>
         <p>${actualElements}</p>
         <p>${callbackParameters}</p>
-        <h3>Create a re-usable Chunk</h3>
+        <h3>Re-usable chunks</h3>
         <p>Parameters make chunks more versatile.</p>
         ${[counterShellCode]}
-        <h3>Use Chunks as Descendants</h3>
+        <h3>Reduce redraws</h3>
         <p>
-          Desendants in Parsley-DOM can be strings or an array of
+          Desendants in Parsley-DOM can be a string or an array of
           <span>chunks</span>.
         </p>
         <p>
-            A redraw is triggered when descendant strings or arrays change.
+          A redraw is triggered when descendant strings or arrays change.
         </p>
-        ${[counterWithChildrenCode]}
-      `;
-    },
-    connect: () => {},
-    disconnect: () => {},
-  });
-  
-  const leverageParamsDemo = leverageParamsDemoFactory();
-  
-  export { leverageParamsDemo };
+        <p>
+          Parsley can cache chunks and update only when
+          parts of a chunk change.
+        </p>
+        ${[counterWithSavedChildrenCode]}
+        <p>
+          By giving descendants a place in memory, Parsley-DOM can
+          ensure that only three instances of <code>countDisplay</code> will
+          exist and only three instances of <code>countDisplay</code> will
+          redaw.
+        </p>
+        <h3>Output</h3>
+        <p>The example above will output the following:</p>
+        ${[counterWithDescendantsChunk]}
+      </section>
+    `;
+  },
+  disconnect: () => {},
+});
+
+const paramsDemoChunk = paramsDemoFactory();
+
+export { paramsDemoChunk };

@@ -1422,38 +1422,40 @@ const attach = (parentNode, chunkArray)=>{
         leftNode = chunk1.mount(parentNode, leftNode);
     }
 };
+const whatIsParsley = `\nParsley is a library that creates chunks of interactive XML.\n`;
+const whatIsParsleyDOM = ` Parsley-DOM is an interface to Parsley\nand lets you create chunks of interactive DOM.`;
+const parsleyIsDifferent = `This page is rendered in Parsely-DOM.\nBut it works a little differently than other rendering libraries.`;
+const parsleyIsUnique = `Parsley has no dependencies and it's unique in that\nit isn't concerned with the content rendered.`;
+const parsleyNoDependenices = `It does not rely on DOM Templates\nor JSX and is fully capable of being ported to other languages.`;
+const introDemo = compose({
+    connect: ()=>{
+    },
+    update: ()=>{
+        return draw`\n      <h1>Parsley-DOM</h1>\n      <p>Brian Taylor Vann</p>\n      <section>\n        <h2>Quick Start</h2>\n        <p>${whatIsParsley}</p>\n        <p>${whatIsParsleyDOM}</p>\n      </section>\n    `;
+    },
+    disconnect: ()=>{
+    }
+});
+const outroDemo = compose({
+    connect: ()=>{
+    },
+    update: ()=>{
+        return draw`\n      <section>\n        <h2>Notes</h2>\n        <p>${parsleyIsUnique}</p>\n        <p>${parsleyNoDependenices}</p>\n        <p>${parsleyIsDifferent}</p>  \n      </section>\n    `;
+    },
+    disconnect: ()=>{
+    }
+});
+const introDemoChunk = introDemo();
+const outroDemoChunk = outroDemo();
 const codeDemo = compose({
     update: ({ params  })=>{
-        return draw`\n      <div>\n        <code>\n          <pre>\n            ${params}\n          </pre>\n        </code>\n      </div>\n    `;
+        return draw`\n      <div>\n        <code>\n          <pre>${params}</pre>\n        </code>\n      </div>\n    `;
     },
     connect: ()=>{
     },
     disconnect: ()=>{
     }
 });
-const actualElements = `\nParsley-DOM works with actual HTMLElements and DOM Events that flow\nfrom descendants to parents.\n`;
-const callbackParameters = `\nIt's also possible to pass callback functions from parents\nto descendants through parameters.\n`;
-const counterShellDemoCode = `\ninterface CountDisplayParams {\n    index: number,\n    value: number,\n}\n\nconst countDisplay = compose<CountDisplayParams, void>({\n    update: ({params}) => {\n        const modulated = params.index * params.value;\n\n        return draw\`\n            <h4>\$\{params.index\}:</h4>\n            <p>\$\{modulated\}</p>\n        \`;\n    },\n    connect: () => {},\n    disconnect: () => {},\n})\n`;
-const counterWithChildrenDemoCode = `\nconst counterWithDescendants = compose<void, Counter>({\n    update: ({state}) => {\n        return draw\`\n            <h3>\$\{textDescendant\}</h3>\n            <input\n              type="button"\n              value="- 1"\n              @click="\$\{state.decrease\}">\n            </input>\n            <input\n              type="button"\n              value="+ 1"\n              @click="\$\{state.increase\}">\n            </input>\n            <p>counters:</p>\n            <div>\n              \$\{[\n                countDisplay({index: 2, value: state.count}),\n                countDisplay({index: 4, value: state.count}),\n              ]\}\n            </div>\n        \`;\n    },\n    connect: ({banger}) => {\n        return new Counter(banger);\n    },\n    disconnect: () => {},\n})\n\nconst counterWithDescendantsChunk = counterWithDescendants();\n`;
-const counterShellCode = codeDemo(counterShellDemoCode);
-const counterWithChildrenCode = codeDemo(counterWithChildrenDemoCode);
-const leverageParamsDemoFactory = compose({
-    update: ()=>{
-        return draw`\n        <h2>Leverage Parameters</h2>\n        <h3>Parameter Flow</h3>\n        <p>\n          Parsley-DOM passes parameters from <span>chunk</span>\n          to <span>chunk</span> unidirectionally from parent\n          to descendants.\n        </p>\n        <p>${actualElements}</p>\n        <p>${callbackParameters}</p>\n        <h3>Create a re-usable Chunk</h3>\n        <p>Parameters make chunks more versatile.</p>\n        ${[
-            counterShellCode
-        ]}\n        <h3>Use Chunks as Descendants</h3>\n        <p>\n          Desendants in Parsley-DOM can be strings or an array of\n          <span>chunks</span>.\n        </p>\n        <p>\n            A redraw is triggered when descendant strings or arrays change.\n        </p>\n        ${[
-            counterWithChildrenCode
-        ]}\n      `;
-    },
-    connect: ()=>{
-    },
-    disconnect: ()=>{
-    }
-});
-const leverageParamsDemo = leverageParamsDemoFactory();
-const typescriptSyntax = `\ncompose<Params, State>({\n  update: ({ params, state }) => {\n\n    // render logic\n\n    return draw\`<html>\`;\n  },\n  connect: ({ params, banger }) => {\n\n    // initialization\n\n    return state;\n  },\n  disconnect: ({state}) => {\n\n    // tear down\n\n    return;\n  },\n});\n`;
-const counterStateCode = `\nimport type { Banger } from "../parsley-dom.ts";\n\nclass Counter implements CounterState {\n    count: number;\n    banger: Banger;\n\n    constructor(banger: Banger) {\n        this.count = 0\n        this.banger = banger;\n    }\n    increase = () => {\n        this.count += 1;\n        this.banger.bang();\n    }\n    decrease = () => {\n        this.count -= 1;\n        this.banger.bang();\n    }\n}\n`;
-const counterDemoCode = `\nconst counter = compose<void, Counter>({\n    update: ({state}) => {\n        const count = state.count;\n\n        return draw\`\n            <h3>Counter</h3>\n            <p>sum: \$\{count\}</p>\n            <input\n              type="button"\n              value="- 1"\n              @click="\$\{state.decrease\}">\n            </input>\n            <input\n              type="button"\n              value="+ 1"\n              @click="\$\{state.increase\}">\n            </input>\n        \`;\n    },\n    connect: ({banger}) => {\n        return new Counter(banger);\n    },\n    disconnect: (state) => {\n      console.log(state.count)\n    },\n})\n\nconst counterChunk = counter();\n`;
 class Counter {
     constructor(banger){
         this.count = 0;
@@ -1468,42 +1470,115 @@ class Counter {
         this.banger.bang();
     };
 }
-const counter = compose({
-    update: ({ state  })=>{
-        const count = state.count;
-        return draw`\n        <h3>Counter</h3>\n        <p>sum: ${count}</p>\n        <input\n          type="button"\n          value="- 1"\n          @click="${state.decrease}">\n        </input>\n        <input\n          type="button"\n          value="+ 1"\n          @click="${state.increase}">\n        </input>\n    `;
+const countDisplay = compose({
+    connect: ()=>{
     },
-    connect: ({ banger: banger1  })=>{
-        return new Counter(banger1);
+    update: ({ params: count  })=>{
+        return draw`<p>${count} </p>`;
     },
     disconnect: ()=>{
     }
 });
+const descendants = [
+    countDisplay(0),
+    countDisplay(0),
+    countDisplay(0), 
+];
+const updateDescendants1 = (count)=>{
+    let index = 0;
+    while(index < descendants.length){
+        const descendant = descendants[index];
+        const value = Math.pow(2, index * count);
+        descendant.update(value);
+        index += 1;
+    }
+};
+const counterWithDescendants = compose({
+    connect: ({ banger: banger1  })=>{
+        return new Counter(banger1);
+    },
+    update: ({ state  })=>{
+        updateDescendants1(state.count);
+        return draw`\n      <h3>"Counter"</h3>\n      <p>sums:</p>\n      <div>\n        ${descendants}\n      </div>\n      <input\n        type="button"\n        value="- 1"\n        @click="${state.decrease}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="${state.increase}">\n      </input>\n    `;
+    },
+    disconnect: ()=>{
+    }
+});
+const counterWithDescendantsChunk = counterWithDescendants();
+const actualElements = `Parsley-DOM works with actual HTMLElements and DOM Events.`;
+const callbackParameters = `It's also possible to pass callback functions from parents\nto descendants through parameters.`;
+const counterShellDemoCode = `const countDisplay = compose<number, void>({\n  connect: () => {},\n  update: ({params: count}) => {\n    return draw\`<p>\$\{count\}</p>\`;\n  },\n  disconnect: () => {},\n})`;
+const counterWithSavedChildrenDemoCode = `const descendants = [\n  countDisplay(0),\n  countDisplay(0),\n  countDisplay(0),\n]\n\nconst updateDescendants = (num: number) => {\n  let index = 0;\n  while (index < descendants.length) {\n    const descendant = descendants[index];\n    const value = Math.pow(2, index + 1) * count;\n    descendant.update(value);\n\n    index += 1;\n  }\n}\n\nconst counterWithDescendants = compose<void, Counter>({\n  connect: ({banger}) => {\n    return new Counter(banger);\n  },\n  update: ({state}) => {\n    updateDescendants(state.count);\n\n    return draw\`\n      <h3>\$\{textDescendant\}</h3>\n      <p>sums:</p>\n      <div>\n        \$\{descendants\}\n      </div>\n      <input\n        type="button"\n        value="- 1"\n        @click="\$\{state.decrease\}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="\$\{state.increase\}">\n      </input>\n    \`;\n  },\n  disconnect: () => {},\n})\n\nconst counterWithDescendantsChunk = counterWithDescendants();`;
+const counterShellCode = codeDemo(counterShellDemoCode);
+const counterWithSavedChildrenCode = codeDemo(counterWithSavedChildrenDemoCode);
+const paramsDemoFactory = compose({
+    connect: ()=>{
+    },
+    update: ()=>{
+        return draw`\n      <section>\n        <h2>Parameters and Descendants</h2>\n        <h3>Data Flow</h3>\n        <p>\n          Parsley-DOM passes parameters from <span>chunk</span>\n          to <span>chunk</span> unidirectionally from parent\n          to descendants.\n        </p>\n        <p>${actualElements}</p>\n        <p>${callbackParameters}</p>\n        <h3>Re-usable chunks</h3>\n        <p>Parameters make chunks more versatile.</p>\n        ${[
+            counterShellCode
+        ]}\n        <h3>Reduce redraws</h3>\n        <p>\n          Desendants in Parsley-DOM can be a string or an array of\n          <span>chunks</span>.\n        </p>\n        <p>\n          A redraw is triggered when descendant strings or arrays change.\n        </p>\n        <p>\n          Parsley can cache chunks and update only when\n          parts of a chunk change.\n        </p>\n        ${[
+            counterWithSavedChildrenCode
+        ]}\n        <p>\n          By giving descendants a place in memory, Parsley-DOM can\n          ensure that only three instances of <code>countDisplay</code> will\n          exist and only three instances of <code>countDisplay</code> will\n          redaw.\n        </p>\n        <h3>Output</h3>\n        <p>The example above will output the following:</p>\n        ${[
+            counterWithDescendantsChunk
+        ]}\n      </section>\n    `;
+    },
+    disconnect: ()=>{
+    }
+});
+const paramsDemoChunk = paramsDemoFactory();
+class Counter1 {
+    constructor(banger1){
+        this.count = 0;
+        this.banger = banger1;
+    }
+    increase = ()=>{
+        this.count += 1;
+        this.banger.bang();
+    };
+    decrease = ()=>{
+        this.count -= 1;
+        this.banger.bang();
+    };
+}
+const counter = compose({
+    update: ({ state  })=>{
+        const count = state.count;
+        return draw`\n      <h3>Counter</h3>\n      <p>sum: ${count}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="${state.decrease}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="${state.increase}">\n      </input>\n    `;
+    },
+    connect: ({ banger: banger2  })=>{
+        return new Counter1(banger2);
+    },
+    disconnect: ()=>{
+    }
+});
+const typescriptSyntax = `\ncompose<Params, State>({\n  connect: ({ params, banger }) => {\n\n    // initialization\n\n    return state;\n  },\n  update: ({ params, state }) => {\n\n    // render logic\n\n    return draw\`<html>\`;\n  },\n  disconnect: ({state}) => {\n\n    // tear down\n\n    return;\n  },\n});\n`;
+const counterStateCode = `\nimport type { Banger } from "../parsley-dom.ts";\n\nclass Counter implements CounterState {\n  count: number;\n  banger: Banger;\n\n  constructor(banger: Banger) {\n    this.count = 0\n    this.banger = banger;\n  }\n  increase = () => {\n    this.count += 1;\n    this.banger.bang();\n  }\n  decrease = () => {\n    this.count -= 1;\n    this.banger.bang();\n  }\n}\n`;
+const counterDemoCode = `\nconst counter = compose<void, Counter>({\n  connect: ({banger}) => {\n    return new Counter(banger);\n  },\n  update: ({state}) => {\n    const count = state.count;\n\n    return draw\`\n      <h3>Counter</h3>\n      <p>sum: \$\{count\}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="\$\{state.decrease\}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="\$\{state.increase\}">\n      </input>\n    \`;\n  },\n  disconnect: () => {},\n})\n\nconst counterChunk = counter();\n`;
+const parsleyLifecycle = `Parsley-DOM has a three-part lifecycle:\nconnect, update, disconnect.`;
+const parsleyEventListeners = `Event listeners are added by Parsley-DOM\nto DOM elements through an atmark.`;
+const counterChunk = counter();
 const tsSyntaxChunk = codeDemo(typescriptSyntax);
 const exampleStateCode = codeDemo(counterStateCode);
 const exampleCode = codeDemo(counterDemoCode);
-const counterChunk = counter();
-const leverageStateDemoFactory = compose({
+const stateDemoFactory = compose({
     update: ()=>{
-        return draw`\n      <h2>Leverageing State</h2>\n      <h3>Connect to state</h3>\n      <p>Parsley-DOM has a three-part lifecycle: connect, update, disconnect.</p>\n      <p>\n        These are also the names of the functions that constitute a\n        <span>chunk</span>.\n      </p>\n      <h3>Lifecycle Syntax</h3>\n      <p>${[
+        return draw`\n      <section>\n        <h2>State and Interaction</h2>\n        <h3>Connect</h3>\n        <p>${parsleyLifecycle}</p>\n        <p>\n          These are also the functions that constitute a <span>chunk</span>.\n        </p>\n        <p>\n          State is considered separate from a <span>chunk</span> and\n          Parsley-DOM expects state to be returned from the\n          <code>connect</code> method.\n        </p>\n        <h3>Lifecycle Syntax</h3>\n        <p>${[
             tsSyntaxChunk
-        ]}</p>\n      <p>\n        Parsley has a utility class called <span><code>banger</code></span>.\n        The <span>chunk<span> will rerender when <span><code>banger.bang()</code></span> is called.\n      </p>\n      <p>Event listeners attached to state can use <span><code>banger.bang()</code></span></p>\n      <h3>Counter State Example</h3>\n      ${[
+        ]}</p>\n        <h3>Update a chunk</h3>\n        <p>\n          Parsley has a utility class called <span><code>banger</code></span>.\n          A <span>chunk</span> will redraw when\n          <span><code>banger.bang()</code></span> is called.\n        </p>\n        <p>\n          In the example below, event listeners will use\n          <span><code>banger.bang()</code></span> to update and redraw.\n        </p>\n        ${[
             exampleStateCode
-        ]}\n      <h3>Counter Chunk Factory Code</h3>\n      ${[
+        ]}\n        <h3>Chunk factory</h3>\n        <p>${parsleyEventListeners}</p>\n        <p>\n          Below, an atmark tells Parsley-DOM that <code>@click</code> property\n          is going to be an EventListener.\n        </p>\n        ${[
             exampleCode
-        ]}\n      <h3>Chunk Output</h3>\n      <p>This <span>chunk</span> will output:</h3>\n      ${[
+        ]}\n        <h3>Output</h3>\n        <p>This <span>chunk</span> will output:</h3>\n        ${[
             counterChunk
-        ]}\n    `;
+        ]}\n      </section>\n    `;
     },
     connect: ()=>{
     },
     disconnect: ()=>{
     }
 });
-const leverageStateDemo = leverageStateDemoFactory();
-const helloWorldDemoCode = `\nimport { connect, compose, draw } from "../parsley-dom.ts";\n\nconst helloWorldFactory = compose<void, void>({\n    update: () => {\n        return draw\`\n            <h4>hello, world!</h4>\n        \`;\n    },\n    connect: () => {},\n    disconnect: () => {},\n});\n`;
-const helloWorldChunkDemoCode = `\nconst helloWorldChunk = helloWorldFactory();\n`;
-const helloWorldConnectDemoCode = `\nconst fixture = document.querySelector("#fixture");\nif (fixture !== null) {\n  connect(fixture, [helloWorldChunk]);\n}\n`;
+const stateDemoChunk = stateDemoFactory();
 const helloWorld = compose({
     update: ()=>{
         return draw`\n      <h4>hello, world!</h4>\n    `;
@@ -1513,104 +1588,71 @@ const helloWorld = compose({
     disconnect: ()=>{
     }
 });
+const helloWorldDemoCode = `import { attach, compose, draw } from "../parsley-dom.ts";\n\nconst helloWorldFactory = compose<void, void>({\n    connect: () => {},\n    update: () => {\n      return draw\`\n        <h4>hello, world!</h4>\n      \`;\n    },\n    disconnect: () => {},\n});`;
+const helloWorldChunkDemoCode = `const helloWorldChunk = helloWorldFactory();`;
+const helloWorldAttachDemoCode = `const fixture = document.querySelector("#fixture");\nif (fixture !== null) {\n  attach(fixture, [helloWorldChunk]);\n}`;
+const twoSteps = `There are three broad steps to create chunks of DOM:`;
+const helloWorldChunk = helloWorld();
 const codeDemoChunk = codeDemo(helloWorldDemoCode);
 const codeDemoChunkChunk = codeDemo(helloWorldChunkDemoCode);
-const codeDemoConnectChunk = codeDemo(helloWorldConnectDemoCode);
-const helloWorldChunk = helloWorld();
+const codeDemoConnectChunk = codeDemo(helloWorldAttachDemoCode);
 const helloWorldDemo = compose({
+    connect: ()=>{
+    },
     update: ()=>{
-        return draw`\n      <h2>Hello, world! Example</h2>\n      <h3>Create a Hello, World! Factory</h3>\n      ${[
+        return draw`\n      <section>\n        <h2>Create a Chunk (of DOM)</h2>\n        <p>${twoSteps}</p>\n        <ul>\n          <li>\n            create a <span>Chunk Factory</span> with\n            <span><code>compose</code></span>\n            and <span><code>draw</code></span>\n          </li>\n          <li>\n            use the <span>Chunk Factory</span> to create\n            a <span>chunk</span>\n          </li>\n          <li>\n            append the <span>chunk</span> to the DOM with\n            <span><code>attach</code></span>.\n          </li>\n        </ul>\n        <h3>Example</h3>\n        <h4>Create a Factory</h4>\n        ${[
             codeDemoChunk
-        ]}\n      <h3>Create a Hello, World! Chunk</h3>\n      ${[
+        ]}\n        <h4>Create a Chunk</h4>\n        ${[
             codeDemoChunkChunk
-        ]}\n      <h3>Connect the Hello, World! Chunk to the DOM</h3>\n      ${[
+        ]}\n        <h4>Attach the Chunk to the DOM</h4>\n        ${[
             codeDemoConnectChunk
-        ]}\n      <h3>Hello, World! Output</h3>\n      <p>This <span>chunk</span> will output:</h3>\n      ${[
+        ]}\n        <h4>Output</h4>\n        <p>This <span>chunk</span> will output:</p>\n        ${[
             helloWorldChunk
-        ]}\n    `;
-    },
-    connect: ()=>{
+        ]}\n      </section>\n    `;
     },
     disconnect: ()=>{
     }
 });
-const twoSteps = `There are three broad steps to create chunks of DOM:`;
-const syntaxDemo = compose({
-    update: ()=>{
-        return draw`\n        <h2>Create a Chunk of DOM</h2>\n        <p>${twoSteps}</p>\n        <ul>\n          <li>\n           create a <span>Chunk Factory</span> with <span><code>compose</code></span>\n           and <span><code>draw</code></span>\n          </li>\n          <li>\n           use the <span>Chunk Factory</span> to create a <span>chunk</span> of DOM\n          </li>\n          <li>append the <span>chunk</span> to the DOM with <span><code>attach</code></span></li>\n        </ul>\n      `;
-    },
-    connect: ()=>{
-    },
-    disconnect: ()=>{
-    }
-});
-const syntaxDemoChunk = syntaxDemo();
-const tile = compose({
-    update: ({ params , state  })=>{
-        return draw`\n      <input\n        type="radio"\n        name="${params.radioListName}"\n        id="${params.id}"\n        value="${params.id}"\n        @click="${state.click}"></input>\n        <label\n          *tile\n          for="${params.id}">\n            ${params.id}\n        </label>\n    `;
-    },
-    connect: ({ params , banger: banger1  })=>{
+const helloWorldDemoChunk = helloWorldDemo();
+const articleWithRefs = compose({
+    connect: ({ banger: banger2  })=>{
         return {
             click: (e)=>{
-                const refs = banger1.getReferences();
-                const tile1 = refs?.["tile"];
-                console.log("tile: ");
-                console.log(tile1);
-            }
-        };
-    },
-    disconnect: (state)=>{
-    }
-});
-const colors = [
-    {
-        radioListName: "tilebar",
-        id: "#52ffff",
-        name: "blue"
-    },
-    {
-        radioListName: "tilebar",
-        id: "#2bff64",
-        name: "green"
-    },
-    {
-        radioListName: "tilebar",
-        id: "#b452ff",
-        name: "purple"
-    },
-    {
-        radioListName: "tilebar",
-        id: "#ff52f3",
-        name: "pink"
-    }, 
-];
-const tiles = [];
-for(const colorID in colors){
-    const color = colors[colorID];
-    tiles.push(tile(color));
-}
-const tilebar = compose({
-    update: ({ params , state  })=>{
-        return draw`\n      <h3>Tiles</h3>\n      <div\n        *tilebar\n        @click="${state.click}">\n        <div>\n          ${tiles}\n        </div>\n        <div\n          *underbar\n          style=""></div>\n      </div>\n    `;
-    },
-    connect: ({ banger: banger1  })=>{
-        return {
-            click: (e)=>{
-                const refs = banger1.getReferences();
-                console.log("A click event traveled up to the tilebar!");
+                const refs = banger2.getReferences();
                 console.log(refs);
             }
         };
     },
+    update: ({ state  })=>{
+        return draw`\n      <article\n        *article\n        @click="${state.click}">\n        <h3 *title>Hello, world!</h3>\n        <section *content>\n          <p>Have a wonderful day :D</p>\n        </section>\n        <input\n          *button\n          type="button"\n          value="Get Refs"></input>\n      </article>\n    `;
+    },
     disconnect: ()=>{
     }
 });
+const articleWithRefsDemoCode = `\ninterface ArticleWithRefsState {\n  click: EventListener;\n}\n\nconst articleWithRefs = compose<void, ArticleWithRefsState>({\n  connect: ({ banger }) => {\n    return {\n      click: (e: Event) => {\n        const refs = banger.getReferences();        \n        console.log(refs);\n      },\n    };\n  },\n  update: ({ state }) => {\n    return draw\`\n    <article\n      *article\n      @click="\$\{state.click}\">\n      <h3 *title>Hello, world!</h3>\n      <section *content>\n        <p>Have a wonderful day :D</p>\n      </section>\n      <input *button type="button" value="Get Refs" />\n    </article>\n    \`;\n  },\n  disconnect: () => {},\n});\n`;
+const articleWithRefsChunk = articleWithRefs();
+const articleWithRefsCode = codeDemo(articleWithRefsDemoCode);
+const refsDemoFactory = compose({
+    connect: ()=>{
+    },
+    update: ()=>{
+        return draw`\n      <section>\n        <h2>Chunks and references</h2>\n        <h3>Syntax</h3>\n        <p>\n          Occasionally, a <code>chunk</code> will need to reference\n          HTMLElements rendered in <code>draw</code>.\n        </p>\n        <p>\n          Parsley-DOM declares references in a <span>chunk</span>\n          by using the <code>*</code> symbol on an implicit attribue,\n          similar to pointer syntax in C/C++ and Java.\n        </p>\n        <h3>Example</h3>\n        <p>\n          The example below will create a <code>chunk</code> with references\n          and log them to the console when a button is clicked.\n        </p>\n        ${[
+            articleWithRefsCode
+        ]}\n        <h3>Output</h3>\n        <p>The output of the example above will be:</p>\n        ${[
+            articleWithRefsChunk
+        ]}\n      </section>\n    `;
+    },
+    disconnect: ()=>{
+    }
+});
+const refsDemoChunk = refsDemoFactory();
 const demoContent = [
-    syntaxDemoChunk,
-    helloWorldDemo(),
-    leverageStateDemo,
-    leverageParamsDemo,
-    tilebar(""), 
+    introDemoChunk,
+    helloWorldDemoChunk,
+    stateDemoChunk,
+    paramsDemoChunk,
+    refsDemoChunk,
+    outroDemoChunk, 
 ];
 const mainElement = document.querySelector("main");
 if (mainElement !== null) {

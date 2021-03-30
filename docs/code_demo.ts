@@ -5,9 +5,7 @@ const codeDemo = compose<string, void>({
     return draw`
       <div>
         <code>
-          <pre>
-            ${params}
-          </pre>
+          <pre>${params}</pre>
         </code>
       </div>
     `;

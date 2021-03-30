@@ -1,20 +1,19 @@
 import { attach } from "../src/parsley-dom.ts";
 
-import { leverageParamsDemo } from "./leverage_params.ts";
-import { leverageStateDemo } from "./leverage_state.ts";
+import {introDemoChunk, outroDemoChunk} from "./introduction.ts";
+import { paramsDemoChunk } from "./leverage_params.ts";
+import { stateDemoChunk } from "./leverage_state.ts";
 
-import { helloWorldDemo } from "./hello_world.ts";
-import { syntaxDemoChunk } from "./syntax.ts";
-import { tilebar } from "./tilebar.ts";
+import { helloWorldDemoChunk } from "./hello_world.ts";
+import { refsDemoChunk } from "./leverage_references.ts";
 
 const demoContent = [
-  // intro, show this page.
-  // explain basic syntax.
-  syntaxDemoChunk,
-  helloWorldDemo(),
-  leverageStateDemo,
-  leverageParamsDemo,
-  tilebar(""),
+  introDemoChunk,
+  helloWorldDemoChunk,
+  stateDemoChunk,
+  paramsDemoChunk,
+  refsDemoChunk,
+  outroDemoChunk,
 ];
 
 const mainElement = document.querySelector("main");

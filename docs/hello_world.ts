@@ -1,31 +1,6 @@
 import { compose, draw } from "../src/parsley-dom.ts";
 import { codeDemo } from "./code_demo.ts";
 
-const helloWorldDemoCode = `
-import { connect, compose, draw } from "../parsley-dom.ts";
-
-const helloWorldFactory = compose<void, void>({
-    update: () => {
-        return draw\`
-            <h4>hello, world!</h4>
-        \`;
-    },
-    connect: () => {},
-    disconnect: () => {},
-});
-`;
-
-const helloWorldChunkDemoCode = `
-const helloWorldChunk = helloWorldFactory();
-`
-
-const helloWorldConnectDemoCode = `
-const fixture = document.querySelector("#fixture");
-if (fixture !== null) {
-  connect(fixture, [helloWorldChunk]);
-}
-`;
-
 const helloWorld = compose<void, void>({
   update: () => {
     return draw`
@@ -36,29 +11,71 @@ const helloWorld = compose<void, void>({
   disconnect: () => {},
 });
 
-const codeDemoChunk = codeDemo(helloWorldDemoCode);
-const codeDemoChunkChunk = codeDemo(helloWorldChunkDemoCode);
-const codeDemoConnectChunk = codeDemo(helloWorldConnectDemoCode);
+const helloWorldDemoCode = `import { attach, compose, draw } from "../parsley-dom.ts";
+
+const helloWorldFactory = compose<void, void>({
+    connect: () => {},
+    update: () => {
+      return draw\`
+        <h4>hello, world!</h4>
+      \`;
+    },
+    disconnect: () => {},
+});`;
+
+const helloWorldChunkDemoCode = `const helloWorldChunk = helloWorldFactory();`
+
+const helloWorldAttachDemoCode = `const fixture = document.querySelector("#fixture");
+if (fixture !== null) {
+  attach(fixture, [helloWorldChunk]);
+}`;
+
+const twoSteps = `There are three broad steps to create chunks of DOM:`;
 
 const helloWorldChunk = helloWorld();
 
+const codeDemoChunk = codeDemo(helloWorldDemoCode);
+const codeDemoChunkChunk = codeDemo(helloWorldChunkDemoCode);
+const codeDemoConnectChunk = codeDemo(helloWorldAttachDemoCode);
+
 const helloWorldDemo = compose<void, void>({
+  connect: () => {},
   update: () => {
     return draw`
-      <h2>Hello, world! Example</h2>
-      <h3>Create a Hello, World! Factory</h3>
-      ${[codeDemoChunk]}
-      <h3>Create a Hello, World! Chunk</h3>
-      ${[codeDemoChunkChunk]}
-      <h3>Connect the Hello, World! Chunk to the DOM</h3>
-      ${[codeDemoConnectChunk]}
-      <h3>Hello, World! Output</h3>
-      <p>This <span>chunk</span> will output:</h3>
-      ${[helloWorldChunk]}
+      <section>
+        <h2>Create a Chunk (of DOM)</h2>
+        <p>${twoSteps}</p>
+        <ul>
+          <li>
+            create a <span>Chunk Factory</span> with
+            <span><code>compose</code></span>
+            and <span><code>draw</code></span>
+          </li>
+          <li>
+            use the <span>Chunk Factory</span> to create
+            a <span>chunk</span>
+          </li>
+          <li>
+            append the <span>chunk</span> to the DOM with
+            <span><code>attach</code></span>.
+          </li>
+        </ul>
+        <h3>Example</h3>
+        <h4>Create a Factory</h4>
+        ${[codeDemoChunk]}
+        <h4>Create a Chunk</h4>
+        ${[codeDemoChunkChunk]}
+        <h4>Attach the Chunk to the DOM</h4>
+        ${[codeDemoConnectChunk]}
+        <h4>Output</h4>
+        <p>This <span>chunk</span> will output:</p>
+        ${[helloWorldChunk]}
+      </section>
     `;
   },
-  connect: () => {},
   disconnect: () => {},
 });
 
-export { helloWorldDemo };
+const helloWorldDemoChunk = helloWorldDemo();
+
+export { helloWorldDemoChunk };
