@@ -1,6 +1,6 @@
-import type { Banger } from "../src/parsley-dom.ts";
+import type { Banger } from "../../v0.1/src/parsley-dom.ts";
 
-import { compose, draw } from "../src/parsley-dom.ts";
+import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 import { codeDemo } from "./code_demo.ts";
 
 interface CounterState {
@@ -83,10 +83,7 @@ const counterWithDescendants = compose<void, Counter>({
 
 const counterWithDescendantsChunk = counterWithDescendants();
 
-const actualElements = `Parsley-DOM works with actual HTMLElements and DOM Events.`;
-
-const callbackParameters = `It's also possible to pass callback functions from parents
-to descendants through parameters.`;
+const parsleyURL = "https://github.com/taylor-vann/parsley"
 
 const counterShellDemoCode = `const countDisplay = compose<number, void>({
   connect: () => {},
@@ -154,26 +151,19 @@ const paramsDemoFactory = compose<void, void>({
         <h2>Parameters and Descendants</h2>
         <h3>Data Flow</h3>
         <p>
-          Parsley-DOM passes parameters from <span>chunk</span>
-          to <span>chunk</span> unidirectionally from parent
+          Parsley-DOM passes parameters unidirectionally from 
+          <span>chunk</span> to <span>chunk</span>, from parent
           to descendants.
         </p>
-        <p>${actualElements}</p>
-        <p>${callbackParameters}</p>
         <h3>Re-usable chunks</h3>
         <p>Parameters make chunks more versatile.</p>
         ${[counterShellCode]}
         <h3>Reduce redraws</h3>
         <p>
-          Desendants in Parsley-DOM can be a string or an array of
-          <span>chunks</span>.
-        </p>
-        <p>
-          A redraw is triggered when descendant strings or arrays change.
-        </p>
-        <p>
-          Parsley can cache chunks and update only when
-          parts of a chunk change.
+          Desendants can be strings or <span>chunk</span> arrays.
+          Redraws are triggered when descendants change. However,
+          <a target="_blank" href="${parsleyURL}">Parsley</a>
+          will cache renders and only update when necessary.
         </p>
         ${[counterWithSavedChildrenCode]}
         <p>

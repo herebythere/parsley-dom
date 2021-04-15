@@ -1,7 +1,7 @@
 // brian taylor vann
 // compose tests
 
-import { Chunk } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/chunk/chunk.ts";
+import { Chunk } from "../deps.ts";
 import { compose, draw } from "./compose.ts";
 
 const title = "parsely-dom:composer";

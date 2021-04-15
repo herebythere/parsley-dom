@@ -1,4 +1,4 @@
-import { compose, draw } from "../src/parsley-dom.ts";
+import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 import { codeDemo } from "./code_demo.ts";
 
 const helloWorld = compose<void, void>({
@@ -10,6 +10,8 @@ const helloWorld = compose<void, void>({
   connect: () => {},
   disconnect: () => {},
 });
+
+const parsleyURL = "https://github.com/taylor-vann/parsley"
 
 const helloWorldDemoCode = `import { attach, compose, draw } from "../parsley-dom.ts";
 
@@ -30,8 +32,6 @@ if (fixture !== null) {
   attach(fixture, [helloWorldChunk]);
 }`;
 
-const twoSteps = `There are three broad steps to create chunks of DOM:`;
-
 const helloWorldChunk = helloWorld();
 
 const codeDemoChunk = codeDemo(helloWorldDemoCode);
@@ -42,9 +42,13 @@ const helloWorldDemo = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <section>
-        <h2>Create a Chunk (of DOM)</h2>
-        <p>${twoSteps}</p>
+       <section>
+        <h2>Get chunky</h2>
+        <p>
+          Parsley-DOM creates chunks of interactive DOM with
+          <a href="${parsleyURL}" target="_blank">Parsley</a>
+          in three broad steps.
+        </p>        
         <ul>
           <li>
             create a <span>Chunk Factory</span> with
@@ -52,12 +56,12 @@ const helloWorldDemo = compose<void, void>({
             and <span><code>draw</code></span>
           </li>
           <li>
-            use the <span>Chunk Factory</span> to create
-            a <span>chunk</span>
+            create a <span>chunk</span> with the
+            <span>Chunk Factory</span>
           </li>
           <li>
-            append the <span>chunk</span> to the DOM with
-            <span><code>attach</code></span>.
+            append the <span>chunk</span> with
+            <span><code>attach</code></span>
           </li>
         </ul>
         <h3>Example</h3>

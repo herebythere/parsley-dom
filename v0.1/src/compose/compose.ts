@@ -4,10 +4,10 @@
 import type {
   Chunker,
   Draw,
-} from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/parsley.ts";
+} from "../deps.ts";
 import type { DocumentNode, Attributes } from "../hooks/hooks.ts";
 
-import { Chunk } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/parsley.ts";
+import { Chunk } from "../deps.ts";
 import { hooks } from "../hooks/hooks.ts";
 
 type ContextFactory<N, A, P, S> = (params: P) => Chunk<N, A, P, S>;

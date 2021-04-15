@@ -1,12 +1,4 @@
-import { compose, draw } from "../src/parsley-dom.ts";
-import { codeDemo } from "./code_demo.ts";
-
-const whatIsParsley = `
-Parsley is a library that creates chunks of interactive XML.
-`;
-
-const whatIsParsleyDOM = ` Parsley-DOM is an interface to Parsley
-and lets you create chunks of interactive DOM.`;
+import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 
 const parsleyIsDifferent = `This page is rendered in Parsely-DOM.
 But it works a little differently than other rendering libraries.`
@@ -22,12 +14,10 @@ const introDemo = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <h1>Parsley-DOM</h1>
-      <p>Brian Taylor Vann</p>
       <section>
+        <h1>PARSLEY-DOM</h1>
         <h2>Quick Start</h2>
-        <p>${whatIsParsley}</p>
-        <p>${whatIsParsleyDOM}</p>
+        <p>Brian Taylor Vann</p>
       </section>
     `;
   },

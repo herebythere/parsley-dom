@@ -1,28 +1,3 @@
-class ChunkBase {
-    mount(parentNode, leftNode) {
-        return;
-    }
-    unmount() {
-    }
-    bang() {
-    }
-    getReferences() {
-        return;
-    }
-    update(p) {
-    }
-    disconnect() {
-    }
-    getSiblings() {
-        return [];
-    }
-    getEffect() {
-        return {
-            quality: "UNMOUNTED",
-            timestamp: performance.now()
-        };
-    }
-}
 const copy1 = (position)=>{
     return {
         ...position
@@ -207,7 +182,8 @@ const EXPLICIT_ATTRIBUTE = "EXPLICIT_ATTRIBUTE";
 const INJECTED_ATTRIBUTE = "INJECTED_ATTRIBUTE";
 const BREAK_RUNES1 = {
     " ": true,
-    "\n": true
+    "\n": true,
+    "/": true
 };
 const getAttributeName = (template, vectorBounds)=>{
     let positionChar = getCharAtPosition(template, vectorBounds.origin);
@@ -413,7 +389,7 @@ const appendNodeAttributeIntegrals = ({ integrals , template , chunk ,  })=>{
     }
     return integrals;
 };
-const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
+const appendNodeIntegrals = ({ kind , integrals , template , chunk ,  })=>{
     const innerXmlBounds = copy2(chunk.vector);
     incrementOrigin(template, innerXmlBounds);
     decrementTarget(template, innerXmlBounds);
@@ -422,7 +398,7 @@ const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
         return;
     }
     integrals.push({
-        kind: "NODE",
+        kind,
         tagNameVector
     });
     const followingVector = createFollowingVector(template, tagNameVector);
@@ -439,28 +415,12 @@ const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
     });
     return integrals;
 };
-const appendSelfClosingNodeIntegrals = ({ integrals , template , chunk ,  })=>{
-    const innerXmlBounds = copy2(chunk.vector);
-    incrementOrigin(template, innerXmlBounds);
-    decrementTarget(template, innerXmlBounds);
-    decrementTarget(template, innerXmlBounds);
-    const tagNameVector = crawlForTagName(template, innerXmlBounds);
-    if (tagNameVector === undefined) {
-        return;
-    }
-    integrals.push({
-        kind: "SELF_CLOSING_NODE",
-        tagNameVector
-    });
-    return integrals;
-};
 const appendCloseNodeIntegrals = ({ integrals , template , chunk ,  })=>{
     const innerXmlBounds = copy2(chunk.vector);
     incrementOrigin(template, innerXmlBounds);
     incrementOrigin(template, innerXmlBounds);
     decrementTarget(template, innerXmlBounds);
-    let tagNameVector = copy2(innerXmlBounds);
-    tagNameVector = crawlForTagName(template, tagNameVector);
+    const tagNameVector = crawlForTagName(template, copy2(innerXmlBounds));
     if (tagNameVector === undefined) {
         return;
     }
@@ -547,6 +507,7 @@ const buildIntegrals = ({ template , skeleton  })=>{
         }
         if (nodeType === "OPEN_NODE_CONFIRMED") {
             appendNodeIntegrals({
+                kind: "NODE",
                 integrals,
                 template,
                 chunk
@@ -567,7 +528,8 @@ const buildIntegrals = ({ template , skeleton  })=>{
             });
         }
         if (nodeType === "SELF_CLOSING_NODE_CONFIRMED") {
-            appendSelfClosingNodeIntegrals({
+            appendNodeIntegrals({
+                kind: "SELF_CLOSING_NODE",
                 integrals,
                 template,
                 chunk
@@ -948,9 +910,6 @@ const appendInjectedAttribute = ({ hooks , rs , integral ,  })=>{
     }
     const { injectionID  } = integral;
     const value = rs.template.injections[injectionID];
-    if (value instanceof ChunkBase) {
-        return;
-    }
     rs.attributes[injectionID] = {
         kind: "ATTRIBUTE",
         params: {
@@ -1042,14 +1001,21 @@ const buildRender = ({ hooks , template , integrals  })=>{
     }
     return rs;
 };
+const builds = {
+};
 const buildRenderStructure = (hooks, template)=>{
-    const skeleton = buildSkeleton(template);
-    const integrals = buildIntegrals({
-        template,
-        skeleton
-    });
+    const cacheable = template.templateArray.join();
+    let integrals = builds[cacheable];
+    if (integrals === undefined) {
+        const skeleton = buildSkeleton(template);
+        integrals = buildIntegrals({
+            template,
+            skeleton
+        });
+        builds[cacheable] = integrals;
+    }
     const render = buildRender({
-        hooks: hooks,
+        hooks,
         template,
         integrals
     });
@@ -1066,9 +1032,8 @@ class Banger {
         return this.chunk.getReferences();
     }
 }
-class Chunk extends ChunkBase {
+class Chunk {
     constructor(baseParams){
-        super();
         this.banger = new Banger(this);
         this.hooks = baseParams.hooks;
         this.chunker = baseParams.chunker;
@@ -1422,8 +1387,6 @@ const attach = (parentNode, chunkArray)=>{
         leftNode = chunk1.mount(parentNode, leftNode);
     }
 };
-const whatIsParsley = `\nParsley is a library that creates chunks of interactive XML.\n`;
-const whatIsParsleyDOM = ` Parsley-DOM is an interface to Parsley\nand lets you create chunks of interactive DOM.`;
 const parsleyIsDifferent = `This page is rendered in Parsely-DOM.\nBut it works a little differently than other rendering libraries.`;
 const parsleyIsUnique = `Parsley has no dependencies and it's unique in that\nit isn't concerned with the content rendered.`;
 const parsleyNoDependenices = `It does not rely on DOM Templates\nor JSX and is fully capable of being ported to other languages.`;
@@ -1431,7 +1394,7 @@ const introDemo = compose({
     connect: ()=>{
     },
     update: ()=>{
-        return draw`\n      <h1>Parsley-DOM</h1>\n      <p>Brian Taylor Vann</p>\n      <section>\n        <h2>Quick Start</h2>\n        <p>${whatIsParsley}</p>\n        <p>${whatIsParsleyDOM}</p>\n      </section>\n    `;
+        return draw`\n      <section>\n        <h1>PARSLEY-DOM</h1>\n        <h2>Quick Start</h2>\n        <p>Brian Taylor Vann</p>\n      </section>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1449,7 +1412,7 @@ const introDemoChunk = introDemo();
 const outroDemoChunk = outroDemo();
 const codeDemo = compose({
     update: ({ params  })=>{
-        return draw`\n      <div>\n        <code>\n          <pre>${params}</pre>\n        </code>\n      </div>\n    `;
+        return draw`\n      <code>\n        <pre>${params}</pre>\n      </code>\n    `;
     },
     connect: ()=>{
     },
@@ -1505,8 +1468,7 @@ const counterWithDescendants = compose({
     }
 });
 const counterWithDescendantsChunk = counterWithDescendants();
-const actualElements = `Parsley-DOM works with actual HTMLElements and DOM Events.`;
-const callbackParameters = `It's also possible to pass callback functions from parents\nto descendants through parameters.`;
+const parsleyURL = "https://github.com/taylor-vann/parsley";
 const counterShellDemoCode = `const countDisplay = compose<number, void>({\n  connect: () => {},\n  update: ({params: count}) => {\n    return draw\`<p>\$\{count\}</p>\`;\n  },\n  disconnect: () => {},\n})`;
 const counterWithSavedChildrenDemoCode = `const descendants = [\n  countDisplay(0),\n  countDisplay(0),\n  countDisplay(0),\n]\n\nconst updateDescendants = (num: number) => {\n  let index = 0;\n  while (index < descendants.length) {\n    const descendant = descendants[index];\n    const value = Math.pow(2, index + 1) * count;\n    descendant.update(value);\n\n    index += 1;\n  }\n}\n\nconst counterWithDescendants = compose<void, Counter>({\n  connect: ({banger}) => {\n    return new Counter(banger);\n  },\n  update: ({state}) => {\n    updateDescendants(state.count);\n\n    return draw\`\n      <h3>\$\{textDescendant\}</h3>\n      <p>sums:</p>\n      <div>\n        \$\{descendants\}\n      </div>\n      <input\n        type="button"\n        value="- 1"\n        @click="\$\{state.decrease\}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="\$\{state.increase\}">\n      </input>\n    \`;\n  },\n  disconnect: () => {},\n})\n\nconst counterWithDescendantsChunk = counterWithDescendants();`;
 const counterShellCode = codeDemo(counterShellDemoCode);
@@ -1515,9 +1477,9 @@ const paramsDemoFactory = compose({
     connect: ()=>{
     },
     update: ()=>{
-        return draw`\n      <section>\n        <h2>Parameters and Descendants</h2>\n        <h3>Data Flow</h3>\n        <p>\n          Parsley-DOM passes parameters from <span>chunk</span>\n          to <span>chunk</span> unidirectionally from parent\n          to descendants.\n        </p>\n        <p>${actualElements}</p>\n        <p>${callbackParameters}</p>\n        <h3>Re-usable chunks</h3>\n        <p>Parameters make chunks more versatile.</p>\n        ${[
+        return draw`\n      <section>\n        <h2>Parameters and Descendants</h2>\n        <h3>Data Flow</h3>\n        <p>\n          Parsley-DOM passes parameters unidirectionally from \n          <span>chunk</span> to <span>chunk</span>, from parent\n          to descendants.\n        </p>\n        <h3>Re-usable chunks</h3>\n        <p>Parameters make chunks more versatile.</p>\n        ${[
             counterShellCode
-        ]}\n        <h3>Reduce redraws</h3>\n        <p>\n          Desendants in Parsley-DOM can be a string or an array of\n          <span>chunks</span>.\n        </p>\n        <p>\n          A redraw is triggered when descendant strings or arrays change.\n        </p>\n        <p>\n          Parsley can cache chunks and update only when\n          parts of a chunk change.\n        </p>\n        ${[
+        ]}\n        <h3>Reduce redraws</h3>\n        <p>\n          Desendants can be strings or <span>chunk</span> arrays.\n          Redraws are triggered when descendants change. However,\n          <a target="_blank" href="${parsleyURL}">Parsley</a>\n          will cache renders and only update when necessary.\n        </p>\n        ${[
             counterWithSavedChildrenCode
         ]}\n        <p>\n          By giving descendants a place in memory, Parsley-DOM can\n          ensure that only three instances of <code>countDisplay</code> will\n          exist and only three instances of <code>countDisplay</code> will\n          redaw.\n        </p>\n        <h3>Output</h3>\n        <p>The example above will output the following:</p>\n        ${[
             counterWithDescendantsChunk
@@ -1544,7 +1506,7 @@ class Counter1 {
 const counter = compose({
     update: ({ state  })=>{
         const count = state.count;
-        return draw`\n      <h3>Counter</h3>\n      <p>sum: ${count}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="${state.decrease}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="${state.increase}">\n      </input>\n    `;
+        return draw`\n      <h3>Counter</h3>\n      <p>sum: ${count}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="${state.decrease}"/>\n      <input\n        type="button"\n        value="+ 1"\n        @click="${state.increase}"/>\n    `;
     },
     connect: ({ banger: banger2  })=>{
         return new Counter1(banger2);
@@ -1552,9 +1514,9 @@ const counter = compose({
     disconnect: ()=>{
     }
 });
-const typescriptSyntax = `\ncompose<Params, State>({\n  connect: ({ params, banger }) => {\n\n    // initialization\n\n    return state;\n  },\n  update: ({ params, state }) => {\n\n    // render logic\n\n    return draw\`<html>\`;\n  },\n  disconnect: ({state}) => {\n\n    // tear down\n\n    return;\n  },\n});\n`;
-const counterStateCode = `\nimport type { Banger } from "../parsley-dom.ts";\n\nclass Counter implements CounterState {\n  count: number;\n  banger: Banger;\n\n  constructor(banger: Banger) {\n    this.count = 0\n    this.banger = banger;\n  }\n  increase = () => {\n    this.count += 1;\n    this.banger.bang();\n  }\n  decrease = () => {\n    this.count -= 1;\n    this.banger.bang();\n  }\n}\n`;
-const counterDemoCode = `\nconst counter = compose<void, Counter>({\n  connect: ({banger}) => {\n    return new Counter(banger);\n  },\n  update: ({state}) => {\n    const count = state.count;\n\n    return draw\`\n      <h3>Counter</h3>\n      <p>sum: \$\{count\}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="\$\{state.decrease\}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="\$\{state.increase\}">\n      </input>\n    \`;\n  },\n  disconnect: () => {},\n})\n\nconst counterChunk = counter();\n`;
+const typescriptSyntax = `compose<Params, State>({\n  connect: ({ params, banger }) => {\n    // initialization\n    return state;\n  },\n  update: ({ params, state }) => {\n    // render logic\n    return draw\`<html>\`;\n  },\n  disconnect: ({state}) => {\n    // tear down\n  },\n});\n`;
+const counterStateCode = `import type { Banger } from "../parsley-dom.ts";\n\nclass Counter implements CounterState {\n  count: number;\n  banger: Banger;\n\n  constructor(banger: Banger) {\n    this.count = 0\n    this.banger = banger;\n  }\n  increase = () => {\n    this.count += 1;\n    this.banger.bang();\n  }\n  decrease = () => {\n    this.count -= 1;\n    this.banger.bang();\n  }\n}\n`;
+const counterDemoCode = `const counter = compose<void, Counter>({\n  connect: ({banger}) => {\n    return new Counter(banger);\n  },\n  update: ({state}) => {\n    return draw\`\n      <h3>Counter</h3>\n      <p>sum: \$\{state.count\}</p>\n      <input\n        type="button"\n        value="- 1"\n        @click="\$\{state.decrease\}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="\$\{state.increase\}">\n      </input>\n    \`;\n  },\n  disconnect: () => {},\n})\n\nconst counterChunk = counter();\n`;
 const parsleyLifecycle = `Parsley-DOM has a three-part lifecycle:\nconnect, update, disconnect.`;
 const parsleyEventListeners = `Event listeners are added by Parsley-DOM\nto DOM elements through an atmark.`;
 const counterChunk = counter();
@@ -1563,13 +1525,13 @@ const exampleStateCode = codeDemo(counterStateCode);
 const exampleCode = codeDemo(counterDemoCode);
 const stateDemoFactory = compose({
     update: ()=>{
-        return draw`\n      <section>\n        <h2>State and Interaction</h2>\n        <h3>Connect</h3>\n        <p>${parsleyLifecycle}</p>\n        <p>\n          These are also the functions that constitute a <span>chunk</span>.\n        </p>\n        <p>\n          State is considered separate from a <span>chunk</span> and\n          Parsley-DOM expects state to be returned from the\n          <code>connect</code> method.\n        </p>\n        <h3>Lifecycle Syntax</h3>\n        <p>${[
+        return draw`\n      <section>\n        <h2>Interact with state</h2>\n        <h3>Connect</h3>\n        <p>${parsleyLifecycle}</p>\n        <p>\n          These are also the functions that constitute a <span>chunk</span>.\n        </p>\n        <p>\n          State is considered separate from a <span>chunk</span> and\n          Parsley-DOM expects state to be returned from the\n          <code>connect</code> method.\n        </p>\n        <h3>Lifecycle Syntax</h3>\n        ${[
             tsSyntaxChunk
-        ]}</p>\n        <h3>Update a chunk</h3>\n        <p>\n          Parsley has a utility class called <span><code>banger</code></span>.\n          A <span>chunk</span> will redraw when\n          <span><code>banger.bang()</code></span> is called.\n        </p>\n        <p>\n          In the example below, event listeners will use\n          <span><code>banger.bang()</code></span> to update and redraw.\n        </p>\n        ${[
+        ]}\n        <h3>Update a chunk</h3>\n        <p>\n          Parsley has a utility class called <span><code>banger</code></span>.\n          A <span>chunk</span> will redraw when\n          <span><code>banger.bang()</code></span> is called.\n        </p>\n        <p>\n          In the example below, event listeners will use\n          <span><code>banger.bang()</code></span> to update and redraw.\n        </p>\n        ${[
             exampleStateCode
         ]}\n        <h3>Chunk factory</h3>\n        <p>${parsleyEventListeners}</p>\n        <p>\n          Below, an atmark tells Parsley-DOM that <code>@click</code> property\n          is going to be an EventListener.\n        </p>\n        ${[
             exampleCode
-        ]}\n        <h3>Output</h3>\n        <p>This <span>chunk</span> will output:</h3>\n        ${[
+        ]}\n        <h3>Output</h3>\n        <p>This <span>chunk</span> will output:</p>\n        ${[
             counterChunk
         ]}\n      </section>\n    `;
     },
@@ -1588,10 +1550,10 @@ const helloWorld = compose({
     disconnect: ()=>{
     }
 });
+const parsleyURL1 = "https://github.com/taylor-vann/parsley";
 const helloWorldDemoCode = `import { attach, compose, draw } from "../parsley-dom.ts";\n\nconst helloWorldFactory = compose<void, void>({\n    connect: () => {},\n    update: () => {\n      return draw\`\n        <h4>hello, world!</h4>\n      \`;\n    },\n    disconnect: () => {},\n});`;
 const helloWorldChunkDemoCode = `const helloWorldChunk = helloWorldFactory();`;
 const helloWorldAttachDemoCode = `const fixture = document.querySelector("#fixture");\nif (fixture !== null) {\n  attach(fixture, [helloWorldChunk]);\n}`;
-const twoSteps = `There are three broad steps to create chunks of DOM:`;
 const helloWorldChunk = helloWorld();
 const codeDemoChunk = codeDemo(helloWorldDemoCode);
 const codeDemoChunkChunk = codeDemo(helloWorldChunkDemoCode);
@@ -1600,7 +1562,7 @@ const helloWorldDemo = compose({
     connect: ()=>{
     },
     update: ()=>{
-        return draw`\n      <section>\n        <h2>Create a Chunk (of DOM)</h2>\n        <p>${twoSteps}</p>\n        <ul>\n          <li>\n            create a <span>Chunk Factory</span> with\n            <span><code>compose</code></span>\n            and <span><code>draw</code></span>\n          </li>\n          <li>\n            use the <span>Chunk Factory</span> to create\n            a <span>chunk</span>\n          </li>\n          <li>\n            append the <span>chunk</span> to the DOM with\n            <span><code>attach</code></span>.\n          </li>\n        </ul>\n        <h3>Example</h3>\n        <h4>Create a Factory</h4>\n        ${[
+        return draw`\n       <section>\n        <h2>Get chunky</h2>\n        <p>\n          Parsley-DOM creates chunks of interactive DOM with\n          <a href="${parsleyURL1}" target="_blank">Parsley</a>\n          in three broad steps.\n        </p>        \n        <ul>\n          <li>\n            create a <span>Chunk Factory</span> with\n            <span><code>compose</code></span>\n            and <span><code>draw</code></span>\n          </li>\n          <li>\n            create a <span>chunk</span> with the\n            <span>Chunk Factory</span>\n          </li>\n          <li>\n            append the <span>chunk</span> with\n            <span><code>attach</code></span>\n          </li>\n        </ul>\n        <h3>Example</h3>\n        <h4>Create a Factory</h4>\n        ${[
             codeDemoChunk
         ]}\n        <h4>Create a Chunk</h4>\n        ${[
             codeDemoChunkChunk
@@ -1629,7 +1591,7 @@ const articleWithRefs = compose({
     disconnect: ()=>{
     }
 });
-const articleWithRefsDemoCode = `\ninterface ArticleWithRefsState {\n  click: EventListener;\n}\n\nconst articleWithRefs = compose<void, ArticleWithRefsState>({\n  connect: ({ banger }) => {\n    return {\n      click: (e: Event) => {\n        const refs = banger.getReferences();        \n        console.log(refs);\n      },\n    };\n  },\n  update: ({ state }) => {\n    return draw\`\n    <article\n      *article\n      @click="\$\{state.click}\">\n      <h3 *title>Hello, world!</h3>\n      <section *content>\n        <p>Have a wonderful day :D</p>\n      </section>\n      <input *button type="button" value="Get Refs" />\n    </article>\n    \`;\n  },\n  disconnect: () => {},\n});\n`;
+const articleWithRefsDemoCode = `interface ArticleWithRefsState {\n  click: EventListener;\n}\n\nconst articleWithRefs = compose<void, ArticleWithRefsState>({\n  connect: ({ banger }) => {\n    return {\n      click: (e: Event) => {\n        const refs = banger.getReferences();        \n        console.log(refs);\n      },\n    };\n  },\n  update: ({ state }) => {\n    return draw\`\n    <article\n      *article\n      @click="\$\{state.click}\">\n      <h3 *title>Hello, world!</h3>\n      <section *content>\n        <p>Have a wonderful day :D</p>\n      </section>\n      <input\n        *button\n        type="button"\n        value="Get Refs"></input>\n    </article>\n    \`;\n  },\n  disconnect: () => {},\n});\n`;
 const articleWithRefsChunk = articleWithRefs();
 const articleWithRefsCode = codeDemo(articleWithRefsDemoCode);
 const refsDemoFactory = compose({

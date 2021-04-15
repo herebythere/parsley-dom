@@ -1,5 +1,5 @@
 import { codeDemo } from "./code_demo.ts";
-import { compose, draw } from "../src/parsley-dom.ts";
+import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 
 interface ArticleWithRefsState {
   click: EventListener;
@@ -33,8 +33,7 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   disconnect: () => {},
 });
 
-const articleWithRefsDemoCode = `
-interface ArticleWithRefsState {
+const articleWithRefsDemoCode = `interface ArticleWithRefsState {
   click: EventListener;
 }
 
