@@ -4,23 +4,22 @@ import { codeDemo } from "./code_demo.ts";
 const helloWorld = compose<void, void>({
   update: () => {
     return draw`
-      <h4>hello, world!</h4>
+      <h3>hello, world!</h3>
     `;
   },
   connect: () => {},
   disconnect: () => {},
 });
 
-const parsleyURL = "https://github.com/taylor-vann/parsley"
+const parsleyURL = "https://github.com/taylor-vann/parsley";
 
-const helloWorldDemoCode = `import { attach, compose, draw } from "../parsley-dom.ts";
+const helloWorldDemoCode = `// typescript
+import { attach, compose, draw } from "../parsley-dom.ts";
 
 const helloWorldFactory = compose<void, void>({
     connect: () => {},
     update: () => {
-      return draw\`
-        <h4>hello, world!</h4>
-      \`;
+      return draw\`<h4>hello, world!</h4>\`;
     },
     disconnect: () => {},
 });`;
@@ -42,38 +41,38 @@ const helloWorldDemo = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-       <section>
-        <h2>Get chunky</h2>
+       <section id="chunk">
+        <h2>Chunk</h2>
         <p>
           Parsley-DOM creates chunks of interactive DOM with
           <a href="${parsleyURL}" target="_blank">Parsley</a>
           in three broad steps.
         </p>        
-        <ul>
-          <li>
-            create a <span>Chunk Factory</span> with
-            <span><code>compose</code></span>
-            and <span><code>draw</code></span>
-          </li>
-          <li>
-            create a <span>chunk</span> with the
-            <span>Chunk Factory</span>
-          </li>
-          <li>
-            append the <span>chunk</span> with
-            <span><code>attach</code></span>
-          </li>
-        </ul>
-        <h3>Example</h3>
-        <h4>Create a Factory</h4>
+        <h3>1) Build a Factory</h3>
+        <p>
+          Use <span><code>compose</code></span>
+          and <span><code>draw</code></span> to
+          create a <span>Chunk Factory</span>.
+        </p>
         ${[codeDemoChunk]}
-        <h4>Create a Chunk</h4>
+        <h3>2) Make a chunk</h3>
+        <p>
+          Use the <span>Chunk Factory</span> to create
+          a <span>Chunk</span>.
+        </p>
         ${[codeDemoChunkChunk]}
-        <h4>Attach the Chunk to the DOM</h4>
+        <h3>3) Attach to DOM</h3>
+        <p>
+          Append the <span>Chunk</span> with
+          <span><code>attach</code></span>.
+        </p>
         ${[codeDemoConnectChunk]}
-        <h4>Output</h4>
-        <p>This <span>chunk</span> will output:</p>
-        ${[helloWorldChunk]}
+        <h3>Chunk out</h3>
+        <p>
+          The <span><code>helloWorldChunk</code></span>
+          will output:
+        </p>
+        <div class="hello_world__demo">${[helloWorldChunk]}</div>
       </section>
     `;
   },

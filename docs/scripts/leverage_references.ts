@@ -21,7 +21,8 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
         @click="${state.click}">
         <h3 *title>Hello, world!</h3>
         <section *content>
-          <p>Have a wonderful day :D</p>
+          <p>Press <code>ctl alt i</code>.</p>
+          <p>Then click this button!</p>
         </section>
         <input
           *button
@@ -33,7 +34,8 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   disconnect: () => {},
 });
 
-const articleWithRefsDemoCode = `interface ArticleWithRefsState {
+const articleWithRefsDemoCode = `// typescript
+interface ArticleWithRefsState {
   click: EventListener;
 }
 
@@ -48,23 +50,18 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   },
   update: ({ state }) => {
     return draw\`
-    <article
-      *article
-      @click="\$\{state.click}\">
+    <article *article @click="\$\{state.click}\">
       <h3 *title>Hello, world!</h3>
       <section *content>
-        <p>Have a wonderful day :D</p>
+        <p>Press <code>ctl alt i</code>.</p>
+        <p>Then click this button!</p>
       </section>
-      <input
-        *button
-        type="button"
-        value="Get Refs"></input>
+      <input *button type="button" value="Get Refs"></input>
     </article>
     \`;
   },
   disconnect: () => {},
-});
-`;
+});`;
 
 const articleWithRefsChunk = articleWithRefs();
 const articleWithRefsCode = codeDemo(articleWithRefsDemoCode);
@@ -73,26 +70,25 @@ const refsDemoFactory = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <section>
-        <h2>Chunks and references</h2>
-        <h3>Syntax</h3>
+      <section id="reference">
+        <h2>Reference</h2>
+        <h3>Pointers</h3>
         <p>
-          Occasionally, a <code>chunk</code> will need to reference
-          HTMLElements rendered in <code>draw</code>.
+          A <code>chunk</code> might need to reference
+          rendered HTMLElements. Parsley-DOM declares references
+          with an <code>*</code> asterisk prefix on an attribue.
+          It's visually similar to pointer syntax in C/C++.
         </p>
         <p>
-          Parsley-DOM declares references in a <span>chunk</span>
-          by using the <code>*</code> symbol on an implicit attribue,
-          similar to pointer syntax in C/C++ and Java.
+          Parsley-DOM uses <code>banger.getReferences()</code> to return
+          an object with the attributes as keys and the elements as values.
         </p>
-        <h3>Example</h3>
         <p>
-          The example below will create a <code>chunk</code> with references
-          and log them to the console when a button is clicked.
+          The example below will log references on <code>state.click</code>.
         </p>
         ${[articleWithRefsCode]}
-        <h3>Output</h3>
-        <p>The output of the example above will be:</p>
+        <h3>Chunk out</h3>
+        <p>The example above will output:</p>
         ${[articleWithRefsChunk]}
       </section>
     `;

@@ -4,20 +4,13 @@ import { codeDemo } from "./code_demo.ts";
 
 import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 
-interface CounterState {
-  count: number;
+class Counter {
   banger: Banger;
-  increase: EventListener;
-  decrease: EventListener;
-}
-
-class Counter implements CounterState {
   count: number;
-  banger: Banger;
 
   constructor(banger: Banger) {
-    this.count = 0;
     this.banger = banger;
+    this.count = 0;
   }
   increase = () => {
     this.count += 1;
@@ -29,31 +22,33 @@ class Counter implements CounterState {
   };
 }
 
-const counter = compose<void, Counter>({
+const counterFactory = compose<void, Counter>({
+  connect: ({ banger }) => {
+    return new Counter(banger);
+  },
   update: ({ state }) => {
     const count = state.count;
 
     return draw`
-      <h3>Counter</h3>
-      <p>sum: ${count}</p>
-      <input
-        type="button"
-        value="- 1"
-        @click="${state.decrease}"/>
-      <input
-        type="button"
-        value="+ 1"
-        @click="${state.increase}"/>
+      <div class="leverage_state__demo">
+        <h3>\&Sigma\;: ${count}</h3>
+        <input
+          type="button"
+          value="- 1"
+          @click="${state.decrease}"/>
+        <input
+          type="button"
+          value="+ 1"
+          @click="${state.increase}"/>
+      </div>
     `;
-  },
-  connect: ({ banger }) => {
-    return new Counter(banger);
   },
   disconnect: () => {},
 });
 
 
-const typescriptSyntax = `compose<Params, State>({
+const typescriptSyntax = `//typescript
+compose<Params, State>({
   connect: ({ params, banger }) => {
     // initialization
     return state;
@@ -68,15 +63,16 @@ const typescriptSyntax = `compose<Params, State>({
 });
 `;
 
-const counterStateCode = `import type { Banger } from "../parsley-dom.ts";
+const counterStateCode = `//typescript
+import type { Banger } from "../parsley-dom.ts";
 
-class Counter implements CounterState {
-  count: number;
+class Counter {
   banger: Banger;
+  count: number;
 
   constructor(banger: Banger) {
-    this.count = 0
     this.banger = banger;
+    this.count = 0
   }
   increase = () => {
     this.count += 1;
@@ -89,86 +85,70 @@ class Counter implements CounterState {
 }
 `;
 
-const counterDemoCode = `const counter = compose<void, Counter>({
+const counterDemoCode = `//typescript
+const counterFactory = compose<void, Counter>({
   connect: ({banger}) => {
     return new Counter(banger);
   },
   update: ({state}) => {
     return draw\`
-      <h3>Counter</h3>
       <p>sum: \$\{state.count\}</p>
-      <input
-        type="button"
-        value="- 1"
-        @click="\$\{state.decrease\}">
-      </input>
-      <input
-        type="button"
-        value="+ 1"
-        @click="\$\{state.increase\}">
-      </input>
-    \`;
+      <input type="button" value="- 1" @click="\$\{state.decrease\}"/>
+      <input type="button" value="+ 1" @click="\$\{state.increase\}"/>\`;
   },
   disconnect: () => {},
-})
+});
 
-const counterChunk = counter();
+const counterChunk = counterFactory();
 `;
 
 const parsleyLifecycle = `Parsley-DOM has a three-part lifecycle:
-connect, update, disconnect.`
+connect, update, and disconnect.`
 
-const parsleyEventListeners = `Event listeners are added by Parsley-DOM
-to DOM elements through an atmark.`
-
-const counterChunk = counter();
+const counterChunk = counterFactory();
 
 const tsSyntaxChunk = codeDemo(typescriptSyntax);
 const exampleStateCode = codeDemo(counterStateCode);
 const exampleCode = codeDemo(counterDemoCode);
 
 const stateDemoFactory = compose<void, void>({
+  connect: () => {},
   update: () => {
     return draw`
-      <section>
-        <h2>Interact with state</h2>
-        <h3>Connect</h3>
-        <p>${parsleyLifecycle}</p>
+      <section  id="interact">
+        <h2>Interact</h2>
+        <h3>The Lifecycle</h3>
         <p>
-          These are also the functions that constitute a <span>chunk</span>.
+          ${parsleyLifecycle} These functions also constitute a
+          <span>chunk</span>.
         </p>
-        <p>
-          State is considered separate from a <span>chunk</span> and
-          Parsley-DOM expects state to be returned from the
-          <code>connect</code> method.
-        </p>
-        <h3>Lifecycle Syntax</h3>
         ${[tsSyntaxChunk]}
-        <h3>Update a chunk</h3>
+        <h3>Update chunks</h3>
         <p>
-          Parsley has a utility class called <span><code>banger</code></span>.
-          A <span>chunk</span> will redraw when
-          <span><code>banger.bang()</code></span> is called.
-        </p>
-        <p>
-          In the example below, event listeners will use
+          Updates in Parsley depend on the
+          <span><code>banger</code></span> class.
+          In the example below, event listeners use
           <span><code>banger.bang()</code></span> to update and redraw.
         </p>
         ${[exampleStateCode]}
-        <h3>Chunk factory</h3>
-        <p>${parsleyEventListeners}</p>
+        <h3>Event Listeners</h3>
         <p>
-          Below, an atmark tells Parsley-DOM that <code>@click</code> property
-          is going to be an EventListener.
+          Event listeners are attached to DOM elements through an
+          <span><code>@</code></span> atmark. They can interact
+          with state through the <span><code>banger</code></span> class.
+        </p>
+        <p>
+          In the example below, Parsley-DOM understands that the
+          <code>@click</code> property is going
+          to be an Event Listener.
         </p>
         ${[exampleCode]}
-        <h3>Output</h3>
-        <p>This <span>chunk</span> will output:</p>
+        <h3>Chunk out</h3>
+        <p>The <span><code>counterChunk</code></span> will output:</p>
         ${[counterChunk]}
       </section>
     `;
   },
-  connect: () => {},
   disconnect: () => {},
 });
 

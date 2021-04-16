@@ -59,40 +59,13 @@
 }
 
 html {
-  color: #262017;
-  color: #9c8738;
-  color: #374691;
-  color: #1c244a;
-  color: #263061;
   color: #1c244a;
   font-family: "Junction", Verdana, Geneva, Tahoma, sans-serif;
-  /* font-family: "Goudy", Georgia, "Times New Roman", Times, serif; */
   font-weight: 400;
-
-  /* debug */
-  /* background: repeating-linear-gradient(
-    180deg,
-    #dedede,
-    #dedede 4rem,
-    #efefef 4rem,
-    #efefef 8rem
-  ); */
 }
 
 body {
-  /* background-color: #dae8e5; */
-  background-color: #dae0df;
-  background-color: #e3e6e4;
-  background-color: #c5d4c7;
-  background-color: #f2f7f2;
-  background-color: #c0ff7d;
-  background-color: #e0ffbf;
-  background-color: #bad9bd;
   background-color: #dcf2df;
-  /* background-color: #fafffc; */
-  /* background-color: #f5fff9; */
-
-  /* background-color: rgb(166, 255, 71); */
 }
 
 h1 {
@@ -105,6 +78,7 @@ h1 {
 
   color: rgb(255, 94, 196);
   font-family: "LeagueSpartan", Arial, sans-serif;
+  text-shadow: -0.6rem 0.6rem #1c244a;
 }
 
 h2 {
@@ -136,22 +110,10 @@ h4 {
   font-family: "LeagueSpartan", Arial, sans-serif;
 }
 
-ul {
-  box-sizing: border-box;
-  border: none;
-  font-size: 1.6rem;
-  line-height: 4rem;
+a {
+  color: rgb(255, 94, 196);
+  text-decoration: none;
 }
-
-/* p,
-li,
-pre,
-code {
-  box-sizing: border-box;
-  font-size: 1.6rem;
-  line-height: 4rem;
-  position: relative;
-} */
 
 p {
   box-sizing: border-box;
@@ -160,61 +122,29 @@ p {
   padding-top: 1.7rem;
   margin-bottom: 2.3rem;
   letter-spacing: 0.12rem;
-  /* margin-top: 1.2rem; */
-  /* margin-bottom: 2.8rem; */
   position: relative;
 }
 
 code pre {
-  padding: 20px;
-  border-radius: 8px;
-  box-sizing: content-box;
-  font-size: 1.6rem;
-  line-height: 4rem;
-  margin-bottom: 2.3rem;
-  margin-top: 1.2rem;
-  margin-bottom: 2.8rem;
-  position: relative;
-  background-color: rgb(255, 217, 196);
-  background-color: #f2fcff;
   background-color: #fffafa;
-  color: #1c244aee;
-  color: #362500;
-  /* color: #755400; */
-  /* color: #594000; */
-  /* color: #4a3500; */
-  font-size: 14px;
-
+  border-radius: 8px;
   box-shadow: inset -1px 1px 3px #1c244a30;
-
-  text-shadow: -0.2rem 0.1rem #1c244a20;
-  /* background-color: #fff2f2; */
-  /* background-color: #fff5f5; */
-
-  overflow-x: auto;
-}
-
-li {
-  box-sizing: border-box;
+  color: #362500;
   font-size: 1.6rem;
-  line-height: 1.6rem;
-  padding-top: 2.4rem;
-  /* padding-top: 1.7rem; */
-  /* margin-top: 1.2rem; */
-  /* margin-bottom: 2.8rem; */
+  font-size: 14px;
+  line-height: 4rem;
+  margin-bottom: 2.8rem;
+  margin-top: 1.2rem;
+  overflow-x: auto;
+  padding: 20px;
   position: relative;
+  text-shadow: -0.2rem 0.1rem #1c244a20;
 }
 
-ul {
-  box-sizing: border-box;
-  margin-bottom: 4rem;
-  position: relative;
-}
-
-code {
-  background-color: rgb(255, 217, 196);
-  background-color: #ffeae3;
+p code {
   background-color: #f2fcff;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
 }
 
 input {
@@ -233,25 +163,22 @@ pre {
   font-weight: 400;
 }
 
-span code {
-  font-size: 1.4rem;
-  position: relative;
-  /* margin-top: -0.1rem; */
-  /* margin-bottom: -0.1rem; */
-}
-
 section {
-  /* we want chunked height differences by our DAT*/
-  /* margin-bottom: 1rem; */
   position: relative;
-  margin: 0 auto 0 auto;
-  margin-bottom: 12rem;
+  margin: 0 auto 40px auto;
   max-width: 740px;
-
 }
 
-main {
-  /* we want chunked height differences by our DAT*/
-  padding: 0;
-  margin: 0;
+.hello_world__demo {
+  display: flex;
+  justify-content: center;
+}
+
+.hello_world__demo > h3 {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 20px;
+  min-width: 300px;
+  background-color: #f2fcff;
 }

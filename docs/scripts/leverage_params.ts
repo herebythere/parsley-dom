@@ -61,7 +61,6 @@ const counterWithDescendants = compose<void, Counter>({
     updateDescendants(state.count);
 
     return draw`
-      <h3>"Counter"</h3>
       <p>sums:</p>
       <div>
         ${descendants}
@@ -85,60 +84,49 @@ const counterWithDescendantsChunk = counterWithDescendants();
 
 const parsleyURL = "https://github.com/taylor-vann/parsley"
 
-const counterShellDemoCode = `const countDisplay = compose<number, void>({
+const counterShellDemoCode = `// typescript
+const countDisplay = compose<number, void>({
   connect: () => {},
   update: ({params: count}) => {
     return draw\`<p>\$\{count\}</p>\`;
   },
   disconnect: () => {},
-})`;
+});`;
 
-const counterWithSavedChildrenDemoCode = `const descendants = [
+const countDisplayMemoryDemoCode = `const descendants = [
   countDisplay(0),
   countDisplay(0),
   countDisplay(0),
-]
+];`;
 
-const updateDescendants = (num: number) => {
+const updateDisplayMemoryDemoCode = `// typescript
+const updateDescendants = (count: number) => {
   let index = 0;
   while (index < descendants.length) {
     const descendant = descendants[index];
-    const value = Math.pow(2, index + 1) * count;
+    const value = Math.pow(2, index * count);
     descendant.update(value);
 
     index += 1;
   }
-}
+};`;
 
-const counterWithDescendants = compose<void, Counter>({
-  connect: ({banger}) => {
-    return new Counter(banger);
-  },
+const counterWithSavedChildrenDemoCode = `// typescript
+const counterFactory = compose<void, Counter>({
+  ...
   update: ({state}) => {
     updateDescendants(state.count);
-
     return draw\`
-      <h3>\$\{textDescendant\}</h3>
       <p>sums:</p>
-      <div>
-        \$\{descendants\}
-      </div>
-      <input
-        type="button"
-        value="- 1"
-        @click="\$\{state.decrease\}">
-      </input>
-      <input
-        type="button"
-        value="+ 1"
-        @click="\$\{state.increase\}">
-      </input>
+      <div> \$\{descendants\}</div>
+      ...
     \`;
   },
-  disconnect: () => {},
-})
+  ...
+});`;
 
-const counterWithDescendantsChunk = counterWithDescendants();`;
+const countDisplayMemoryCode = codeDemo(countDisplayMemoryDemoCode);
+const updateDisplayMemoryCode = codeDemo(updateDisplayMemoryDemoCode);
 
 const counterShellCode = codeDemo(counterShellDemoCode);
 const counterWithSavedChildrenCode = codeDemo(counterWithSavedChildrenDemoCode);
@@ -147,32 +135,47 @@ const paramsDemoFactory = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <section>
-        <h2>Parameters and Descendants</h2>
+      <section id="descend">
+        <h2>Descend</h2>
         <h3>Data Flow</h3>
         <p>
           Parsley-DOM passes parameters unidirectionally from 
           <span>chunk</span> to <span>chunk</span>, from parent
           to descendants.
         </p>
-        <h3>Re-usable chunks</h3>
-        <p>Parameters make chunks more versatile.</p>
-        ${[counterShellCode]}
-        <h3>Reduce redraws</h3>
         <p>
-          Desendants can be strings or <span>chunk</span> arrays.
-          Redraws are triggered when descendants change. However,
-          <a target="_blank" href="${parsleyURL}">Parsley</a>
-          will cache renders and only update when necessary.
+          Desendants are expected to be
+          <span>chunk</span> arrays. Otherwise, descendants
+          are converted into strings.
         </p>
-        ${[counterWithSavedChildrenCode]}
+        ${[counterShellCode]}
+        <h3>Reduce draws</h3>
+        <p>
+          Three instances of <code>countDisplay</code> are created
+          in the example below.
+        </p>
+        ${[countDisplayMemoryCode]}
         <p>
           By giving descendants a place in memory, Parsley-DOM can
-          ensure that only three instances of <code>countDisplay</code> will
-          exist and only three instances of <code>countDisplay</code> will
-          redaw.
+          ensure that a finite number of instances exist in a document.
         </p>
-        <h3>Output</h3>
+        <p>
+          In the example below <code>updateDescendants</code> modulates
+          the value of each <code>countDisplay</code> instance.
+        </p>
+        ${[updateDisplayMemoryCode]}
+        <p>
+          <span>Chunks</span> draw when descendants change. Luckily,
+          <a target="_blank" href="${parsleyURL}">Parsley</a>
+          caches renders and only updates when necessary.
+        </p>
+        <p>
+          In the example below, the previous <code>counterFactory</code>
+          is modified to include <code>updateDescendants</code> and
+          <code>descendants</code>.
+        </p>
+        ${[counterWithSavedChildrenCode]}
+        <h3>Chunk out</h3>
         <p>The example above will output the following:</p>
         ${[counterWithDescendantsChunk]}
       </section>

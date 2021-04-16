@@ -1,12 +1,6 @@
 import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 
-const parsleyIsDifferent = `This page is rendered in Parsely-DOM.
-But it works a little differently than other rendering libraries.`
-
-const parsleyIsUnique = `Parsley has no dependencies and it's unique in that
-it isn't concerned with the content rendered.`;
-
-const parsleyNoDependenices = `It does not rely on DOM Templates
+const parsleyNoStackDependenices = `It does not rely on DOM Templates
 or JSX and is fully capable of being ported to other languages.`;
 
 
@@ -14,7 +8,7 @@ const introDemo = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <section>
+      <section id="parsley-dom">
         <h1>PARSLEY-DOM</h1>
         <h2>Quick Start</h2>
         <p>Brian Taylor Vann</p>
@@ -24,15 +18,19 @@ const introDemo = compose<void, void>({
   disconnect: () => {},
 });
 
+const parsleyURL = "https://github.com/taylor-vann/parsley"
+
 const outroDemo = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
       <section>
-        <h2>Notes</h2>
-        <p>${parsleyIsUnique}</p>
-        <p>${parsleyNoDependenices}</p>
-        <p>${parsleyIsDifferent}</p>  
+        <h2>Note</h2>
+        <p>
+          This page is rendered in Parsely-DOM, a library built with
+          <a href="${parsleyURL}" target="_blank">Parsley</a>
+        </p>
+        <p>${parsleyNoStackDependenices}</p>
       </section>
     `;
   },
