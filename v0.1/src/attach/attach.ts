@@ -1,7 +1,5 @@
-import type { ChunkBaseArray } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/parsley.ts";
+import type { Attach, ChunkBaseArray } from "../deps.ts";
 import type { DocumentNode } from "../hooks/hooks.ts";
-
-type Attach<N> = (parentNode: N, chunkArray: ChunkBaseArray<N>) => void;
 
 const attach: Attach<DocumentNode> = (parentNode, chunkArray) => {
   let leftNode;

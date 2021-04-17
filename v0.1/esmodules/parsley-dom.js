@@ -1,28 +1,3 @@
-class ChunkBase {
-    mount(parentNode, leftNode) {
-        return;
-    }
-    unmount() {
-    }
-    bang() {
-    }
-    getReferences() {
-        return;
-    }
-    update(p) {
-    }
-    disconnect() {
-    }
-    getSiblings() {
-        return [];
-    }
-    getEffect() {
-        return {
-            quality: "UNMOUNTED",
-            timestamp: performance.now()
-        };
-    }
-}
 const copy1 = (position)=>{
     return {
         ...position
@@ -207,7 +182,8 @@ const EXPLICIT_ATTRIBUTE = "EXPLICIT_ATTRIBUTE";
 const INJECTED_ATTRIBUTE = "INJECTED_ATTRIBUTE";
 const BREAK_RUNES1 = {
     " ": true,
-    "\n": true
+    "\n": true,
+    "/": true
 };
 const getAttributeName = (template, vectorBounds)=>{
     let positionChar = getCharAtPosition(template, vectorBounds.origin);
@@ -413,7 +389,7 @@ const appendNodeAttributeIntegrals = ({ integrals , template , chunk ,  })=>{
     }
     return integrals;
 };
-const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
+const appendNodeIntegrals = ({ kind , integrals , template , chunk ,  })=>{
     const innerXmlBounds = copy2(chunk.vector);
     incrementOrigin(template, innerXmlBounds);
     decrementTarget(template, innerXmlBounds);
@@ -422,7 +398,7 @@ const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
         return;
     }
     integrals.push({
-        kind: "NODE",
+        kind,
         tagNameVector
     });
     const followingVector = createFollowingVector(template, tagNameVector);
@@ -439,28 +415,12 @@ const appendNodeIntegrals = ({ integrals , template , chunk ,  })=>{
     });
     return integrals;
 };
-const appendSelfClosingNodeIntegrals = ({ integrals , template , chunk ,  })=>{
-    const innerXmlBounds = copy2(chunk.vector);
-    incrementOrigin(template, innerXmlBounds);
-    decrementTarget(template, innerXmlBounds);
-    decrementTarget(template, innerXmlBounds);
-    const tagNameVector = crawlForTagName(template, innerXmlBounds);
-    if (tagNameVector === undefined) {
-        return;
-    }
-    integrals.push({
-        kind: "SELF_CLOSING_NODE",
-        tagNameVector
-    });
-    return integrals;
-};
 const appendCloseNodeIntegrals = ({ integrals , template , chunk ,  })=>{
     const innerXmlBounds = copy2(chunk.vector);
     incrementOrigin(template, innerXmlBounds);
     incrementOrigin(template, innerXmlBounds);
     decrementTarget(template, innerXmlBounds);
-    let tagNameVector = copy2(innerXmlBounds);
-    tagNameVector = crawlForTagName(template, tagNameVector);
+    const tagNameVector = crawlForTagName(template, copy2(innerXmlBounds));
     if (tagNameVector === undefined) {
         return;
     }
@@ -547,6 +507,7 @@ const buildIntegrals = ({ template , skeleton  })=>{
         }
         if (nodeType === "OPEN_NODE_CONFIRMED") {
             appendNodeIntegrals({
+                kind: "NODE",
                 integrals,
                 template,
                 chunk
@@ -567,7 +528,8 @@ const buildIntegrals = ({ template , skeleton  })=>{
             });
         }
         if (nodeType === "SELF_CLOSING_NODE_CONFIRMED") {
-            appendSelfClosingNodeIntegrals({
+            appendNodeIntegrals({
+                kind: "SELF_CLOSING_NODE",
                 integrals,
                 template,
                 chunk
@@ -948,9 +910,6 @@ const appendInjectedAttribute = ({ hooks , rs , integral ,  })=>{
     }
     const { injectionID  } = integral;
     const value = rs.template.injections[injectionID];
-    if (value instanceof ChunkBase) {
-        return;
-    }
     rs.attributes[injectionID] = {
         kind: "ATTRIBUTE",
         params: {
@@ -1042,20 +1001,28 @@ const buildRender = ({ hooks , template , integrals  })=>{
     }
     return rs;
 };
+const builds = {
+};
 const buildRenderStructure = (hooks, template)=>{
-    const skeleton = buildSkeleton(template);
-    const integrals = buildIntegrals({
-        template,
-        skeleton
-    });
+    const cacheable = template.templateArray.join();
+    let integrals = builds[cacheable];
+    if (integrals === undefined) {
+        const skeleton = buildSkeleton(template);
+        integrals = buildIntegrals({
+            template,
+            skeleton
+        });
+        builds[cacheable] = integrals;
+    }
     const render = buildRender({
-        hooks: hooks,
+        hooks,
         template,
         integrals
     });
     return render;
 };
 class Banger {
+    chunk;
     constructor(chunk){
         this.chunk = chunk;
     }
@@ -1066,9 +1033,18 @@ class Banger {
         return this.chunk.getReferences();
     }
 }
-class Chunk extends ChunkBase {
+class Chunk {
+    parentNode;
+    leftNode;
+    siblings;
+    hooks;
+    chunker;
+    banger;
+    rs;
+    params;
+    state;
+    effect;
     constructor(baseParams){
-        super();
         this.banger = new Banger(this);
         this.hooks = baseParams.hooks;
         this.chunker = baseParams.chunker;
@@ -1400,7 +1376,7 @@ const hooks = {
     removeDescendant,
     getSibling
 };
-const compose = (chunker)=>{
+const compose1 = (chunker)=>{
     return (params)=>{
         return new Chunk({
             hooks,
@@ -1409,397 +1385,18 @@ const compose = (chunker)=>{
         });
     };
 };
-const draw = (templateArray, ...injections)=>{
+const draw1 = (templateArray, ...injections)=>{
     return {
         templateArray,
         injections
     };
 };
-const attach = (parentNode, chunkArray)=>{
+const attach1 = (parentNode, chunkArray)=>{
     let leftNode;
     for(const chunkID in chunkArray){
         const chunk1 = chunkArray[chunkID];
         leftNode = chunk1.mount(parentNode, leftNode);
     }
 };
-const title = "parsely-dom:attach";
-const attachContext = ()=>{
-    const assertions = [];
-    const chunker = {
-        update: ()=>{
-            return draw`<article>hello world!</article>`;
-        },
-        connect: ()=>{
-        },
-        disconnect: ()=>{
-        }
-    };
-    const myFirstComponent = compose(chunker);
-    const myFirstComponentContext = myFirstComponent(undefined);
-    const anchorElement = hooks.createNode("article");
-    attach(anchorElement, [
-        myFirstComponentContext
-    ]);
-    const childNodes = anchorElement.childNodes;
-    if (childNodes.length !== 1) {
-        assertions.push("childnodes should be of length one");
-    }
-    if (childNodes[0]?.parentElement !== anchorElement) {
-        assertions.push("parent element is not the anchor element");
-    }
-    return assertions;
-};
-const tests4 = [
-    attachContext
-];
-const unitTestAttach = {
-    title,
-    tests: tests4,
-    runTestsAsynchronously: true
-};
-const title1 = "parsely-dom:hooks";
-const testCreateNode = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!(node instanceof HTMLElement)) {
-        assertions.push("node should be an instance of HTML Element");
-        return assertions;
-    }
-    if (node.tagName !== "ARTICLE") {
-        assertions.push("node should be an ARTICLE");
-    }
-    return assertions;
-};
-const testCreateTextNode = ()=>{
-    const assertions = [];
-    const articleContent = "this is some article content";
-    const node = createTextNode1(articleContent);
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!(node instanceof Text)) {
-        assertions.push("node should be an instance of HTML Element");
-        return assertions;
-    }
-    if (node.textContent !== articleContent) {
-        assertions.push("node should be an article");
-    }
-    return assertions;
-};
-const testSetAttribute = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    setAttribute({
-        references: {
-        },
-        attribute: "style",
-        value: "heckin based",
-        node
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (node.getAttribute("style") !== "heckin based") {
-        assertions.push("node styles shold be 'heckin based'");
-    }
-    return assertions;
-};
-const testSetEventAttribute = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    const callback = ()=>{
-    };
-    setAttribute({
-        references: {
-        },
-        attribute: "@click",
-        value: callback,
-        node
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    removeAttribute({
-        references: {
-        },
-        attribute: "@click",
-        value: callback,
-        node
-    });
-    if (node.onclick === callback) {
-        assertions.push("click event should have been removed");
-    }
-    return assertions;
-};
-const testSetOptionalAttribute = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    setAttribute({
-        references: {
-        },
-        attribute: "?disabled",
-        value: true,
-        node
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    setAttribute({
-        references: {
-        },
-        attribute: "?disabled",
-        value: undefined,
-        node
-    });
-    if (node.getAttribute("?disabled") === undefined) {
-        assertions.push("node styles shold be 'heckin based'");
-    }
-    return assertions;
-};
-const testRemoveAttribute = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    setAttribute({
-        references: {
-        },
-        attribute: "style",
-        value: "heckin based",
-        node
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (node.getAttribute("style") !== "heckin based") {
-        assertions.push("node styles should initially be 'heckin based'");
-    }
-    removeAttribute({
-        references: {
-        },
-        attribute: "style",
-        value: "heckin based",
-        node
-    });
-    if (node.getAttribute("style") === "heckin based") {
-        assertions.push("node styles should now unfortunately not be heckin based");
-    }
-    return assertions;
-};
-const testInsertNode = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    const descendant = createNode1("image");
-    insertDescendant({
-        parentNode: node,
-        descendant
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!node.hasChildNodes()) {
-        assertions.push("node should have some kind of descendant");
-    }
-    if (!node.contains(descendant)) {
-        assertions.push("node should have descendant as a child node");
-    }
-    return assertions;
-};
-const testRemoveNode = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    const descendant = createNode1("image");
-    insertDescendant({
-        parentNode: node,
-        descendant
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!node.hasChildNodes()) {
-        assertions.push("node should initially have some kind of descendant");
-    }
-    if (!node.contains(descendant)) {
-        assertions.push("node should initially have descendant as a child node");
-    }
-    removeDescendant(descendant);
-    if (node.hasChildNodes()) {
-        assertions.push("node should not have descendants now");
-    }
-    if (node.contains(descendant)) {
-        assertions.push("node should not have descendant as a child node");
-    }
-    return assertions;
-};
-const testInsertMultipleNodes = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    const descendant = createNode1("image");
-    const descendantText = createTextNode1("such an article");
-    insertDescendant({
-        parentNode: node,
-        descendant
-    });
-    insertDescendant({
-        parentNode: node,
-        leftNode: descendant,
-        descendant: descendantText
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!node.hasChildNodes()) {
-        assertions.push("node should initially have some kind of descendant");
-    }
-    if (!node.contains(descendant)) {
-        assertions.push("node should initially have ARTICLE as a child node");
-    }
-    if (!node.contains(descendantText)) {
-        assertions.push("node should initially have article text as a child node");
-    }
-    if (descendant.nextSibling !== descendantText) {
-        assertions.push("descendant should have descendantText as its next sibling");
-    }
-    if (descendantText.previousSibling !== descendant) {
-        assertions.push("descendant should have descendantText as its next sibling");
-    }
-    return assertions;
-};
-const testInsertMultipleNodesAndRemoveOne = ()=>{
-    const assertions = [];
-    const node = createNode1("article");
-    const descendant = createNode1("image");
-    const descendantText = createTextNode1("such an article");
-    insertDescendant({
-        parentNode: node,
-        descendant
-    });
-    insertDescendant({
-        parentNode: node,
-        leftNode: descendant,
-        descendant: descendantText
-    });
-    if (node === null || node === undefined) {
-        assertions.push("node should not be null or undefined");
-        return assertions;
-    }
-    if (!node.hasChildNodes()) {
-        assertions.push("node should initially have some kind of descendant");
-    }
-    if (!node.contains(descendant)) {
-        assertions.push("node should initially have ARTICLE as a child node");
-    }
-    if (!node.contains(descendantText)) {
-        assertions.push("node should initially have article text as a child node");
-    }
-    removeDescendant(descendant);
-    if (!node.hasChildNodes()) {
-        assertions.push("node should not have descendants now");
-    }
-    if (node.contains(descendant)) {
-        assertions.push("node should not have descendant as a child node");
-    }
-    if (!node.contains(descendantText)) {
-        assertions.push("node should still have article text as a child node");
-    }
-    return assertions;
-};
-const tests1 = [
-    testCreateNode,
-    testCreateTextNode,
-    testSetAttribute,
-    testSetOptionalAttribute,
-    testSetEventAttribute,
-    testRemoveAttribute,
-    testInsertNode,
-    testRemoveNode,
-    testInsertMultipleNodes,
-    testInsertMultipleNodesAndRemoveOne, 
-];
-const unitTestHooks = {
-    title: title1,
-    tests: tests1,
-    runTestsAsynchronously: true
-};
-const title2 = "parsely-dom:composer";
-const renderTemplate = ()=>{
-    const assertions = [];
-    const template2 = draw`<article>${"hello world!"}</article>`;
-    if (template2.injections.length !== 1) {
-        assertions.push("template should have one injection");
-    }
-    if (template2.templateArray.length !== 2) {
-        assertions.push("template should have two template array chunks");
-    }
-    return assertions;
-};
-const composerAChunker = ()=>{
-    const assertions = [];
-    const chunker = {
-        update: ()=>{
-            return draw`<article>hello world!</article>`;
-        },
-        connect: ()=>{
-        },
-        disconnect: ()=>{
-        }
-    };
-    const myFirstComponent = compose(chunker);
-    const myFirstComponentContext = myFirstComponent(undefined);
-    if (!(myFirstComponentContext instanceof Chunk)) {
-        assertions.push("component should return an instance of context");
-        return assertions;
-    }
-    const siblings = myFirstComponentContext.getSiblings();
-    if (siblings.length !== 1) {
-        assertions.push("context should have one sibling");
-    }
-    return assertions;
-};
-const composerAStaterChunker = ()=>{
-    const assertions = [];
-    const expectedArticleText = "\n          hello world #42! from world #X7!\n        ";
-    const mySecondComponent = compose({
-        update: ({ params , state  })=>{
-            return draw`\n        <article>\n          hello world #${params}! from world #${state}!\n        </article>`;
-        },
-        connect: (params)=>{
-            return "X7";
-        },
-        disconnect: (state)=>{
-        }
-    });
-    const mySecondComponentContext = mySecondComponent(42);
-    const siblings = mySecondComponentContext.getSiblings();
-    const article = siblings[1];
-    if (article?.textContent !== expectedArticleText) {
-        assertions.push("article text is unexpected");
-    }
-    return assertions;
-};
-const tests2 = [
-    renderTemplate,
-    composerAChunker,
-    composerAStaterChunker
-];
-const unitTestComposer = {
-    title: title2,
-    tests: tests2,
-    runTestsAsynchronously: true
-};
-const tests3 = [
-    unitTestComposer,
-    unitTestAttach,
-    unitTestHooks
-];
-export { tests3 as tests };
+export { compose1 as compose, draw1 as draw };
+export { attach1 as attach };

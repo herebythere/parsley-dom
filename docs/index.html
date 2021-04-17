@@ -1,9 +1,50 @@
 <!DOCTYPE html>
 <head>
-    <meta charset="UTF-8">
-    <script src="./bundle/demo.js" defer></script>
+  <meta charset="UTF-8" />
+
+  <!-- preload resources -->
+  <link
+    rel="preload"
+    href="./fonts/LeagueSpartan-ExtraBold.woff"
+    type="font/woff"
+    as="font"
+    crossorigin
+  />
+  <link
+    rel="preload"
+    href="./fonts/LeagueMono-Regular.woff"
+    type="font/woff"
+    as="font"
+    crossorigin
+  />
+  <link
+    rel="preload"
+    href="./fonts/junction-regular.woff"
+    type="font/woff"
+    as="font"
+    crossorigin
+  />
+  <link
+    rel="preload"
+    href="favicon.ico"
+    type="image/x-icon"
+    as="image"
+    crossorigin
+  />
+
+  <link rel="preload" href="./styles/baseboard.css" as="style" />
+  <link rel="preload" href="./styles/demo.css" as="style" />
+  <link rel="modulepreload" href="./bundle/demo.js" as="script" />
+
+  <!-- load resources -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="./styles/baseboard.css" />
+  <link rel="stylesheet" href="./styles/demo.css" />
+  <script type="module" src="./bundle/demo.js"></script>
 </head>
 
 <body>
-    <main></main>
+  <header></header>
+  <main></main>
+  <footer></footer>
 </body>

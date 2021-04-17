@@ -1,4 +1,4 @@
-import { compose, draw } from "../src/parsley-dom.ts";
+import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 
 interface TileRadioParams {
   radioListName: string;

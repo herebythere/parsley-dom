@@ -1,4 +1,4 @@
-import { attach } from "../src/parsley-dom.ts";
+import { attach } from "../../v0.1/src/parsley-dom.ts";
 
 import {introDemoChunk, outroDemoChunk} from "./introduction.ts";
 import { paramsDemoChunk } from "./leverage_params.ts";

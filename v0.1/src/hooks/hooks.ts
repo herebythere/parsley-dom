@@ -1,7 +1,7 @@
 // brian taylor vann
 // hooks
 
-import {
+import type {
   CreateNode,
   CreateTextNode,
   GetSibling,
@@ -10,9 +10,9 @@ import {
   RemoveDescendant,
   SetAttribute,
   SetAttributeParams,
-} from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/type_flyweight/hooks.ts";
+} from "../deps.ts";
 
-import { BangerBase } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/src/type_flyweight/chunk.ts";
+import type { BangerBase } from "../deps.ts";
 
 type DocumentNode = HTMLElement | Text;
 
@@ -95,6 +95,7 @@ const removeAttribute: SetAttribute<DocumentNode, Attributes> = ({
   }
 
   // ?optional
+  // ?optional might not be necessary
   if (attribute.charAt(0) === "?") {
     const trimmedAttribute = attribute.substr(1);
     node.removeAttribute(trimmedAttribute);
