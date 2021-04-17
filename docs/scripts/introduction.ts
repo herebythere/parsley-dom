@@ -28,7 +28,8 @@ const outroDemo = compose<void, void>({
         <h2>Note</h2>
         <p>
           This page is rendered in Parsely-DOM, a library built with
-          <a href="${parsleyURL}" target="_blank">Parsley</a>
+          <a href="${parsleyURL}" target="_blank">Parsley</a>, a library
+          that builds tools to maintain interactive XML documents.
         </p>
         <p>${parsleyNoStackDependenices}</p>
       </section>

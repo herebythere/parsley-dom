@@ -2,10 +2,7 @@
 /*
 /* Vetical Rhythm
 /*
-/* DATUM: 16rem;
-/* Hang: 48rem;
-/*
-/* COMBINED: 64rem;
+/* DATUM: 4rem;
 /*
 /* */
 
@@ -20,15 +17,6 @@
   font-weight: 400;
 }
 
-/* Serif */
-
-@font-face {
-  font-family: "Goudy";
-  src: url("../fonts/GoudyStM-webfont.woff") format("woff");
-  font-style: normal;
-  font-weight: 400;
-}
-
 /* Sans Serif */
 @font-face {
   font-family: "LeagueSpartan";
@@ -39,23 +27,9 @@
 
 @font-face {
   font-family: "Junction";
-  src: url("../fonts/junction-bold.woff") format("woff");
-  font-style: normal;
-  font-weight: 700;
-}
-
-@font-face {
-  font-family: "Junction";
   src: url("../fonts/junction-regular.woff") format("woff");
   font-style: normal;
   font-weight: 400;
-}
-
-@font-face {
-  font-family: "Junction";
-  src: url("../fonts/junction-light.woff") format("woff");
-  font-style: normal;
-  font-weight: 200;
 }
 
 html {
@@ -65,56 +39,57 @@ html {
 }
 
 body {
-  /* background-color: #dcf2df; */
-  background: repeating-linear-gradient(
+  background-color: #dcf2df;
+  background-color: #e6f0e7;
+  /* debug */
+  /* background: repeating-linear-gradient(
     180deg,
     #efefef,
     #efefef 4rem,
     #dfdfdf 4rem,
     #dfdfdf 8rem
-  );
+  ); */
 }
 
 h1 {
-  font-size: 8rem;
-  line-height: 8rem;
-  padding-top: 2rem;
-  margin-bottom: 2rem;
-  letter-spacing: 0.5rem;
-  position: relative;
-
   color: rgb(255, 94, 196);
   font-family: "LeagueSpartan", Arial, sans-serif;
+  font-size: 8rem;
+  letter-spacing: 0.5rem;
+  line-height: 8rem;
+  margin-bottom: 2rem;
+  padding-top: 2rem;
+  position: relative;
   text-shadow: -0.6rem 0.6rem #1c244a;
 }
 
 h2 {
-  font-size: 5rem;
-  line-height: 8rem;
-  padding-top: 3rem;
-  margin-bottom: 1rem;
-  position: relative;
   color: rgb(255, 94, 196);
   font-family: "LeagueSpartan", Arial, sans-serif;
+  font-size: 5rem;
+  line-height: 8rem;
+  margin-bottom: 1rem;
+  padding-top: 3rem;
+  position: relative;
 }
 
 h3 {
-  font-size: 3rem;
-  line-height: 4rem;
-  padding-top: 1rem;
-  margin-bottom: 3rem;
-  position: relative;
   color: rgb(255, 94, 196);
   font-family: "LeagueSpartan", Arial, sans-serif;
+  font-size: 3rem;
+  line-height: 4rem;
+  margin-bottom: 3rem;
+  padding-top: 1rem;
+  position: relative;
 }
 
 h4 {
+  font-family: "LeagueSpartan", Arial, sans-serif;
   font-size: 2rem;
   line-height: 4rem;
-  padding-top: 1rem;
   margin-bottom: 3rem;
+  padding-top: 1rem;
   position: relative;
-  font-family: "LeagueSpartan", Arial, sans-serif;
 }
 
 a {
@@ -125,15 +100,15 @@ a {
 p {
   box-sizing: border-box;
   font-size: 1.6rem;
-  line-height: 4rem;
-  padding-top: 1.7rem;
-  margin-bottom: 2.3rem;
   letter-spacing: 0.12rem;
+  line-height: 4rem;
+  margin-bottom: 2.3rem;
+  padding-top: 1.7rem;
   position: relative;
 }
 
 code pre {
-  background-color: #fffafa;
+  background-color: #fffdfe;
   border-radius: 8px;
   box-shadow: inset -1px 1px 3px #1c244a30;
   color: #362500;
@@ -147,16 +122,16 @@ code pre {
 }
 
 p code {
-  background-color: #f2fcff;
-  padding: 0.4rem;
+  background-color: #fafeff;
   border-radius: 0.4rem;
+  padding: 0.4rem;
 }
 
 input {
-  height: 4rem;
-  box-sizing: border-box;
-  padding: 0;
   border: none;
+  box-sizing: border-box;
+  height: 4rem;
+  padding: 0;
 }
 
 span {
@@ -169,28 +144,34 @@ pre {
 }
 
 section {
-  position: relative;
+  align-items: center;
   margin: 0 auto 0 auto;
   max-width: 740px;
-  align-items: center;
+  padding-bottom: 8rem;
+  position: relative;
 }
 
 .demo_area {
+  align-items: center;
+  background-color: #fafeff;
+  border-radius: 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  border-radius: 20px;
   min-width: 300px;
-  background-color: #f5fdff;
+}
+
+.hello_world__title {
+  position: relative;
+  top: 1rem;
 }
 
 input[type="button"] {
-  font-family: "LeagueMono", Courier, monospace;
   background-color: rgb(255, 94, 196);
+  border-radius: 4px;
   color: #f5fdff;
+  font-family: "LeagueMono", Courier, monospace;
   font-size: 1.6rem;
   padding: 2px;
-  border-radius: 4px;
 }
 
 input[type="button"]:hover {
@@ -203,29 +184,44 @@ input[type="button"]:active {
 }
 
 .demo_area__vertical {
-  font-family: "LeagueMono", Courier, monospace;
+  align-items: center;
+  background-color: #fafeff;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background-color: #f5fdff;
-  border-radius: 20px;
+  font-family: "LeagueMono", Courier, monospace;
+  padding-bottom: 2rem;
+  padding-top: 2rem;
+}
 
+.demo_area__code {
+  font-size: 2rem;
 }
 
 .leverage_state__buttons {
-  width: 12rem;
-  position: relative;
-  top: -1.6rem;
   display: flex;
   justify-content: space-between;
+  position: relative;
+  top: -1.6rem;
+  width: 12rem;
 }
 
 .leverage_params__sums {
+  display: flex;
+  justify-content: space-between;
   min-width: 12rem;
   position: relative;
   top: -1.6rem;
-  display: flex;
-  justify-content: space-between;
+}
+
+input[type="button"].leverage_params__button {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+input[type="button"].leverage_params__button:hover {
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .count_display {

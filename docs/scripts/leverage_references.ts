@@ -16,17 +16,18 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   },
   update: ({ state }) => {
     return draw`
-      <article *article>
-        <section *content class="demo_area__vertical">
-        <p>Press <code>ctl alt i</code>.</p>
-        <p>Then click this button!</p>
-        <input
-          *button
-          class="leverage_references__button"
-          type="button"
-          value="Get Refs"
-          @click="${state.click}"></input>
-        </section>
+      <article *article class="demo_area__vertical">
+        <div *content>
+          <h3>
+            Press <code class="demo_area__code">ctl alt i</code>
+          </h3>
+          <input
+            *button
+            class="leverage_params__button"
+            type="button"
+            value="Then click this button!"
+            @click="${state.click}"></input>
+        </div>
       </article>
     `;
   },
@@ -51,12 +52,12 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
     return draw\`
     <article *article @click="\$\{state.click}\">
       <h3 *title>Hello, world!</h3>
-      <section *content>
+      <div *content>
         <p>Press <code>ctl alt i</code>.</p>
         <p>Then click this button!</p>
       </section>
       <input *button type="button" value="Get Refs"></input>
-    </article>
+    </div>
     \`;
   },
   disconnect: () => {},

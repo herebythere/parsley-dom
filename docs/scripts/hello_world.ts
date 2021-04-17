@@ -4,7 +4,7 @@ import { codeDemo } from "./code_demo.ts";
 const helloWorld = compose<void, void>({
   update: () => {
     return draw`
-      <h3>hello, world!</h3>
+      <h3 class="hello_world__title">hello, world!</h3>
     `;
   },
   connect: () => {},

@@ -31,16 +31,20 @@ const counterFactory = compose<void, Counter>({
 
     return draw`
       <div class="demo_area__vertical">
-        <h3>Sum: ${count}</h3>
-        <div class="leverage_state__buttons">
-          <input
-            type="button"
-            value="- 1"
-            @click="${state.decrease}"/>
-          <input
-            type="button"
-            value="+ 1"
-            @click="${state.increase}"/>
+        <div class="demo_area__top_bump">
+          <h3>sum: ${count}</h3>
+          <div class="leverage_state__buttons">
+            <input
+              class="leverage_params__button"
+              type="button"
+              value="- 1"
+              @click="${state.decrease}"/>
+            <input
+              class="leverage_params__button"
+              type="button"
+              value="+ 1"
+              @click="${state.increase}"/>
+          </div>
         </div>
       </div>
     `;

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
-  <!-- <link rel="preconnect" href="https://taylor-vann.github.io/parsley-dom/" /> -->
 
   <!-- preload resources -->
   <link
@@ -25,23 +24,13 @@
     as="font"
     crossorigin
   />
-  <link
-    rel="preload"
-    href="./fonts/junction-bold.woff"
-    type="font/woff"
-    as="font"
-    crossorigin
-  />
-
-  <!-- <link rel="preload" href="./styles/baseboard.css" as="style" /> -->
-  <link rel="preload" href="./styles/demo.css" as="style" crossorigin />
-
+  <link rel="preload" href="./styles/baseboard.css" as="style"/>
+  <link rel="preload" href="./styles/demo.css" as="style" />
+  <link rel="modulepreload" href="./bundle/demo.js" as="script" />
 
   <!-- load resources -->
   <link rel="stylesheet" href="./styles/baseboard.css" />
   <link rel="stylesheet" href="./styles/demo.css" />
-
-  <link rel="modulepreload" href="./bundle/demo.js" as="script" crossorigin />
   <script type="module" src="./bundle/demo.js"></script>
 </head>
 

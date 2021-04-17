@@ -1413,7 +1413,7 @@ const outroDemo = compose({
     connect: ()=>{
     },
     update: ()=>{
-        return draw`\n      <section>\n        <h2>Note</h2>\n        <p>\n          This page is rendered in Parsely-DOM, a library built with\n          <a href="${parsleyURL}" target="_blank">Parsley</a>\n        </p>\n        <p>${parsleyNoStackDependenices}</p>\n      </section>\n    `;
+        return draw`\n      <section>\n        <h2>Note</h2>\n        <p>\n          This page is rendered in Parsely-DOM, a library built with\n          <a href="${parsleyURL}" target="_blank">Parsley</a>, a library\n          that builds tools to maintain interactive XML documents.\n        </p>\n        <p>${parsleyNoStackDependenices}</p>\n      </section>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1449,7 +1449,7 @@ const countDisplay = compose({
     connect: ()=>{
     },
     update: ({ params: count  })=>{
-        return draw`<p class="count_display">${count}</p>`;
+        return draw`<h3 class="count_display">${count}</h3>`;
     },
     disconnect: ()=>{
     }
@@ -1474,7 +1474,7 @@ const counterWithDescendants = compose({
     },
     update: ({ state  })=>{
         updateDescendants1(state.count);
-        return draw`\n      <div class="demo_area__vertical">\n        <p>sums:</p>\n        <div class="leverage_params__sums">\n          ${descendants}\n        </div>\n        <div class="leverage_state__buttons">\n          <input\n            type="button"\n            value="- 1"\n            @click="${state.decrease}">\n          </input>\n          <input\n            type="button"\n            value="+ 1"\n            @click="${state.increase}">\n          </input>\n        </div>\n      </div>\n    `;
+        return draw`\n      <div class="demo_area__vertical">\n        <h3>sums:</h3>\n        <div class="leverage_params__sums">\n          ${descendants}\n        </div>\n        <div class="leverage_state__buttons">\n          <input\n            class="leverage_params__button"\n            type="button"\n            value="- 1"\n            @click="${state.decrease}">\n          </input>\n          <input\n            class="leverage_params__button"\n            type="button"\n            value="+ 1"\n            @click="${state.increase}">\n          </input>\n        </div>\n      </div>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1531,7 +1531,7 @@ const counterFactory = compose({
     },
     update: ({ state  })=>{
         const count = state.count;
-        return draw`\n      <div class="demo_area__vertical">\n        <h3>Sum: ${count}</h3>\n        <div class="leverage_state__buttons">\n          <input\n            type="button"\n            value="- 1"\n            @click="${state.decrease}"/>\n          <input\n            type="button"\n            value="+ 1"\n            @click="${state.increase}"/>\n        </div>\n      </div>\n    `;
+        return draw`\n      <div class="demo_area__vertical">\n        <div class="demo_area__top_bump">\n          <h3>sum: ${count}</h3>\n          <div class="leverage_state__buttons">\n            <input\n              class="leverage_params__button"\n              type="button"\n              value="- 1"\n              @click="${state.decrease}"/>\n            <input\n              class="leverage_params__button"\n              type="button"\n              value="+ 1"\n              @click="${state.increase}"/>\n          </div>\n        </div>\n      </div>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1564,7 +1564,7 @@ const stateDemoFactory = compose({
 const stateDemoChunk = stateDemoFactory();
 const helloWorld = compose({
     update: ()=>{
-        return draw`\n      <h3>hello, world!</h3>\n    `;
+        return draw`\n      <h3 class="hello_world__title">hello, world!</h3>\n    `;
     },
     connect: ()=>{
     },
@@ -1607,12 +1607,12 @@ const articleWithRefs = compose({
         };
     },
     update: ({ state  })=>{
-        return draw`\n      <article *article>\n        <section *content class="demo_area__vertical">\n        <p>Press <code>ctl alt i</code>.</p>\n        <p>Then click this button!</p>\n        <input\n          *button\n          class="leverage_references__button"\n          type="button"\n          value="Get Refs"\n          @click="${state.click}"></input>\n        </section>\n      </article>\n    `;
+        return draw`\n      <article *article class="demo_area__vertical">\n        <div *content>\n          <h3>\n            Press <code class="demo_area__code">ctl alt i</code>\n          </h3>\n          <input\n            *button\n            class="leverage_params__button"\n            type="button"\n            value="Then click this button!"\n            @click="${state.click}"></input>\n        </div>\n      </article>\n    `;
     },
     disconnect: ()=>{
     }
 });
-const articleWithRefsDemoCode = `// typescript\ninterface ArticleWithRefsState {\n  click: EventListener;\n}\n\nconst articleWithRefs = compose<void, ArticleWithRefsState>({\n  connect: ({ banger }) => {\n    return {\n      click: (e: Event) => {\n        const refs = banger.getReferences();        \n        console.log(refs);\n      },\n    };\n  },\n  update: ({ state }) => {\n    return draw\`\n    <article *article @click="\$\{state.click}\">\n      <h3 *title>Hello, world!</h3>\n      <section *content>\n        <p>Press <code>ctl alt i</code>.</p>\n        <p>Then click this button!</p>\n      </section>\n      <input *button type="button" value="Get Refs"></input>\n    </article>\n    \`;\n  },\n  disconnect: () => {},\n});`;
+const articleWithRefsDemoCode = `// typescript\ninterface ArticleWithRefsState {\n  click: EventListener;\n}\n\nconst articleWithRefs = compose<void, ArticleWithRefsState>({\n  connect: ({ banger }) => {\n    return {\n      click: (e: Event) => {\n        const refs = banger.getReferences();        \n        console.log(refs);\n      },\n    };\n  },\n  update: ({ state }) => {\n    return draw\`\n    <article *article @click="\$\{state.click}\">\n      <h3 *title>Hello, world!</h3>\n      <div *content>\n        <p>Press <code>ctl alt i</code>.</p>\n        <p>Then click this button!</p>\n      </section>\n      <input *button type="button" value="Get Refs"></input>\n    </div>\n    \`;\n  },\n  disconnect: () => {},\n});`;
 const articleWithRefsChunk = articleWithRefs();
 const articleWithRefsCode = codeDemo(articleWithRefsDemoCode);
 const refsDemoFactory = compose({

@@ -31,7 +31,7 @@ class Counter implements CounterState {
 const countDisplay = compose<number, void>({
   connect: () => {},
   update: ({params: count}) => {
-    return draw`<p class="count_display">${count}</p>`;
+    return draw`<h3 class="count_display">${count}</h3>`;
   },
   disconnect: () => {},
 })
@@ -62,17 +62,19 @@ const counterWithDescendants = compose<void, Counter>({
 
     return draw`
       <div class="demo_area__vertical">
-        <p>sums:</p>
+        <h3>sums:</h3>
         <div class="leverage_params__sums">
           ${descendants}
         </div>
         <div class="leverage_state__buttons">
           <input
+            class="leverage_params__button"
             type="button"
             value="- 1"
             @click="${state.decrease}">
           </input>
           <input
+            class="leverage_params__button"
             type="button"
             value="+ 1"
             @click="${state.increase}">
