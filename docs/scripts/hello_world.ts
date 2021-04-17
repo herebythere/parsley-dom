@@ -69,10 +69,10 @@ const helloWorldDemo = compose<void, void>({
         ${[codeDemoConnectChunk]}
         <h3>Chunk out</h3>
         <p>
-          The <span><code>helloWorldChunk</code></span>
-          will output:
+          The <code>helloWorldChunk</code>
+          will have similar output as below:
         </p>
-        <div class="hello_world__demo">${[helloWorldChunk]}</div>
+        <div class="demo_area">${[helloWorldChunk]}</div>
       </section>
     `;
   },

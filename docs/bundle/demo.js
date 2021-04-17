@@ -1022,6 +1022,7 @@ const buildRenderStructure = (hooks, template)=>{
     return render;
 };
 class Banger {
+    chunk;
     constructor(chunk){
         this.chunk = chunk;
     }
@@ -1033,6 +1034,16 @@ class Banger {
     }
 }
 class Chunk {
+    parentNode;
+    leftNode;
+    siblings;
+    hooks;
+    chunker;
+    banger;
+    rs;
+    params;
+    state;
+    effect;
     constructor(baseParams){
         this.banger = new Banger(this);
         this.hooks = baseParams.hooks;
@@ -1419,9 +1430,11 @@ const codeDemo = compose({
     }
 });
 class Counter {
-    constructor(banger){
+    count;
+    banger;
+    constructor(banger1){
         this.count = 0;
-        this.banger = banger;
+        this.banger = banger1;
     }
     increase = ()=>{
         this.count += 1;
@@ -1436,7 +1449,7 @@ const countDisplay = compose({
     connect: ()=>{
     },
     update: ({ params: count  })=>{
-        return draw`<p>${count} </p>`;
+        return draw`<p class="count_display">${count}</p>`;
     },
     disconnect: ()=>{
     }
@@ -1461,7 +1474,7 @@ const counterWithDescendants = compose({
     },
     update: ({ state  })=>{
         updateDescendants1(state.count);
-        return draw`\n      <p>sums:</p>\n      <div>\n        ${descendants}\n      </div>\n      <input\n        type="button"\n        value="- 1"\n        @click="${state.decrease}">\n      </input>\n      <input\n        type="button"\n        value="+ 1"\n        @click="${state.increase}">\n      </input>\n    `;
+        return draw`\n      <div class="demo_area__vertical">\n        <p>sums:</p>\n        <div class="leverage_params__sums">\n          ${descendants}\n        </div>\n        <div class="leverage_state__buttons">\n          <input\n            type="button"\n            value="- 1"\n            @click="${state.decrease}">\n          </input>\n          <input\n            type="button"\n            value="+ 1"\n            @click="${state.increase}">\n          </input>\n        </div>\n      </div>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1488,7 +1501,7 @@ const paramsDemoFactory = compose({
             updateDisplayMemoryCode
         ]}\n        <p>\n          <span>Chunks</span> draw when descendants change. Luckily,\n          <a target="_blank" href="${parsleyURL1}">Parsley</a>\n          caches renders and only updates when necessary.\n        </p>\n        <p>\n          In the example below, the previous <code>counterFactory</code>\n          is modified to include <code>updateDescendants</code> and\n          <code>descendants</code>.\n        </p>\n        ${[
             counterWithSavedChildrenCode
-        ]}\n        <h3>Chunk out</h3>\n        <p>The example above will output the following:</p>\n        ${[
+        ]}\n        <h3>Chunk out</h3>\n        <p>The example above will have similar output to the following:</p>\n        ${[
             counterWithDescendantsChunk
         ]}\n      </section>\n    `;
     },
@@ -1497,8 +1510,10 @@ const paramsDemoFactory = compose({
 });
 const paramsDemoChunk = paramsDemoFactory();
 class Counter1 {
-    constructor(banger1){
-        this.banger = banger1;
+    banger;
+    count;
+    constructor(banger2){
+        this.banger = banger2;
         this.count = 0;
     }
     increase = ()=>{
@@ -1511,12 +1526,12 @@ class Counter1 {
     };
 }
 const counterFactory = compose({
-    connect: ({ banger: banger2  })=>{
-        return new Counter1(banger2);
+    connect: ({ banger: banger3  })=>{
+        return new Counter1(banger3);
     },
     update: ({ state  })=>{
         const count = state.count;
-        return draw`\n      <div class="leverage_state__demo">\n        <h3>\&Sigma\;: ${count}</h3>\n        <input\n          type="button"\n          value="- 1"\n          @click="${state.decrease}"/>\n        <input\n          type="button"\n          value="+ 1"\n          @click="${state.increase}"/>\n      </div>\n    `;
+        return draw`\n      <div class="demo_area__vertical">\n        <h3>Sum: ${count}</h3>\n        <div class="leverage_state__buttons">\n          <input\n            type="button"\n            value="- 1"\n            @click="${state.decrease}"/>\n          <input\n            type="button"\n            value="+ 1"\n            @click="${state.increase}"/>\n        </div>\n      </div>\n    `;
     },
     disconnect: ()=>{
     }
@@ -1533,13 +1548,13 @@ const stateDemoFactory = compose({
     connect: ()=>{
     },
     update: ()=>{
-        return draw`\n      <section  id="interact">\n        <h2>Interact</h2>\n        <h3>The Lifecycle</h3>\n        <p>\n          ${parsleyLifecycle} These functions also constitute a\n          <span>chunk</span>.\n        </p>\n        ${[
+        return draw`\n      <section id="interact">\n        <h2>Interact</h2>\n        <h3>The Lifecycle</h3>\n        <p>\n          ${parsleyLifecycle} These functions also constitute a\n          <span>chunk</span>.\n        </p>\n        ${[
             tsSyntaxChunk
-        ]}\n        <h3>Update chunks</h3>\n        <p>\n          Updates in Parsley depend on the\n          <span><code>banger</code></span> class.\n          In the example below, event listeners use\n          <span><code>banger.bang()</code></span> to update and redraw.\n        </p>\n        ${[
+        ]}\n        <h3>Update chunks</h3>\n        <p>\n          Updates in Parsley depend on the\n          <code>banger</code> class.\n          In the example below, event listeners use\n          <code>banger.bang()</code> to update and redraw.\n        </p>\n        ${[
             exampleStateCode
-        ]}\n        <h3>Event Listeners</h3>\n        <p>\n          Event listeners are attached to DOM elements through an\n          <span><code>@</code></span> atmark. They can interact\n          with state through the <span><code>banger</code></span> class.\n        </p>\n        <p>\n          In the example below, Parsley-DOM understands that the\n          <code>@click</code> property is going\n          to be an Event Listener.\n        </p>\n        ${[
+        ]}\n        <h3>Event Listeners</h3>\n        <p>\n          Event listeners are attached to DOM elements through an\n          <code>@</code> atmark. They can interact\n          with state through the <code>banger</code> class.\n        </p>\n        <p>\n          In the example below, Parsley-DOM understands that the\n          <code>@click</code> property is going\n          to be an Event Listener.\n        </p>\n        ${[
             exampleCode
-        ]}\n        <h3>Chunk out</h3>\n        <p>The <span><code>counterChunk</code></span> will output:</p>\n        ${[
+        ]}\n        <h3>Chunk out</h3>\n        <p>The <code>counterChunk</code> will output:</p>\n        ${[
             counterChunk
         ]}\n      </section>\n    `;
     },
@@ -1574,7 +1589,7 @@ const helloWorldDemo = compose({
             codeDemoChunkChunk
         ]}\n        <h3>3) Attach to DOM</h3>\n        <p>\n          Append the <span>Chunk</span> with\n          <span><code>attach</code></span>.\n        </p>\n        ${[
             codeDemoConnectChunk
-        ]}\n        <h3>Chunk out</h3>\n        <p>\n          The <span><code>helloWorldChunk</code></span>\n          will output:\n        </p>\n        <div class="hello_world__demo">${[
+        ]}\n        <h3>Chunk out</h3>\n        <p>\n          The <code>helloWorldChunk</code>\n          will have similar output as below:\n        </p>\n        <div class="demo_area">${[
             helloWorldChunk
         ]}</div>\n      </section>\n    `;
     },
@@ -1583,16 +1598,16 @@ const helloWorldDemo = compose({
 });
 const helloWorldDemoChunk = helloWorldDemo();
 const articleWithRefs = compose({
-    connect: ({ banger: banger2  })=>{
+    connect: ({ banger: banger3  })=>{
         return {
             click: (e)=>{
-                const refs = banger2.getReferences();
+                const refs = banger3.getReferences();
                 console.log(refs);
             }
         };
     },
     update: ({ state  })=>{
-        return draw`\n      <article\n        *article\n        @click="${state.click}">\n        <h3 *title>Hello, world!</h3>\n        <section *content>\n          <p>Press <code>ctl alt i</code>.</p>\n          <p>Then click this button!</p>\n        </section>\n        <input\n          *button\n          type="button"\n          value="Get Refs"></input>\n      </article>\n    `;
+        return draw`\n      <article *article>\n        <section *content class="demo_area__vertical">\n        <p>Press <code>ctl alt i</code>.</p>\n        <p>Then click this button!</p>\n        <input\n          *button\n          class="leverage_references__button"\n          type="button"\n          value="Get Refs"\n          @click="${state.click}"></input>\n        </section>\n      </article>\n    `;
     },
     disconnect: ()=>{
     }

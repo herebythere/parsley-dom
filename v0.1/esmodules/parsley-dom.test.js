@@ -1022,6 +1022,7 @@ const buildRenderStructure = (hooks, template)=>{
     return render;
 };
 class Banger {
+    chunk;
     constructor(chunk){
         this.chunk = chunk;
     }
@@ -1033,6 +1034,16 @@ class Banger {
     }
 }
 class Chunk {
+    parentNode;
+    leftNode;
+    siblings;
+    hooks;
+    chunker;
+    banger;
+    rs;
+    params;
+    state;
+    effect;
     constructor(baseParams){
         this.banger = new Banger(this);
         this.hooks = baseParams.hooks;

@@ -30,16 +30,18 @@ const counterFactory = compose<void, Counter>({
     const count = state.count;
 
     return draw`
-      <div class="leverage_state__demo">
-        <h3>\&Sigma\;: ${count}</h3>
-        <input
-          type="button"
-          value="- 1"
-          @click="${state.decrease}"/>
-        <input
-          type="button"
-          value="+ 1"
-          @click="${state.increase}"/>
+      <div class="demo_area__vertical">
+        <h3>Sum: ${count}</h3>
+        <div class="leverage_state__buttons">
+          <input
+            type="button"
+            value="- 1"
+            @click="${state.decrease}"/>
+          <input
+            type="button"
+            value="+ 1"
+            @click="${state.increase}"/>
+        </div>
       </div>
     `;
   },
@@ -115,7 +117,7 @@ const stateDemoFactory = compose<void, void>({
   connect: () => {},
   update: () => {
     return draw`
-      <section  id="interact">
+      <section id="interact">
         <h2>Interact</h2>
         <h3>The Lifecycle</h3>
         <p>
@@ -126,16 +128,16 @@ const stateDemoFactory = compose<void, void>({
         <h3>Update chunks</h3>
         <p>
           Updates in Parsley depend on the
-          <span><code>banger</code></span> class.
+          <code>banger</code> class.
           In the example below, event listeners use
-          <span><code>banger.bang()</code></span> to update and redraw.
+          <code>banger.bang()</code> to update and redraw.
         </p>
         ${[exampleStateCode]}
         <h3>Event Listeners</h3>
         <p>
           Event listeners are attached to DOM elements through an
-          <span><code>@</code></span> atmark. They can interact
-          with state through the <span><code>banger</code></span> class.
+          <code>@</code> atmark. They can interact
+          with state through the <code>banger</code> class.
         </p>
         <p>
           In the example below, Parsley-DOM understands that the
@@ -144,7 +146,7 @@ const stateDemoFactory = compose<void, void>({
         </p>
         ${[exampleCode]}
         <h3>Chunk out</h3>
-        <p>The <span><code>counterChunk</code></span> will output:</p>
+        <p>The <code>counterChunk</code> will output:</p>
         ${[counterChunk]}
       </section>
     `;

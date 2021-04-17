@@ -16,18 +16,17 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   },
   update: ({ state }) => {
     return draw`
-      <article
-        *article
-        @click="${state.click}">
-        <h3 *title>Hello, world!</h3>
-        <section *content>
-          <p>Press <code>ctl alt i</code>.</p>
-          <p>Then click this button!</p>
-        </section>
+      <article *article>
+        <section *content class="demo_area__vertical">
+        <p>Press <code>ctl alt i</code>.</p>
+        <p>Then click this button!</p>
         <input
           *button
+          class="leverage_references__button"
           type="button"
-          value="Get Refs"></input>
+          value="Get Refs"
+          @click="${state.click}"></input>
+        </section>
       </article>
     `;
   },

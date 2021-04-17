@@ -31,7 +31,7 @@ class Counter implements CounterState {
 const countDisplay = compose<number, void>({
   connect: () => {},
   update: ({params: count}) => {
-    return draw`<p>${count} </p>`;
+    return draw`<p class="count_display">${count}</p>`;
   },
   disconnect: () => {},
 })
@@ -61,20 +61,24 @@ const counterWithDescendants = compose<void, Counter>({
     updateDescendants(state.count);
 
     return draw`
-      <p>sums:</p>
-      <div>
-        ${descendants}
+      <div class="demo_area__vertical">
+        <p>sums:</p>
+        <div class="leverage_params__sums">
+          ${descendants}
+        </div>
+        <div class="leverage_state__buttons">
+          <input
+            type="button"
+            value="- 1"
+            @click="${state.decrease}">
+          </input>
+          <input
+            type="button"
+            value="+ 1"
+            @click="${state.increase}">
+          </input>
+        </div>
       </div>
-      <input
-        type="button"
-        value="- 1"
-        @click="${state.decrease}">
-      </input>
-      <input
-        type="button"
-        value="+ 1"
-        @click="${state.increase}">
-      </input>
     `;
   },
   disconnect: () => {},
@@ -176,7 +180,7 @@ const paramsDemoFactory = compose<void, void>({
         </p>
         ${[counterWithSavedChildrenCode]}
         <h3>Chunk out</h3>
-        <p>The example above will output the following:</p>
+        <p>The example above will have similar output to the following:</p>
         ${[counterWithDescendantsChunk]}
       </section>
     `;
