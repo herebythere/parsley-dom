@@ -11,8 +11,6 @@ const helloWorld = compose<void, void>({
   disconnect: () => {},
 });
 
-const parsleyURL = "https://github.com/taylor-vann/parsley";
-
 const helloWorldDemoCode = `// typescript
 import { attach, compose, draw } from "../parsley-dom.ts";
 
@@ -24,9 +22,10 @@ const helloWorldFactory = compose<void, void>({
     disconnect: () => {},
 });`;
 
-const helloWorldChunkDemoCode = `const helloWorldChunk = helloWorldFactory();`
+const helloWorldChunkDemoCode = `const helloWorldChunk = helloWorldFactory();`;
 
-const helloWorldAttachDemoCode = `const fixture = document.querySelector("#fixture");
+const helloWorldAttachDemoCode =
+  `const fixture = document.querySelector("#fixture");
 if (fixture !== null) {
   attach(fixture, [helloWorldChunk]);
 }`;
@@ -45,7 +44,7 @@ const helloWorldDemo = compose<void, void>({
         <h2>Chunk</h2>
         <p>
           Parsley-DOM creates chunks of interactive DOM with
-          <a href="${parsleyURL}" target="_blank">Parsley</a>
+          <a href="https://github.com/taylor-vann/parsley" target="_blank">Parsley</a>
           in three broad steps.
         </p>        
         <h3>1) Build a Factory</h3>

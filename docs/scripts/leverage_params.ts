@@ -30,17 +30,17 @@ class Counter implements CounterState {
 
 const countDisplay = compose<number, void>({
   connect: () => {},
-  update: ({params: count}) => {
+  update: ({ params: count }) => {
     return draw`<h3 class="count_display">${count}</h3>`;
   },
   disconnect: () => {},
-})
+});
 
-const descendants = [
+let descendants = [
   countDisplay(0),
   countDisplay(0),
   countDisplay(0),
-]
+];
 
 const updateDescendants = (count: number) => {
   let index = 0;
@@ -51,13 +51,13 @@ const updateDescendants = (count: number) => {
 
     index += 1;
   }
-}
+};
 
 const counterWithDescendants = compose<void, Counter>({
-  connect: ({banger}) => {
+  connect: ({ banger }) => {
     return new Counter(banger);
   },
-  update: ({state}) => {
+  update: ({ state }) => {
     updateDescendants(state.count);
 
     return draw`
@@ -84,11 +84,9 @@ const counterWithDescendants = compose<void, Counter>({
     `;
   },
   disconnect: () => {},
-})
+});
 
 const counterWithDescendantsChunk = counterWithDescendants();
-
-const parsleyURL = "https://github.com/taylor-vann/parsley"
 
 const counterShellDemoCode = `// typescript
 const countDisplay = compose<number, void>({
@@ -133,7 +131,6 @@ const counterFactory = compose<void, Counter>({
 
 const countDisplayMemoryCode = codeDemo(countDisplayMemoryDemoCode);
 const updateDisplayMemoryCode = codeDemo(updateDisplayMemoryDemoCode);
-
 const counterShellCode = codeDemo(counterShellDemoCode);
 const counterWithSavedChildrenCode = codeDemo(counterWithSavedChildrenDemoCode);
 
@@ -172,7 +169,7 @@ const paramsDemoFactory = compose<void, void>({
         ${[updateDisplayMemoryCode]}
         <p>
           <span>Chunks</span> draw when descendants change. Luckily,
-          <a target="_blank" href="${parsleyURL}">Parsley</a>
+          <a target="_blank" href="https://github.com/taylor-vann/parsley">Parsley</a>
           caches renders and only updates when necessary.
         </p>
         <p>

@@ -41,8 +41,7 @@ const decrement = (template, position)=>{
     return position;
 };
 const getCharAtPosition = (template, position)=>{
-    const templateArray = template.templateArray;
-    return templateArray[position.arrayIndex]?.[position.stringIndex];
+    return template.templateArray[position.arrayIndex]?.[position.stringIndex];
 };
 const DEFAULT_POSITION = {
     arrayIndex: 0,
@@ -119,11 +118,11 @@ const getText = (template, vector)=>{
         return copiedText;
     }
     const texts = [];
-    let templateText = template.templateArray[vector.origin.arrayIndex];
+    const templateTextIndex = vector.origin.stringIndex;
+    let templateText = template.templateArray[templateTextIndex];
     if (templateText === undefined) {
         return;
     }
-    const templateTextIndex = vector.origin.stringIndex;
     let distance = templateText.length - templateTextIndex;
     let copiedText = templateText.substr(templateTextIndex, distance);
     texts.push(copiedText);
@@ -146,11 +145,11 @@ const BREAK_RUNES = {
     "\n": true
 };
 const crawlForTagName = (template, innerXmlBounds)=>{
-    const tagVector = copy2(innerXmlBounds);
-    let positionChar = getCharAtPosition(template, tagVector.origin);
+    let positionChar = getCharAtPosition(template, innerXmlBounds.origin);
     if (positionChar === undefined || BREAK_RUNES[positionChar]) {
         return;
     }
+    const tagVector = copy2(innerXmlBounds);
     while(BREAK_RUNES[positionChar] === undefined && !hasOriginEclipsedTaraget(tagVector)){
         if (incrementOrigin(template, tagVector) === undefined) {
             return;
@@ -168,7 +167,7 @@ const crawlForTagName = (template, innerXmlBounds)=>{
             ...tagVector.origin
         }
     };
-    if (BREAK_RUNES[positionChar]) {
+    if (positionChar !== undefined && BREAK_RUNES[positionChar]) {
         decrementTarget(template, adjustedVector);
     }
     return adjustedVector;
@@ -190,13 +189,14 @@ const getAttributeName = (template, vectorBounds)=>{
     if (positionChar === undefined || BREAK_RUNES1[positionChar]) {
         return;
     }
-    let tagNameCrawlState = ATTRIBUTE_FOUND;
     const bounds = copy2(vectorBounds);
-    while(tagNameCrawlState === ATTRIBUTE_FOUND && !hasOriginEclipsedTaraget(bounds)){
-        if (incrementOrigin(template, bounds) === undefined) {
-            return;
+    let tagNameCrawlState = ATTRIBUTE_FOUND;
+    while(tagNameCrawlState === ATTRIBUTE_FOUND && !hasOriginEclipsedTaraget(vectorBounds)){
+        if (incrementOrigin(template, vectorBounds) === undefined) {
+            tagNameCrawlState = IMPLICIT_ATTRIBUTE;
+            break;
         }
-        positionChar = getCharAtPosition(template, bounds.origin);
+        positionChar = getCharAtPosition(template, vectorBounds.origin);
         if (positionChar === undefined) {
             return;
         }
@@ -210,10 +210,10 @@ const getAttributeName = (template, vectorBounds)=>{
     }
     const attributeVector = {
         origin: {
-            ...vectorBounds.origin
+            ...bounds.origin
         },
         target: {
-            ...bounds.origin
+            ...vectorBounds.origin
         }
     };
     if (tagNameCrawlState === ATTRIBUTE_FOUND) {
@@ -235,7 +235,16 @@ const getAttributeName = (template, vectorBounds)=>{
         decrementTarget(template, attributeVector);
         return {
             kind: EXPLICIT_ATTRIBUTE,
-            valueVector: attributeVector,
+            valueVector: {
+                origin: {
+                    arrayIndex: -1,
+                    stringIndex: -1
+                },
+                target: {
+                    arrayIndex: -1,
+                    stringIndex: -1
+                }
+            },
             attributeVector
         };
     }
@@ -246,24 +255,18 @@ const getAttributeValue = (template, vectorBounds, attributeAction)=>{
         return;
     }
     const bound = copy2(vectorBounds);
-    incrementOrigin(template, bound);
-    if (hasOriginEclipsedTaraget(bound)) {
-        return;
-    }
-    positionChar = getCharAtPosition(template, bound.origin);
+    incrementOrigin(template, vectorBounds);
+    positionChar = getCharAtPosition(template, vectorBounds.origin);
     if (positionChar !== QUOTE_RUNE) {
         return;
     }
-    const { arrayIndex  } = bound.origin;
-    const valVector = copy2(bound);
-    if (incrementOrigin(template, valVector) === undefined) {
+    const arrayIndex = vectorBounds.origin.arrayIndex;
+    const valVector = copy2(vectorBounds);
+    if (incrementOrigin(template, vectorBounds) === undefined) {
         return;
     }
-    positionChar = getCharAtPosition(template, valVector.origin);
-    if (positionChar === undefined) {
-        return;
-    }
-    const arrayIndexDistance = Math.abs(arrayIndex - valVector.origin.arrayIndex);
+    positionChar = getCharAtPosition(template, vectorBounds.origin);
+    let arrayIndexDistance = Math.abs(arrayIndex - vectorBounds.origin.arrayIndex);
     if (arrayIndexDistance === 1 && positionChar === QUOTE_RUNE) {
         return {
             kind: INJECTED_ATTRIBUTE,
@@ -271,33 +274,34 @@ const getAttributeValue = (template, vectorBounds, attributeAction)=>{
             attributeVector: attributeAction.attributeVector,
             valueVector: {
                 origin: {
-                    ...bound.origin
+                    ...valVector.origin
                 },
                 target: {
-                    ...valVector.origin
+                    ...vectorBounds.origin
                 }
             }
         };
     }
-    while(positionChar !== QUOTE_RUNE && !hasOriginEclipsedTaraget(valVector)){
-        if (incrementOrigin(template, valVector) === undefined) {
+    if (arrayIndexDistance > 0) {
+        return;
+    }
+    while(positionChar !== QUOTE_RUNE && !hasOriginEclipsedTaraget(vectorBounds)){
+        if (incrementOrigin(template, vectorBounds) === undefined) {
             return;
         }
-        if (arrayIndex < valVector.origin.arrayIndex) {
-            return;
-        }
-        positionChar = getCharAtPosition(template, valVector.origin);
-        if (positionChar === undefined) {
+        positionChar = getCharAtPosition(template, vectorBounds.origin);
+        arrayIndexDistance = Math.abs(arrayIndex - vectorBounds.origin.arrayIndex);
+        if (arrayIndexDistance > 0) {
             return;
         }
     }
     if (attributeAction.kind === "EXPLICIT_ATTRIBUTE" && positionChar === QUOTE_RUNE) {
         attributeAction.valueVector = {
             origin: {
-                ...bound.origin
+                ...valVector.origin
             },
             target: {
-                ...valVector.origin
+                ...vectorBounds.origin
             }
         };
         return attributeAction;
@@ -311,12 +315,7 @@ const crawlForAttribute = (template, vectorBounds)=>{
     if (attrResults.kind === "IMPLICIT_ATTRIBUTE") {
         return attrResults;
     }
-    const valBounds = copy2(vectorBounds);
-    valBounds.origin = {
-        ...attrResults.attributeVector.target
-    };
-    incrementOrigin(template, valBounds);
-    return getAttributeValue(template, valBounds, attrResults);
+    return getAttributeValue(template, vectorBounds, attrResults);
 };
 const incrementOriginToNextSpaceRune = (template, innerXmlBounds)=>{
     let positionChar = getCharAtPosition(template, innerXmlBounds.origin);
@@ -350,9 +349,6 @@ const incrementOriginToNextCharRune = (template, innerXmlBounds)=>{
             return;
         }
         positionChar = getCharAtPosition(template, innerXmlBounds.origin);
-        if (positionChar === undefined) {
-            return;
-        }
     }
     return innerXmlBounds;
 };
@@ -366,26 +362,26 @@ const appendNodeAttributeIntegrals = ({ integrals , template , chunk ,  })=>{
         if (incrementOriginToNextCharRune(template, chunk) === undefined) {
             return;
         }
-        const attributeCrawlResults = crawlForAttribute(template, chunk);
-        if (attributeCrawlResults === undefined) {
+        const attrCrawl = crawlForAttribute(template, chunk);
+        if (attrCrawl === undefined) {
             return;
         }
-        if (attributeCrawlResults.kind === "IMPLICIT_ATTRIBUTE") {
+        if (attrCrawl.kind === "IMPLICIT_ATTRIBUTE") {
             chunk.origin = {
-                ...attributeCrawlResults.attributeVector.target
+                ...attrCrawl.attributeVector.target
             };
         }
-        if (attributeCrawlResults.kind === "EXPLICIT_ATTRIBUTE") {
+        if (attrCrawl.kind === "EXPLICIT_ATTRIBUTE") {
             chunk.origin = {
-                ...attributeCrawlResults.valueVector.target
+                ...attrCrawl.valueVector.target
             };
         }
-        if (attributeCrawlResults.kind === "INJECTED_ATTRIBUTE") {
+        if (attrCrawl.kind === "INJECTED_ATTRIBUTE") {
             chunk.origin = {
-                ...attributeCrawlResults.valueVector.target
+                ...attrCrawl.valueVector.target
             };
         }
-        integrals.push(attributeCrawlResults);
+        integrals.push(attrCrawl);
     }
     return integrals;
 };
@@ -505,7 +501,7 @@ const buildIntegrals = ({ template , skeleton  })=>{
                 injectionID: origin.arrayIndex - 1
             });
         }
-        if (nodeType === "OPEN_NODE_CONFIRMED") {
+        if (nodeType === "OPENED_FOUND") {
             appendNodeIntegrals({
                 kind: "NODE",
                 integrals,
@@ -513,21 +509,21 @@ const buildIntegrals = ({ template , skeleton  })=>{
                 chunk
             });
         }
-        if (nodeType === "CLOSE_NODE_CONFIRMED") {
+        if (nodeType === "CLOSED_FOUND") {
             appendCloseNodeIntegrals({
                 integrals,
                 template,
                 chunk
             });
         }
-        if (nodeType === "CONTENT_NODE") {
+        if (nodeType === "CONTENT") {
             appendContentIntegrals({
                 integrals,
                 template,
                 chunk
             });
         }
-        if (nodeType === "SELF_CLOSING_NODE_CONFIRMED") {
+        if (nodeType === "INDEPENDENT_FOUND") {
             appendNodeIntegrals({
                 kind: "SELF_CLOSING_NODE",
                 integrals,
@@ -539,57 +535,63 @@ const buildIntegrals = ({ template , skeleton  })=>{
     return integrals;
 };
 const routers = {
-    CONTENT_NODE: {
-        "<": "OPEN_NODE",
-        DEFAULT: "CONTENT_NODE"
+    CONTENT: {
+        "<": "OPENED",
+        DEFAULT: "CONTENT"
     },
-    OPEN_NODE: {
-        " ": "CONTENT_NODE",
-        "\n": "CONTENT_NODE",
-        "<": "OPEN_NODE",
-        "/": "CLOSE_NODE",
-        DEFAULT: "OPEN_NODE_VALID"
+    OPENED: {
+        " ": "CONTENT",
+        "\n": "CONTENT",
+        "<": "OPENED",
+        "/": "CLOSED",
+        DEFAULT: "OPENED_VALID"
     },
-    OPEN_NODE_VALID: {
-        "<": "OPEN_NODE",
-        "/": "SELF_CLOSING_NODE_VALID",
-        ">": "OPEN_NODE_CONFIRMED",
-        DEFAULT: "OPEN_NODE_VALID"
+    ATTRIBUTE: {
+        "\\": "ATTRIBUTE_ESC_CHAR",
+        '"': "OPENED_VALID",
+        DEFAULT: "ATTRIBUTE"
     },
-    CLOSE_NODE: {
-        " ": "CONTENT_NODE",
-        "\n": "CONTENT_NODE",
-        "<": "OPEN_NODE",
-        DEFAULT: "CLOSE_NODE_VALID"
+    ATTRIBUTE_ESC_CHAR: {
+        DEFAULT: "ATTRIBUTE"
     },
-    CLOSE_NODE_VALID: {
-        "<": "OPEN_NODE",
-        ">": "CLOSE_NODE_CONFIRMED",
-        DEFAULT: "CLOSE_NODE_VALID"
+    OPENED_VALID: {
+        "<": "OPENED",
+        "/": "INDEPENDENT_VALID",
+        ">": "OPENED_FOUND",
+        '"': "ATTRIBUTE",
+        DEFAULT: "OPENED_VALID"
     },
-    SELF_CLOSING_NODE_VALID: {
-        "<": "OPEN_NODE",
-        ">": "SELF_CLOSING_NODE_CONFIRMED",
-        DEFAULT: "SELF_CLOSING_NODE_VALID"
+    CLOSED: {
+        " ": "CONTENT",
+        "\n": "CONTENT",
+        "<": "OPENED",
+        DEFAULT: "CLOSED_VALID"
+    },
+    CLOSED_VALID: {
+        "<": "OPENED",
+        ">": "CLOSED_FOUND",
+        DEFAULT: "CLOSED_VALID"
+    },
+    INDEPENDENT_VALID: {
+        "<": "OPENED",
+        ">": "INDEPENDENT_FOUND",
+        DEFAULT: "INDEPENDENT_VALID"
     }
 };
-const DEFAULT = "DEFAULT";
-const CONTENT_NODE = "CONTENT_NODE";
-const OPEN_NODE = "OPEN_NODE";
 const validSieve = {
-    ["OPEN_NODE_VALID"]: "OPEN_NODE_VALID",
-    ["CLOSE_NODE_VALID"]: "CLOSE_NODE_VALID",
-    ["SELF_CLOSING_NODE_VALID"]: "SELF_CLOSING_NODE_VALID"
+    OPENED_VALID: "OPENED_VALID",
+    CLOSED_VALID: "CLOSED_VALID",
+    INDEPENDENT_VALID: "INDEPENDENT_VALID"
 };
 const confirmedSieve = {
-    ["OPEN_NODE_CONFIRMED"]: "OPEN_NODE_CONFIRMED",
-    ["CLOSE_NODE_CONFIRMED"]: "CLOSE_NODE_CONFIRMED",
-    ["SELF_CLOSING_NODE_CONFIRMED"]: "SELF_CLOSING_NODE_CONFIRMED"
+    OPENED_FOUND: "OPENED_FOUND",
+    CLOSED_FOUND: "CLOSED_FOUND",
+    INDEPENDENT_FOUND: "INDEPENDENT_FOUND"
 };
 const setStartStateProperties = (template, previousCrawl)=>{
     if (previousCrawl === undefined) {
         return {
-            nodeType: CONTENT_NODE,
+            nodeType: "CONTENT",
             vector: create()
         };
     }
@@ -598,7 +600,7 @@ const setStartStateProperties = (template, previousCrawl)=>{
         return;
     }
     const crawlState = {
-        nodeType: CONTENT_NODE,
+        nodeType: "CONTENT",
         vector: followingVector
     };
     return crawlState;
@@ -607,7 +609,7 @@ const setNodeType = (template, crawlState)=>{
     const nodeStates = routers[crawlState.nodeType];
     const __char = getCharAtPosition(template, crawlState.vector.target);
     if (nodeStates !== undefined && __char !== undefined) {
-        const defaultNodeType = nodeStates[DEFAULT] ?? CONTENT_NODE;
+        const defaultNodeType = nodeStates["DEFAULT"] ?? "CONTENT";
         crawlState.nodeType = nodeStates[__char] ?? defaultNodeType;
     }
     return crawlState;
@@ -617,19 +619,19 @@ const crawl = (template, previousCrawl)=>{
     if (crawlState === undefined) {
         return;
     }
-    let openPosition;
     setNodeType(template, crawlState);
+    let openedPosition;
     while(incrementTarget(template, crawlState.vector)){
-        if (validSieve[crawlState.nodeType] === undefined && crawlState.vector.target.stringIndex === 0) {
-            crawlState.nodeType = CONTENT_NODE;
+        if (validSieve[crawlState.nodeType] === undefined && crawlState.nodeType !== "ATTRIBUTE" && crawlState.vector.target.stringIndex === 0) {
+            crawlState.nodeType = "CONTENT";
         }
         setNodeType(template, crawlState);
-        if (crawlState.nodeType === OPEN_NODE) {
-            openPosition = copy1(crawlState.vector.target);
+        if (crawlState.nodeType === "OPENED") {
+            openedPosition = copy1(crawlState.vector.target);
         }
         if (confirmedSieve[crawlState.nodeType]) {
-            if (openPosition !== undefined) {
-                crawlState.vector.origin = openPosition;
+            if (openedPosition !== undefined) {
+                crawlState.vector.origin = openedPosition;
             }
             break;
         }
@@ -637,7 +639,7 @@ const crawl = (template, previousCrawl)=>{
     return crawlState;
 };
 const DEFAULT_CRAWL_RESULTS = {
-    nodeType: "CONTENT_NODE",
+    nodeType: "CONTENT",
     vector: {
         origin: {
             arrayIndex: 0,
@@ -650,10 +652,10 @@ const DEFAULT_CRAWL_RESULTS = {
     }
 };
 const SKELETON_SIEVE = {
-    ["OPEN_NODE_CONFIRMED"]: "OPEN_NODE",
-    ["SELF_CLOSING_NODE_CONFIRMED"]: "SELF_CLOSING_NODE",
-    ["CLOSE_NODE_CONFIRMED"]: "CLOSE_NODE",
-    ["CONTENT_NODE"]: "CONTENT_NODE"
+    ["OPENED_FOUND"]: "OPENED",
+    ["INDEPENDENT_FOUND"]: "INDEPENDENT",
+    ["CLOSED_FOUND"]: "CLOSED",
+    ["CONTENT"]: "CONTENT"
 };
 const isDistanceGreaterThanOne = ({ template , origin , target ,  })=>{
     if (hasOriginEclipsedTaraget({
@@ -688,7 +690,7 @@ const buildMissingStringNode = ({ template , previousCrawl , currentCrawl ,  })=
         increment(template, origin);
     }
     return {
-        nodeType: "CONTENT_NODE",
+        nodeType: "CONTENT",
         vector: {
             origin,
             target
@@ -735,7 +737,6 @@ const createTextNode = ({ hooks , rs , integral  })=>{
     const parentNode = rs.stack[rs.stack.length - 1]?.node;
     const lastNodeIndex = rs.lastNodes.length - 1;
     const leftNode = rs.lastNodes[lastNodeIndex];
-    const isSiblingLevel = rs.stack.length === 0;
     if (rs.stack.length === 0) {
         rs.siblings.push([
             descendant
@@ -864,15 +865,15 @@ const createChunkArrayInjection = ({ hooks , rs , integral ,  })=>{
     rs.lastNodes[lastNodeIndex] = prevSibling;
 };
 const appendExplicitAttribute = ({ hooks , rs , integral ,  })=>{
-    const references = rs.references;
     const node = rs.stack[rs.stack.length - 1].node;
     const attribute = getText(rs.template, integral.attributeVector);
     if (attribute === undefined) {
         return;
     }
-    incrementOrigin(rs.template, integral.valueVector);
-    decrementTarget(rs.template, integral.valueVector);
-    const value = getText(rs.template, integral.valueVector);
+    const valueVector = copy2(integral.valueVector);
+    incrementOrigin(rs.template, valueVector);
+    decrementTarget(rs.template, valueVector);
+    const value = getText(rs.template, valueVector);
     if (value === undefined) {
         return;
     }
@@ -942,14 +943,7 @@ const buildRender = ({ hooks , template , integrals  })=>{
         stack: []
     };
     for (const integral of integrals){
-        if (integral.kind === "NODE") {
-            createNode({
-                hooks,
-                rs,
-                integral
-            });
-        }
-        if (integral.kind === "SELF_CLOSING_NODE") {
+        if (integral.kind === "NODE" || integral.kind === "SELF_CLOSING_NODE") {
             createNode({
                 hooks,
                 rs,
@@ -1021,160 +1015,27 @@ const buildRenderStructure = (hooks, template)=>{
     });
     return render;
 };
-class Banger {
-    chunk;
-    constructor(chunk){
-        this.chunk = chunk;
-    }
-    bang() {
-        this.chunk.bang();
-    }
-    getReferences() {
-        return this.chunk.getReferences();
-    }
-}
-class Chunk {
-    parentNode;
-    leftNode;
-    siblings;
-    hooks;
-    chunker;
-    banger;
-    rs;
-    params;
-    state;
-    effect;
-    constructor(baseParams){
-        this.banger = new Banger(this);
-        this.hooks = baseParams.hooks;
-        this.chunker = baseParams.chunker;
-        this.params = baseParams.params;
-        this.state = this.chunker.connect({
-            banger: this.banger,
-            params: baseParams.params
-        });
-        const template1 = this.getTemplate();
-        this.rs = buildRenderStructure(this.hooks, template1);
-        this.siblings = getUpdatedSiblings(this.rs);
-        this.effect = this.updateEffect("UNMOUNTED");
-    }
-    bang() {
-        this.update(this.params);
-    }
-    update(params) {
-        this.setParams(params);
-        const template1 = this.getTemplate();
-        if (this.effect.quality === "DISCONNECTED") {
-            this.disconnect();
-            this.remount(template1);
-            return;
-        }
-        if (hasTemplateChanged(this.rs, template1)) {
-            this.remount(template1);
-            return;
-        }
-        updateAttributes(this.hooks, this.rs, template1);
-        const descendantsHaveUpdated = updateDescendants({
-            contextParentNode: this.parentNode,
-            hooks: this.hooks,
-            rs: this.rs,
-            template: template1
-        });
-        if (descendantsHaveUpdated) {
-            this.siblings = getUpdatedSiblings(this.rs);
-        }
-    }
-    mount(parentNode, leftNode) {
-        this.parentNode = parentNode;
-        this.leftNode = leftNode;
-        let prevSibling;
-        let descendant = leftNode;
-        for(const siblingID in this.siblings){
-            prevSibling = descendant;
-            descendant = this.siblings[siblingID];
-            this.hooks.insertDescendant({
-                leftNode: prevSibling,
-                parentNode,
-                descendant
-            });
-        }
-        this.updateEffect("MOUNTED");
-        return descendant;
-    }
-    unmount() {
-        this.parentNode = undefined;
-        this.leftNode = undefined;
-        for(const siblingID in this.siblings){
-            const sibling = this.siblings[siblingID];
-            this.hooks.removeDescendant(sibling);
-        }
-        this.updateEffect("UNMOUNTED");
-    }
-    disconnect() {
-        disconnectDescendants(this.hooks, this.rs);
-        if (this.state !== undefined && this.chunker.disconnect !== undefined) {
-            this.chunker.disconnect({
-                state: this.state
-            });
-        }
-        this.updateEffect("DISCONNECTED");
-    }
-    getSiblings() {
-        return this.siblings;
-    }
-    getReferences() {
-        if (this.rs !== undefined) {
-            return this.rs.references;
-        }
-    }
-    getEffect() {
-        return this.effect;
-    }
-    remount(template) {
-        this.rs = buildRenderStructure(this.hooks, template);
-        this.siblings = getUpdatedSiblings(this.rs);
-        this.mount(this.parentNode, this.leftNode);
-        this.effect = this.updateEffect("CONNECTED");
-    }
-    updateEffect(quality) {
-        this.effect = {
-            timestamp: performance.now(),
-            quality
-        };
-        return this.effect;
-    }
-    setParams(params) {
-        this.params = params;
-    }
-    getTemplate() {
-        return this.chunker.update({
-            banger: this.banger,
-            state: this.state,
-            params: this.params
-        });
-    }
-}
 const getUpdatedSiblings = (rs)=>{
-    const siblings = [];
-    const originalSiblings = rs.siblings;
-    for(const siblingArrayID in originalSiblings){
-        const siblingArray = originalSiblings[siblingArrayID];
+    const siblingsDelta = [];
+    const siblings = rs.siblings;
+    for(const siblingsID in siblings){
+        const siblingArray = siblings[siblingsID];
         for(const siblingID in siblingArray){
             const sibling = siblingArray[siblingID];
-            siblings.push(sibling);
+            siblingsDelta.push(sibling);
         }
     }
-    return siblings;
+    return siblingsDelta;
 };
-const hasTemplateChanged = (rs, template2)=>{
-    const templateLength = template2.templateArray.length;
+const hasTemplateChanged = (rs, template)=>{
+    const templateLength = template.templateArray.length;
     if (rs.template.templateArray.length !== templateLength) {
         return true;
     }
     let index = 0;
     while(index < templateLength){
         const sourceStr = rs.template.templateArray[index];
-        const targetStr = template2.templateArray[index];
+        const targetStr = template.templateArray[index];
         if (sourceStr !== targetStr) {
             return true;
         }
@@ -1182,89 +1043,86 @@ const hasTemplateChanged = (rs, template2)=>{
     }
     return false;
 };
-const updateAttributes = (hooks, rs, template2)=>{
+const updateAttributes = (hooks, rs, template)=>{
     for(const attributesID in rs.attributes){
         const pastInjection = rs.attributes[attributesID];
-        const attributeValue = template2.injections[attributesID];
+        const attributeValue = template.injections[attributesID];
         if (attributeValue === pastInjection.params.value) {
             continue;
         }
-        hooks.removeAttribute(pastInjection.params);
         pastInjection.params.value = attributeValue;
         hooks.setAttribute(pastInjection.params);
     }
 };
-const updateDescendants = ({ hooks , rs , template: template2 , contextParentNode ,  })=>{
+const updateDescendants = ({ hooks , rs , template , chunkParentNode ,  })=>{
     let siblingLevelUpdated = false;
     for(const descenantID in rs.descendants){
         const pastDescendant = rs.descendants[descenantID];
-        const descendant = template2.injections[descenantID];
+        const descendant = template.injections[descenantID];
+        const text = String(descendant);
         if (pastDescendant.kind === "TEXT" && !Array.isArray(descendant)) {
-            const text = String(descendant);
             if (pastDescendant.params.text === text) {
                 continue;
             }
         }
-        if (pastDescendant.kind === "CHUNK_ARRAY") {
-            const chunkArray = pastDescendant.params.chunkArray;
-            for(const contextID in chunkArray){
-                chunkArray[contextID].unmount();
-            }
-        }
-        const { leftNode , parentNode , siblingIndex  } = pastDescendant.params;
-        if (!siblingLevelUpdated) {
-            siblingLevelUpdated = siblingIndex !== undefined;
-        }
         if (pastDescendant.kind === "TEXT") {
             hooks.removeDescendant(pastDescendant.params.textNode);
         }
-        if (!Array.isArray(descendant)) {
-            const text = String(descendant);
-            const textNode = hooks.createTextNode(text);
+        if (pastDescendant.kind === "CHUNK_ARRAY") {
+            const { chunkArray  } = pastDescendant.params;
+            for(const chunkID in chunkArray){
+                chunkArray[chunkID].unmount();
+            }
+        }
+        const { leftNode , parentNode , siblingIndex  } = pastDescendant.params;
+        const parentDefault = parentNode ?? chunkParentNode;
+        if (!siblingLevelUpdated) {
+            siblingLevelUpdated = siblingIndex !== undefined;
+        }
+        if (Array.isArray(descendant)) {
             rs.descendants[descenantID] = {
-                kind: "TEXT",
+                kind: "CHUNK_ARRAY",
                 params: {
-                    textNode,
-                    text,
+                    chunkArray: descendant,
                     leftNode,
                     parentNode,
                     siblingIndex
                 }
             };
-            hooks.insertDescendant({
-                descendant: textNode,
-                leftNode,
-                parentNode: parentNode ?? contextParentNode
-            });
+            let currLeftNode = leftNode;
+            for(const chunkID in descendant){
+                currLeftNode = descendant[chunkID].mount(parentDefault, currLeftNode);
+            }
+        }
+        if (!Array.isArray(descendant)) {
+            const textNode = hooks.createTextNode(text);
+            rs.descendants[descenantID] = {
+                kind: "TEXT",
+                params: {
+                    parentNode: parentDefault,
+                    leftNode,
+                    siblingIndex,
+                    text,
+                    textNode
+                }
+            };
             if (siblingIndex !== undefined) {
                 rs.siblings[siblingIndex] = [
                     textNode
                 ];
             }
-            continue;
-        }
-        const chunkArray = descendant;
-        rs.descendants[descenantID] = {
-            kind: "CHUNK_ARRAY",
-            params: {
-                chunkArray,
-                leftNode,
-                parentNode,
-                siblingIndex
-            }
-        };
-        let currLeftNode = leftNode;
-        for(const contextID in descendant){
-            const chunk1 = chunkArray[contextID];
-            currLeftNode = chunk1.mount(parentNode ?? contextParentNode, currLeftNode);
+            hooks.insertDescendant({
+                parentNode: parentDefault,
+                descendant: textNode,
+                leftNode
+            });
         }
         if (pastDescendant.kind === "CHUNK_ARRAY") {
-            const chunkArray1 = pastDescendant.params.chunkArray;
-            for(const contextID1 in chunkArray1){
-                const context = chunkArray1[contextID1];
-                const effect = context.getEffect();
-                if (effect.quality === "UNMOUNTED") {
-                    context.disconnect();
+            const { chunkArray  } = pastDescendant.params;
+            for(const chunkID in chunkArray){
+                const chunk = chunkArray[chunkID];
+                if (!chunk.effect.mounted) {
+                    chunk.disconnect();
                 }
             }
         }
@@ -1284,13 +1142,180 @@ const disconnectDescendants = (hooks, rs)=>{
         }
         if (descendant.kind === "CHUNK_ARRAY") {
             const chunkArray = descendant.params.chunkArray;
-            for(const contextID in chunkArray){
-                const context = chunkArray[contextID];
-                context.unmount();
-                context.disconnect();
+            for(const chunkID in chunkArray){
+                const chunk = chunkArray[chunkID];
+                chunk.unmount();
+                chunk.disconnect();
             }
         }
     }
+};
+class Banger {
+    chunk;
+    constructor(chunk){
+        this.chunk = chunk;
+    }
+    bang() {
+        this.chunk.bang();
+    }
+    getReferences() {
+        return this.chunk.getReferences();
+    }
+}
+class Chunk {
+    parentNode;
+    leftNode;
+    siblings;
+    effect;
+    hooks;
+    chunker;
+    banger;
+    rs;
+    params;
+    state;
+    constructor(base){
+        this.banger = new Banger(this);
+        this.hooks = base.hooks;
+        this.chunker = base.chunker;
+        this.params = base.params;
+        this.state = this.chunker.connect({
+            banger: this.banger,
+            params: base.params
+        });
+        const template = this.getTemplate();
+        this.rs = buildRenderStructure(this.hooks, template);
+        this.siblings = getUpdatedSiblings(this.rs);
+        this.effect = this.updateEffect(true, false);
+    }
+    bang() {
+        this.update(this.params);
+    }
+    connect(params) {
+        this.setParams(params);
+        this.state = this.chunker.connect({
+            banger: this.banger,
+            params
+        });
+        const template1 = this.getTemplate();
+        this.rs = buildRenderStructure(this.hooks, template1);
+        this.siblings = getUpdatedSiblings(this.rs);
+        this.updateEffect(true, false);
+        return this.state;
+    }
+    update(params) {
+        this.setParams(params);
+        if (!this.effect.connected) {
+            this.connect(this.params);
+            return;
+        }
+        const template1 = this.getTemplate();
+        if (hasTemplateChanged(this.rs, template1)) {
+            this.disconnect();
+            this.connect(params);
+            return;
+        }
+        updateAttributes(this.hooks, this.rs, template1);
+        const descendantsUpdated = updateDescendants({
+            chunkParentNode: this.parentNode,
+            hooks: this.hooks,
+            rs: this.rs,
+            template: template1
+        });
+        if (descendantsUpdated) {
+            this.siblings = getUpdatedSiblings(this.rs);
+        }
+    }
+    mount(parentNode, leftNode) {
+        this.parentNode = parentNode;
+        this.leftNode = leftNode;
+        let prevSibling;
+        let descendant = leftNode;
+        for(const siblingID in this.siblings){
+            prevSibling = descendant;
+            descendant = this.siblings[siblingID];
+            this.hooks.insertDescendant({
+                leftNode: prevSibling,
+                parentNode,
+                descendant
+            });
+        }
+        this.updateEffect(this.effect.connected, true);
+        return descendant;
+    }
+    unmount() {
+        for(const siblingID in this.siblings){
+            const sibling = this.siblings[siblingID];
+            this.hooks.removeDescendant(sibling);
+        }
+        this.parentNode = undefined;
+        this.leftNode = undefined;
+        this.updateEffect(this.effect.connected, false);
+    }
+    disconnect() {
+        disconnectDescendants(this.hooks, this.rs);
+        if (this.state !== undefined) {
+            this.chunker?.disconnect({
+                state: this.state
+            });
+        }
+        this.updateEffect(false, this.effect.mounted);
+    }
+    getSiblings() {
+        return this.siblings;
+    }
+    getReferences() {
+        return this.rs.references;
+    }
+    getEffect() {
+        return this.effect;
+    }
+    setParams(params) {
+        this.params = params;
+    }
+    getTemplate() {
+        return this.chunker.update({
+            banger: this.banger,
+            state: this.state,
+            params: this.params
+        });
+    }
+    updateEffect(connected, mounted) {
+        this.effect = {
+            timestamp: performance.now(),
+            connected,
+            mounted
+        };
+        return this.effect;
+    }
+}
+const createCustomInterface = (hooks)=>{
+    const attach = (parentNode, chunkArray)=>{
+        let leftNode;
+        for(const chunkID in chunkArray){
+            const chunk1 = chunkArray[chunkID];
+            leftNode = chunk1.mount(parentNode, leftNode);
+        }
+    };
+    const compose = (chunker)=>{
+        return (params)=>{
+            return new Chunk({
+                hooks,
+                chunker,
+                params
+            });
+        };
+    };
+    const draw = (templateArray, ...injections)=>{
+        return {
+            templateArray,
+            injections
+        };
+    };
+    return {
+        attach,
+        compose,
+        draw
+    };
 };
 const createNode1 = (tag)=>{
     return document.createElement(tag);
@@ -1376,27 +1401,5 @@ const hooks = {
     removeDescendant,
     getSibling
 };
-const compose1 = (chunker)=>{
-    return (params)=>{
-        return new Chunk({
-            hooks,
-            chunker,
-            params
-        });
-    };
-};
-const draw1 = (templateArray, ...injections)=>{
-    return {
-        templateArray,
-        injections
-    };
-};
-const attach1 = (parentNode, chunkArray)=>{
-    let leftNode;
-    for(const chunkID in chunkArray){
-        const chunk1 = chunkArray[chunkID];
-        leftNode = chunk1.mount(parentNode, leftNode);
-    }
-};
-export { compose1 as compose, draw1 as draw };
-export { attach1 as attach };
+const { attach: attach1 , compose: compose1 , draw: draw1  } = createCustomInterface(hooks);
+export { attach1 as attach, compose1 as compose, draw1 as draw };

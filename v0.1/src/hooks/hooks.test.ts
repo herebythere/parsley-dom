@@ -4,10 +4,10 @@
 import {
   createNode,
   createTextNode,
-  setAttribute,
-  removeAttribute,
   insertDescendant,
+  removeAttribute,
   removeDescendant,
+  setAttribute,
 } from "./hooks.ts";
 
 const title = "parsely-dom:hooks";
@@ -64,7 +64,12 @@ const testSetAttribute = () => {
 
   const node = createNode("article");
 
-  setAttribute({ references: {}, attribute: "style", value: "heckin based", node });
+  setAttribute({
+    references: {},
+    attribute: "style",
+    value: "heckin based",
+    node,
+  });
 
   if (node === null || node === undefined) {
     assertions.push("node should not be null or undefined");
@@ -91,7 +96,12 @@ const testSetEventAttribute = () => {
     return assertions;
   }
 
-  removeAttribute({ references: {}, attribute: "@click", value: callback, node });
+  removeAttribute({
+    references: {},
+    attribute: "@click",
+    value: callback,
+    node,
+  });
 
   if (node.onclick === callback) {
     assertions.push("click event should have been removed");
@@ -112,7 +122,12 @@ const testSetOptionalAttribute = () => {
     return assertions;
   }
 
-  setAttribute({ references: {}, attribute: "?disabled", value: undefined, node });
+  setAttribute({
+    references: {},
+    attribute: "?disabled",
+    value: undefined,
+    node,
+  });
 
   if (node.getAttribute("?disabled") === undefined) {
     assertions.push("node styles shold be 'heckin based'");
@@ -125,7 +140,12 @@ const testRemoveAttribute = () => {
   const assertions = [];
   const node = createNode("article");
 
-  setAttribute({ references: {}, attribute: "style", value: "heckin based", node });
+  setAttribute({
+    references: {},
+    attribute: "style",
+    value: "heckin based",
+    node,
+  });
 
   if (node === null || node === undefined) {
     assertions.push("node should not be null or undefined");
@@ -136,7 +156,12 @@ const testRemoveAttribute = () => {
     assertions.push("node styles should initially be 'heckin based'");
   }
 
-  removeAttribute({ references: {}, attribute: "style", value: "heckin based", node });
+  removeAttribute({
+    references: {},
+    attribute: "style",
+    value: "heckin based",
+    node,
+  });
 
   if (node.getAttribute("style") === "heckin based") {
     assertions.push("node styles should now unfortunately not be heckin based");
@@ -235,13 +260,13 @@ const testInsertMultipleNodes = () => {
 
   if (descendant.nextSibling !== descendantText) {
     assertions.push(
-      "descendant should have descendantText as its next sibling"
+      "descendant should have descendantText as its next sibling",
     );
   }
 
   if (descendantText.previousSibling !== descendant) {
     assertions.push(
-      "descendant should have descendantText as its next sibling"
+      "descendant should have descendantText as its next sibling",
     );
   }
 

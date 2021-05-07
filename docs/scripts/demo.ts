@@ -1,6 +1,6 @@
 import { attach } from "../../v0.1/src/parsley-dom.ts";
 
-import {introDemoChunk, outroDemoChunk} from "./introduction.ts";
+import { introDemoChunk, outroDemoChunk } from "./introduction.ts";
 import { paramsDemoChunk } from "./leverage_params.ts";
 import { stateDemoChunk } from "./leverage_state.ts";
 

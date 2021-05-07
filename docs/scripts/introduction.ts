@@ -3,7 +3,6 @@ import { compose, draw } from "../../v0.1/src/parsley-dom.ts";
 const parsleyNoStackDependenices = `It does not rely on DOM Templates
 or JSX and is fully capable of being ported to other languages.`;
 
-
 const introDemo = compose<void, void>({
   connect: () => {},
   update: () => {
@@ -18,8 +17,6 @@ const introDemo = compose<void, void>({
   disconnect: () => {},
 });
 
-const parsleyURL = "https://github.com/taylor-vann/parsley"
-
 const outroDemo = compose<void, void>({
   connect: () => {},
   update: () => {
@@ -28,7 +25,7 @@ const outroDemo = compose<void, void>({
         <h2>Note</h2>
         <p>
           This page is rendered in Parsely-DOM, a library built with
-          <a href="${parsleyURL}" target="_blank">Parsley</a>, a library
+          <a href="https://github.com/taylor-vann/parsley" target="_blank">Parsley</a>, a library
           that builds tools to maintain interactive XML documents.
         </p>
         <p>${parsleyNoStackDependenices}</p>

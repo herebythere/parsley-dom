@@ -9,7 +9,7 @@ const articleWithRefs = compose<void, ArticleWithRefsState>({
   connect: ({ banger }) => {
     return {
       click: (e: Event) => {
-        const refs = banger.getReferences();        
+        const refs = banger.getReferences();
         console.log(refs);
       },
     };

@@ -52,7 +52,6 @@ const counterFactory = compose<void, Counter>({
   disconnect: () => {},
 });
 
-
 const typescriptSyntax = `//typescript
 compose<Params, State>({
   connect: ({ params, banger }) => {
@@ -109,7 +108,7 @@ const counterChunk = counterFactory();
 `;
 
 const parsleyLifecycle = `Parsley-DOM has a three-part lifecycle:
-connect, update, and disconnect.`
+connect, update, and disconnect.`;
 
 const counterChunk = counterFactory();
 

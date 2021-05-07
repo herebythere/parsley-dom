@@ -2,7 +2,8 @@
 
 Visit the [quick start](https://taylor-vann.github.io/parsley-dom).
 
-Parsley-DOM is created with [Parsley](https://github.com/taylor-vann/parsley), a library that builds interactive XML.
+Parsley-DOM is created with [Parsley](https://github.com/taylor-vann/parsley), a
+library that builds interactive XML.
 
 ## License
 

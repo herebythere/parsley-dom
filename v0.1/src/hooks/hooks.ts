@@ -2,6 +2,8 @@
 // hooks
 
 import type {
+  BangerBase,
+  ChunkBaseArray,
   CreateNode,
   CreateTextNode,
   GetSibling,
@@ -12,15 +14,12 @@ import type {
   SetAttributeParams,
 } from "../deps.ts";
 
-import type { BangerBase } from "../deps.ts";
+import { createCustomInterface } from "../deps.ts";
 
 type DocumentNode = HTMLElement | Text;
+type ChunkBaseArrayDOM = ChunkBaseArray<DocumentNode>;
 
-type Attributes =
-  | EventListenerOrEventListenerObject
-  | boolean
-  | string
-  | undefined;
+type Attributes = EventListenerOrEventListenerObject | number;
 
 type Banger = BangerBase<DocumentNode>;
 
@@ -95,7 +94,6 @@ const removeAttribute: SetAttribute<DocumentNode, Attributes> = ({
   }
 
   // ?optional
-  // ?optional might not be necessary
   if (attribute.charAt(0) === "?") {
     const trimmedAttribute = attribute.substr(1);
     node.removeAttribute(trimmedAttribute);
@@ -154,14 +152,22 @@ const hooks: Hooks<DocumentNode, Attributes> = {
   getSibling,
 };
 
-export type { Banger, DocumentNode, Attributes };
+const { attach, compose, draw } = createCustomInterface<
+  DocumentNode,
+  Attributes
+>(hooks);
+
+export type { Attributes, Banger, ChunkBaseArrayDOM, DocumentNode };
 
 export {
-  hooks,
+  attach,
+  compose,
   createNode,
   createTextNode,
-  setAttribute,
-  removeAttribute,
+  draw,
+  getSibling,
   insertDescendant,
+  removeAttribute,
   removeDescendant,
+  setAttribute,
 };
