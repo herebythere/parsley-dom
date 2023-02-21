@@ -34,6 +34,13 @@ function create(origin = DEFAULT_POSITION, target = origin) {
         }
     };
 }
+function getText(template, vector) {
+    const origin = vector.origin;
+    let templateText = template[origin.x];
+    if (templateText) {
+        return templateText.substr(origin.y, vector.target.y - origin.y + 1);
+    }
+}
 const ATTRIBUTE = "ATTRIBUTE";
 const ATTRIBUTE_DECLARATION = "ATTRIBUTE_DECLARATION";
 const ATTRIBUTE_DECLARATION_CLOSE = "ATTRIBUTE_DECLARATION_CLOSE";
@@ -466,9 +473,8 @@ function createBuilderRender() {
 }
 function createStack() {
     return {
+        attribute: undefined,
         slotFound: false,
-        slotName: undefined,
-        attributeStep: undefined,
         address: []
     };
 }
@@ -478,7 +484,11 @@ function buildLogic(data, step) {
         data.stack.address.push(-1);
     }
     if (step.state === "TAGNAME") {
+        const tagname = getText(data.template, step.vector);
+        data.stack.slotFound = tagname === "slot";
         data.stack.address[data.stack.address.length - 1] += 1;
+    }
+    if (step.state === "NODE_CLOSED") {
         data.stack.address.push(-1);
     }
     if (step.state === "TEXT") {
@@ -487,34 +497,32 @@ function buildLogic(data, step) {
     if (step.state === "CLOSE_TAGNAME") {
         data.stack.address.pop();
     }
-    if (step.state === "INDEPENDENT_NODE_CLOSED") {
-        data.stack.address.pop();
-    }
+    if (step.state === "INDEPENDENT_NODE_CLOSED") {}
     if (step.state === "ATTRIBUTE") {
-        data.stack.attributeStep = step;
+        const attribute = getText(data.template, step.vector);
+        if (attribute !== undefined && attribute.startsWith("*")) {
+            const name = attribute.slice(1);
+            data.render.references.set(name, data.stack.address.slice());
+            return;
+        }
+        data.stack.attribute = undefined;
     }
-    if (step.state === "ATTRIBUTE_VALUE" && data.stack.attributeStep !== undefined) {
-        data.stack.attributeStep = undefined;
+    if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
+        const value = getText(data.template, step.vector);
+        if (value !== undefined && data.stack.slotFound && data.stack.attribute === "name") {
+            data.render.slots.set(value, data.stack.address.slice());
+        }
+        data.stack.attribute = undefined;
     }
-    if (step.state === "NODE_SPACE") {}
 }
 function injectLogic(data, step) {
     if (step.type !== "INJECT") return;
-    const { index , state  } = step;
-    if (state === "ATTRIBUTE_MAP_INJECTION") {
-        data.render.injections.set(index, {
-            address: data.stack.address.slice(),
-            type: state,
-            index
-        });
-    }
-    if (state === "DESCENDANT_INJECTION") {
-        data.render.injections.set(index, {
-            address: data.stack.address.slice(),
-            index,
-            type: state
-        });
-    }
+    const { state , index  } = step;
+    data.render.injections.set(index, {
+        address: data.stack.address.slice(),
+        type: state,
+        index
+    });
 }
 class DOMBuilder {
     template;
@@ -560,6 +568,7 @@ const testInjectionAddresses = ()=>{
     const builder = new DOMBuilder();
     builder.setup(template.templateStrings);
     parse(template.templateStrings, builder);
+    console.log(builder.render.injections);
     if (isNotEqual(expectedResults, builder.render.injections)) {
         assertions.push("map addresses do not match");
     }
@@ -582,9 +591,37 @@ ${"a_tail"}`;
     }
     return assertions;
 };
+const testReferenceAddresses = ()=>{
+    const assertions = [];
+    const expectedResults = new Map([]);
+    const template = draw`<a *ref ></a>`;
+    const builder = new DOMBuilder();
+    builder.setup(template.templateStrings);
+    parse(template.templateStrings, builder);
+    console.log(builder.render);
+    if (isNotEqual(expectedResults, builder.render.injections)) {
+        assertions.push("map addresses do not match");
+    }
+    return assertions;
+};
+const testSlotAddresses = ()=>{
+    const assertions = [];
+    const expectedResults = new Map([]);
+    const template = draw`<slot name="boop" ></a>`;
+    const builder = new DOMBuilder();
+    builder.setup(template.templateStrings);
+    parse(template.templateStrings, builder);
+    console.log(builder.render);
+    if (isNotEqual(expectedResults, builder.render.injections)) {
+        assertions.push("map addresses do not match");
+    }
+    return assertions;
+};
 const tests = [
     testInjectionAddresses,
-    testInjectionAddressesWithText
+    testInjectionAddressesWithText,
+    testReferenceAddresses,
+    testSlotAddresses
 ];
 const unitTestDOMBuilder = {
     title,

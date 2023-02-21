@@ -38,7 +38,7 @@ const testInjectionAddresses = () => {
   builder.setup(template.templateStrings);
   
 	parse(template.templateStrings, builder);
-
+	console.log(builder.render.injections);
 	if (isNotEqual(expectedResults, builder.render.injections)) {
 		assertions.push("map addresses do not match");
 	}
@@ -87,10 +87,43 @@ const testInjectionAddressesListWithText = () => {
   return assertions;
 };
 
+const testReferenceAddresses = () => {
+  const assertions = [];
+  const expectedResults = new Map<number, BuilderInjection>([]);
+
+  const template = draw`<a *ref ></a>`;
+  const builder = new DOMBuilder();
+  builder.setup(template.templateStrings);
+  
+	parse(template.templateStrings, builder);
+	console.log(builder.render);
+	if (isNotEqual(expectedResults, builder.render.injections)) {
+		assertions.push("map addresses do not match");
+	}
+  return assertions;
+};
+
+const testSlotAddresses = () => {
+  const assertions = [];
+  const expectedResults = new Map<number, BuilderInjection>([]);
+
+  const template = draw`<slot name="boop" ></slot>`;
+  const builder = new DOMBuilder();
+  builder.setup(template.templateStrings);
+  
+	parse(template.templateStrings, builder);
+	console.log(builder.render);
+	if (isNotEqual(expectedResults, builder.render.injections)) {
+		assertions.push("map addresses do not match");
+	}
+  return assertions;
+};
 
 const tests = [
   testInjectionAddresses,
   testInjectionAddressesWithText,
+  testReferenceAddresses,
+  testSlotAddresses,
 ];
 
 const unitTestDOMBuilder = {

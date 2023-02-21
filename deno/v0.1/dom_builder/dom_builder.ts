@@ -21,46 +21,35 @@ interface RenderMethods {
 } 
 */
 
-interface ParsleyNode<N> {
-	parentNode: N;
-	prevSibling: N;
-	nextSibling: N;
-	childNodes: N[];
-}
-
-interface ParsleyMethods<N> {
-	createFragment(): N;
-	createNode(tag: string): N;
-	createTextNode(): N;
-	insertAdjacentSibling(referenceNode: N, node: N): void;
-	removeAttribute(name: string): void;
+interface ParsleyNode {
+	nodeName: string;
+	parentNode: ParsleyNode | null;
+	prevSibling: ParsleyNode | null;
+	nextSibling: ParsleyNode | null;
+	childNodes: ParsleyNode[];
 	setAttribute(name: string, value: string): void;
 }
 
-interface Stringable {
-	toString(): string;
+interface ParsleyMethods<N extends ParsleyNode> {
+	createFragment(): N;
+	createNode(tag: string): N;
+	createTextNode(): N;
+	insertSiblings(node: N, index: number, parentNode?: N): void;
+	removeAttribute(name: string): void;
+	setAttribute(node: N, name: string, value: string): void;
 }
 
 interface Stacks {
 	slotFound: boolean;
-	slotName?: string;
-	attributeStep?: BuildStep;
+	attribute?: string;
 	address: number[];
 }
 
-interface AttributeMapInjection {
+interface BuilderInjection {
 	address: number[];
-	type: "ATTRIBUTE_MAP_INJECTION";
+	type: string;
 	index: number;
 }
-
-interface DescendantInjection {
-	address: number[];
-	type: "DESCENDANT_INJECTION";
-	index: number;
-}
-
-type BuilderInjection = AttributeMapInjection | DescendantInjection;
 
 interface BuilderRender {
 	slots: Map<string, number[]>;
@@ -84,9 +73,8 @@ function createBuilderRender(): BuilderRender {
 
 function createStack(): Stacks {
 	return {
+		attribute: undefined,
 		slotFound: false,
-		slotName: undefined,
-		attributeStep: undefined,
 		address: [],
 	}
 }
@@ -112,85 +100,68 @@ function buildLogic(data: BuilderDataInterface, step: BuildStep) {
 	}
 	
 	if (step.state === "TAGNAME") {
+		const tagname = getText(data.template, step.vector);
+		data.stack.slotFound = tagname === "slot";
+		console.log("slot found!", data.stack.slotFound);
 		data.stack.address[data.stack.address.length - 1] += 1;
+	}
+	
+	if (step.state === "NODE_CLOSED") {
 		data.stack.address.push(-1);
-		// get text
-		// create element
-		// swap last element in queue
-		// push undefined to queue
 	}
 	
 	if (step.state === "TEXT") {
 		data.stack.address[data.stack.address.length - 1] += 1;	
-		// get text
-		// create text element
 	}
 	
 	if (step.state === "CLOSE_TAGNAME") {
 		data.stack.address.pop();
-		// pop element queue
 	}
 	
 	if (step.state === "INDEPENDENT_NODE_CLOSED") {
-		data.stack.address.pop();
+		// data.stack.address.pop();
 	}
 	
-	// references involve a property name
+	// attributes
 	if (step.state === "ATTRIBUTE") {		
-		// if attribute !== undefined
-		// 	set attribute with undefined
+		const attribute = getText(data.template, step.vector);
+		// if reference
+		if (attribute !== undefined && attribute.startsWith("*")) {
+			const name = attribute.slice(1);
+			data.render.references.set(name, data.stack.address.slice());
+			return;
+		}
 		
-		// set attribute name
-		data.stack.attributeStep = step;
+		// unset attribute
+		data.stack.attribute = attribute; 
 	}
 	
-	if (step.state === "ATTRIBUTE_VALUE" && data.stack.attributeStep !== undefined) {
-		data.stack.attributeStep = undefined;
-		// const value = getText(data.template, step.vector);
+	if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
+		const value = getText(data.template, step.vector);
+		console.log("attr value:", value);
+		if (value !== undefined && data.stack.slotFound && data.stack.attribute === "name") {
+			data.render.slots.set(value, data.stack.address.slice());
+		}
+		
+		// if slot and attribute === "name"
+		// if attribute starts with *ref
 		// if (value !== undefined) {
 				// set attribute
 		// }
+		data.stack.attribute = undefined;
 	}
-	
-	// steps that could 
-	if (step.state === "NODE_SPACE") {
-		// if attribute
-	}
-	// slot involves element and property name
 }
 
 function injectLogic(data: BuilderDataInterface, step: BuildStep) {
 	if (step.type !== "INJECT") return;
-	const {index, state} = step;
-	
-	/*
-	if (state === "ATTRIBUTE_INJECTION" && data.stack.attribute !== undefined) {
-		data.render.injections.set(index, {
-			address: data.stack.address.slice(),
-			type: state,
-			index,
-			name: data.stack.attribute,
-		});
-	}
-	*/
-	
-	if (state === "ATTRIBUTE_MAP_INJECTION") {
-		data.render.injections.set(index, {
-			address: data.stack.address.slice(),
-			type: state,
-			index,
-		});
-	}
-	
-	if (state === "DESCENDANT_INJECTION") {
-		data.render.injections.set(index, {
-			address: data.stack.address.slice(),
-			index,
-			type: state,
-		});
-	}
-}
+	const { state, index } = step;
 
+	data.render.injections.set(index, {
+		address: data.stack.address.slice(),
+		type: state,
+		index,
+	});
+}
 
 class DOMBuilder implements BuilderInterface, BuilderDataInterface {
 	template!: Readonly<string[]>;
