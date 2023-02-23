@@ -11,19 +11,15 @@ BSD 3-Clause License
 
 TODO
 
-DOM
-xml factory
+DOM xml factory
 
 Builder
+
 - template
 - injections
 - references
 - top level tree
 - tree as [sibling [children injection] sibling sibling]
 
-
-Web Component
-use HTMLElement as state and render contexts
-use function for draw method
-use shadow root, closed
-compare previous results with
+Web Component use HTMLElement as state and render contexts use function for draw
+method use shadow root, closed compare previous results with

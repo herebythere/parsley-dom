@@ -3,12 +3,10 @@ export type {
   BuildStep,
   Position,
   Vector,
-} from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";;
+} from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";
 
 export {
-	getText,
-	parse,
-	ATTRIBUTE,
+  ATTRIBUTE,
   ATTRIBUTE_DECLARATION,
   ATTRIBUTE_DECLARATION_CLOSE,
   ATTRIBUTE_SETTER,
@@ -18,11 +16,13 @@ export {
   CLOSE_NODE_SPACE,
   CLOSE_TAGNAME,
   ERROR,
+  getText,
   INDEPENDENT_NODE,
   INDEPENDENT_NODE_CLOSED,
   NODE,
   NODE_CLOSED,
   NODE_SPACE,
+  parse,
   TAGNAME,
   TEXT,
- } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";
+} from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";

@@ -1,8 +1,17 @@
-function draw<I>(
-  templateStrings: TemplateStringsArray,
-  ...injections: I[]
-) {	
-  return {templateStrings, injections};
+// weak map
+
+interface Draw<I = unknown> {
+	templateStrings: Readonly<string[]>;
+	injections: I[]
 }
 
-export { draw }
+function draw<I>(
+  templateStrings: Readonly<string[]>,
+  ...injections: I[]
+): Draw<I> {
+  return { templateStrings, injections };
+}
+
+
+
+export { draw };

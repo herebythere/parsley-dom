@@ -65,9 +65,17 @@ const INITIAL = "INITIAL";
 const BUILD = "BUILD";
 const INJECT = "INJECT";
 const DEFAULT = "DEFAULT";
+const LB = "<";
+const RB = ">";
+const SP = " ";
+const NL = "\n";
+const TB = "\t";
+const FS = "/";
+const QT = '"';
+const EQ = "=";
 const INIITAL_MAP = new Map([
     [
-        "<",
+        LB,
         NODE
     ],
     [
@@ -77,23 +85,23 @@ const INIITAL_MAP = new Map([
 ]);
 const NODE_MAP = new Map([
     [
-        " ",
+        SP,
         ERROR
     ],
     [
-        "\n",
+        NL,
         ERROR
     ],
     [
-        "\t",
+        TB,
         ERROR
     ],
     [
-        "/",
+        FS,
         CLOSE_NODE_SLASH
     ],
     [
-        ">",
+        RB,
         ERROR
     ],
     [
@@ -103,15 +111,15 @@ const NODE_MAP = new Map([
 ]);
 const CLOSE_NODE_SLASH_MAP = new Map([
     [
-        " ",
+        SP,
         ERROR
     ],
     [
-        "\n",
+        NL,
         ERROR
     ],
     [
-        "\t",
+        TB,
         ERROR
     ],
     [
@@ -121,23 +129,23 @@ const CLOSE_NODE_SLASH_MAP = new Map([
 ]);
 const TAGNAME_MAP = new Map([
     [
-        ">",
+        RB,
         NODE_CLOSED
     ],
     [
-        " ",
+        SP,
         NODE_SPACE
     ],
     [
-        "\n",
+        NL,
         NODE_SPACE
     ],
     [
-        "\t",
+        TB,
         NODE_SPACE
     ],
     [
-        "/",
+        FS,
         INDEPENDENT_NODE
     ],
     [
@@ -147,19 +155,19 @@ const TAGNAME_MAP = new Map([
 ]);
 const CLOSE_TAGNAME_MAP = new Map([
     [
-        ">",
+        RB,
         CLOSE_NODE_CLOSED
     ],
     [
-        " ",
+        SP,
         CLOSE_NODE_SPACE
     ],
     [
-        "\n",
+        NL,
         CLOSE_NODE_SPACE
     ],
     [
-        "\t",
+        TB,
         CLOSE_NODE_SPACE
     ],
     [
@@ -169,7 +177,7 @@ const CLOSE_TAGNAME_MAP = new Map([
 ]);
 const CLOSE_NODE_SPACE_MAP = new Map([
     [
-        ">",
+        RB,
         CLOSE_NODE_CLOSED
     ],
     [
@@ -179,7 +187,7 @@ const CLOSE_NODE_SPACE_MAP = new Map([
 ]);
 const INDEPENDENT_NODE_MAP = new Map([
     [
-        ">",
+        RB,
         INDEPENDENT_NODE_CLOSED
     ],
     [
@@ -189,23 +197,23 @@ const INDEPENDENT_NODE_MAP = new Map([
 ]);
 const NODE_SPACE_MAP = new Map([
     [
-        ">",
+        RB,
         NODE_CLOSED
     ],
     [
-        " ",
+        SP,
         NODE_SPACE
     ],
     [
-        "\n",
+        NL,
         NODE_SPACE
     ],
     [
-        "\t",
+        TB,
         NODE_SPACE
     ],
     [
-        "/",
+        FS,
         INDEPENDENT_NODE
     ],
     [
@@ -215,27 +223,27 @@ const NODE_SPACE_MAP = new Map([
 ]);
 const ATTRIBUTE_MAP = new Map([
     [
-        " ",
+        SP,
         NODE_SPACE
     ],
     [
-        "\n",
+        NL,
         NODE_SPACE
     ],
     [
-        "\t",
+        TB,
         NODE_SPACE
     ],
     [
-        "=",
+        EQ,
         ATTRIBUTE_SETTER
     ],
     [
-        ">",
+        RB,
         NODE_CLOSED
     ],
     [
-        "/",
+        FS,
         INDEPENDENT_NODE
     ],
     [
@@ -245,11 +253,11 @@ const ATTRIBUTE_MAP = new Map([
 ]);
 const ATTRIBUTE_SETTER_MAP = new Map([
     [
-        '"',
+        QT,
         ATTRIBUTE_DECLARATION
     ],
     [
-        "\n",
+        NL,
         NODE_SPACE
     ],
     [
@@ -259,7 +267,7 @@ const ATTRIBUTE_SETTER_MAP = new Map([
 ]);
 const ATTRIBUTE_DECLARATION_MAP = new Map([
     [
-        '"',
+        QT,
         ATTRIBUTE_DECLARATION_CLOSE
     ],
     [
@@ -269,7 +277,7 @@ const ATTRIBUTE_DECLARATION_MAP = new Map([
 ]);
 const ATTRIBUTE_VALUE_MAP = new Map([
     [
-        '"',
+        QT,
         ATTRIBUTE_DECLARATION_CLOSE
     ],
     [
@@ -279,11 +287,11 @@ const ATTRIBUTE_VALUE_MAP = new Map([
 ]);
 const ATTRIBUTE_DECLARATION_CLOSE_MAP = new Map([
     [
-        ">",
-        INDEPENDENT_NODE_CLOSED
+        RB,
+        NODE_CLOSED
     ],
     [
-        "/",
+        FS,
         INDEPENDENT_NODE
     ],
     [
@@ -478,7 +486,31 @@ function createStack() {
         address: []
     };
 }
-function buildLogic(data, step) {
+function attributeLogic(data, step) {
+    if (step.type !== "BUILD") return;
+    if (data.stack.attribute && step.state !== "ATTRIBUTE_SETTER" && step.state !== "ATTRIBUTE_DECLARATION") {}
+    if (step.state === "ATTRIBUTE") {
+        const attribute = getText(data.template, step.vector);
+        if (attribute !== undefined && attribute.startsWith("*")) {
+            data.render.references.set(attribute, data.stack.address.slice());
+            return;
+        }
+        data.stack.attribute = attribute;
+    }
+    if (step.state === "ATTRIBUTE_DECLARATION") {}
+    if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
+        if (data.stack.attribute) {}
+        if (data.stack.attribute) {}
+        const value = getText(data.template, step.vector);
+        if (data.stack.slotFound && value !== undefined && data.stack.attribute === "name") {
+            data.render.slots.set(value, data.stack.address.slice());
+            data.stack.slotFound = false;
+        }
+        data.stack.attribute = undefined;
+    }
+    if (step.state === "ATTRIBUTE_DECLARATION_END") {}
+}
+function stackLogic(data, step) {
     if (step.type !== "BUILD") return;
     if (step.state === "INITIAL") {
         data.stack.address.push(-1);
@@ -494,25 +526,8 @@ function buildLogic(data, step) {
     if (step.state === "TEXT") {
         data.stack.address[data.stack.address.length - 1] += 1;
     }
-    if (step.state === "CLOSE_TAGNAME") {
+    if (step.state === "CLOSE_NODE_CLOSED") {
         data.stack.address.pop();
-    }
-    if (step.state === "INDEPENDENT_NODE_CLOSED") {}
-    if (step.state === "ATTRIBUTE") {
-        const attribute = getText(data.template, step.vector);
-        if (attribute !== undefined && attribute.startsWith("*")) {
-            const name = attribute.slice(1);
-            data.render.references.set(name, data.stack.address.slice());
-            return;
-        }
-        data.stack.attribute = undefined;
-    }
-    if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
-        const value = getText(data.template, step.vector);
-        if (value !== undefined && data.stack.slotFound && data.stack.attribute === "name") {
-            data.render.slots.set(value, data.stack.address.slice());
-        }
-        data.stack.attribute = undefined;
     }
 }
 function injectLogic(data, step) {
@@ -536,7 +551,8 @@ class DOMBuilder {
     push(step) {
         if (step.state === "ERROR") {}
         if (step.type === "BUILD") {
-            buildLogic(this, step);
+            attributeLogic(this, step);
+            stackLogic(this, step);
         }
         if (step.type === "INJECT") {
             injectLogic(this, step);
@@ -607,7 +623,7 @@ const testReferenceAddresses = ()=>{
 const testSlotAddresses = ()=>{
     const assertions = [];
     const expectedResults = new Map([]);
-    const template = draw`<slot name="boop" ></a>`;
+    const template = draw`<slot name="boop"></slot><slot name="snoot"></slot>`;
     const builder = new DOMBuilder();
     builder.setup(template.templateStrings);
     parse(template.templateStrings, builder);
