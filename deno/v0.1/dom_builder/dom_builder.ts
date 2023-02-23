@@ -28,15 +28,16 @@ interface ParsleyNode {
   nextSibling: ParsleyNode | null;
   childNodes: ParsleyNode[];
   setAttribute(name: string, value?: string): void;
+  removeAttribute(name: string): void;
 }
 
 interface ParsleyMethods<N extends ParsleyNode> {
   createFragment(): N;
   createNode(tag: string): N;
   createTextNode(): N;
-  insertSiblings(node: N, index: number, parentNode?: N): void;
-  removeAttribute(name: string): void;
-  setAttribute(node: N, name: string, value: string): void;
+  insertDescendant(node: N, index: number, parentNode?: N): void;
+  setAttribute(node: N, name: string, value?: string): void;
+  removeAttribute(node: N, name: string): void;
 }
 
 interface Stacks {
