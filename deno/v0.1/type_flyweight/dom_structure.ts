@@ -18,20 +18,6 @@ interface GenericInjectionInterface<T, V> {
   address: number[];
 }
 
-// injection type for every kinds
-// attribute injection
-// descendant injection
-// attribute map injection
-const injectionMap = new Map([
-  ["ATTRIBUTE_DECLARATION", "ATTRIBUTE_INJECTION"],
-  ["INDEPENDENT_NODE_CLOSED", "DESCENDANT_INJECTION"],
-  ["NODE_CLOSED", "DESCENDANT_INJECTION"],
-  ["INITIAL", "DESCENDANT_INJECTION"],
-  ["NODE_SPACE", "ATTRIBUTE_INJECTION_MAP"],
-  ["TAGNAME", "ATTRIBUTE_INJECTION_MAP"],
-  ["TEXT", "DESCENDANT_INJECTION"],
-]);
-
 interface DrawInterface {
   slots: Record<string, number[]>;
   references: Record<string, number[]>;

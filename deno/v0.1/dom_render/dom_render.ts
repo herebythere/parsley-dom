@@ -1,17 +1,47 @@
-type RendererFunction<S> = (state: S) => Draw;
+/*
+	Iterate the builder steps?
+	
+	What if builder took the parsed steps
+	find addresses
+	saved parsed steps
+	-> create node
+	-> 
+	
+	render takes steps
+	creates nodes
+	sets properties
+	finds nodes by address
 
-class WebComponentController<S> {
-	templates: Map<Readonly<string[]>>, BuilderInterface> = new Map();
-	prevArguments: unknown[] = [];
-	renderers!: RenderFunction<S>[];
+
+	what if this is an interface to building a fragment
 	
-	setup(renderers: RendererFunction<S>[]) {
-		
-	}
-	
-	render(state: S) {
+	addElement(buildStep)
+	getElementByAddress([1, 1, 0])	
+*/
+
+
+
+// this needs to be coupled with utility methods
+// 
+
+function createReferences(): BuilderRender {
+  return {
+    slots: new Map<string, number[]>(),
+    references: new Map<string, number[]>(),
+    injections: new Map<number, BuilderInjection>(),
+  };
+}
+
+function createStack<N>(): Stacks<N> {
+  return {
+    attribute: undefined,
+    address: [],
+  };
+}
+
+
+class DOMRender {
+	build(template: Readonly<string[]>, builderRender: BuilderRender) {
 		
 	}
 }
-
-export { RendererFunction, WebComponentController }

@@ -383,9 +383,6 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-new Set([
-    "script"
-]);
 function createBuilderRender() {
     return {
         slots: new Map(),
@@ -396,7 +393,6 @@ function createBuilderRender() {
 function createStack() {
     return {
         attribute: undefined,
-        slotFound: false,
         address: []
     };
 }
@@ -405,7 +401,8 @@ function attributeLogic(data, step) {
     if (data.stack.attribute && step.state !== "ATTRIBUTE_SETTER" && step.state !== "ATTRIBUTE_DECLARATION") {}
     if (step.state === "ATTRIBUTE") {
         const attribute = getText(data.template, step.vector);
-        if (attribute !== undefined && attribute.startsWith("*")) {
+        if (attribute === undefined) return;
+        if (attribute.startsWith("*")) {
             data.render.references.set(attribute, data.stack.address.slice());
             return;
         }
@@ -414,11 +411,9 @@ function attributeLogic(data, step) {
     if (step.state === "ATTRIBUTE_DECLARATION") {}
     if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
         if (data.stack.attribute) {}
-        if (data.stack.attribute) {}
         const value = getText(data.template, step.vector);
-        if (data.stack.slotFound && value !== undefined && data.stack.attribute === "name") {
+        if (value !== undefined && data.stack.attribute === "name") {
             data.render.slots.set(value, data.stack.address.slice());
-            data.stack.slotFound = false;
         }
         data.stack.attribute = undefined;
     }
@@ -431,13 +426,15 @@ function stackLogic(data, step) {
     }
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
-        data.stack.slotFound = tagname === "slot";
+        if (tagname === undefined) return;
         data.stack.address[data.stack.address.length - 1] += 1;
     }
     if (step.state === "NODE_CLOSED") {
         data.stack.address.push(-1);
     }
     if (step.state === "TEXT") {
+        const text = getText(data.template, step.vector);
+        if (text === undefined) return;
         data.stack.address[data.stack.address.length - 1] += 1;
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
@@ -446,10 +443,10 @@ function stackLogic(data, step) {
 }
 function injectLogic(data, step) {
     if (step.type !== "INJECT") return;
-    const { state , index  } = step;
+    const { state: type , index  } = step;
     data.render.injections.set(index, {
         address: data.stack.address.slice(),
-        type: state,
+        type,
         index
     });
 }
@@ -457,6 +454,7 @@ class DOMBuilder {
     template;
     stack;
     render;
+    utilityMethods;
     setup(template) {
         this.render = createBuilderRender();
         this.stack = createStack();
