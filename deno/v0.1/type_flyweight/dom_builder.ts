@@ -8,20 +8,6 @@ interface ParsleyNode {
   removeAttribute(name: string): void;
 }
 
-interface UtilityMethods<N extends ParsleyNode = ParsleyNode> {
-  createFragment(): N;
-  createNode(tag: string): N;
-  createTextNode(): N;
-  insertDescendant(node: N, index: number, parentNode?: N): void;
-  setAttribute(node: N, name: string, value?: string): void;
-  removeAttribute(node: N, name: string): void;
-}
-
-interface Stacks {
-  address: number[];
-  attribute?: string;
-}
-
 interface DescendantInjection {
   address: number[];
   type: string;
@@ -43,10 +29,14 @@ interface BuilderRender {
   injections: Map<number, DescendantInjectionBR>;
 }
 
-interface BuilderDataInterface {
-  render: BuilderRender;
-  stack: Stacks;
+interface RenderDataInterface {
   template: Readonly<string[]>;
+  fragment: Element;
+	slots: Map<string, number[]>;
+  references: Map<string, number[]>;
+  injections: Map<number, BuilderInjection>;
+  address: number[];
+  attribute?: string;
 }
 
 

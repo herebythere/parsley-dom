@@ -7,40 +7,6 @@ library that provides XML build steps.
 
 ## Usage
 
-### compose
-
-```
-
-const template = draw`<hello></hello>`;
-
-// component is a "render" of outside "state"
-// component composition *reflects* data
-
-function helloComponent(state: HTMLELement) {
-	return draw`<hello></hello>`
-}
-
-state -> returns template
-
-template is evaluated in the context
-
-
-parsely-dom will cache previous renders
-
-draw`` -> returns basic template {} simple object
-
-something like DOMRender{} will use a DOMBuilder() to 
-cache and store an object
-
-cache and store should probaly be left up to application
-that's a big assumption for whatever
-
-so user provides a Map weakMap <templateArray, DOMBuilder>
-
-
-
-DOMRender(
-```
 
 ## License
 
@@ -60,3 +26,18 @@ Builder
 
 Web Component use HTMLElement as state and render contexts use function for draw
 method use shadow root, closed compare previous results with
+
+
+TODO / GOALS
+
+Web components are self contained and on the client side.
+
+
+
+however, loading a template resource from server or from service worker is more difficult
+
+sevice worker would load template,
+send steps to a builder on UI thread
+UI thread builds and caches fragment
+
+then copies and renders fragments as needed

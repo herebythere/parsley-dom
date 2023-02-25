@@ -1,47 +1,62 @@
-/*
-	Iterate the builder steps?
+function getNodeByAddress(fragment: Element, address: number[]): Element | undefined {
+	let node = fragment;
+	for (const index of address) {
+		node = node.childNodes[index];
+		if (node === undefined) return;
+	}
 	
-	What if builder took the parsed steps
-	find addresses
-	saved parsed steps
-	-> create node
-	-> 
-	
-	render takes steps
-	creates nodes
-	sets properties
-	finds nodes by address
-
-
-	what if this is an interface to building a fragment
-	
-	addElement(buildStep)
-	getElementByAddress([1, 1, 0])	
-*/
-
-
-
-// this needs to be coupled with utility methods
-// 
-
-function createReferences(): BuilderRender {
-  return {
-    slots: new Map<string, number[]>(),
-    references: new Map<string, number[]>(),
-    injections: new Map<number, BuilderInjection>(),
-  };
+	return node;
 }
 
-function createStack<N>(): Stacks<N> {
-  return {
-    attribute: undefined,
-    address: [],
-  };
+function getReferenceElements<N>(fragment: Element, addresses: Map<N, number[]>) {
+	const references = new Map<N, Element>();
+	for (const [index, address] of map) {
+		const node = getNodeByAddress(fragment, address);
+		if (node !== undefined) {
+			references.set(index, node);
+		}
+	}
+	
+	return references;
 }
 
+function getInjections(fragment: Element, addresses: Map<N, BuilderInjection>) {
+	const injections = new Map<N, RenderInjection>();
+	for (const [index, entry] of map) {
+		const node = getNodeByAddress(fragment, entry.address);
+		references.set(index, { node, index, type: entry.type });
+	}
+	
+	return injections;
+}
 
-class DOMRender {
-	build(template: Readonly<string[]>, builderRender: BuilderRender) {
-		
+function createRender(builder: BuilderInterface) {
+	const fragment = builder.fragment.cloneNode(true);
+	const slots = getReferenceElements<number>(fragment, builder.slots);
+	const references = getReferenceELements<string>(fragment, builder.references);
+	const injections = getInjections(fragment, builder.injections);
+	
+	
+	// pop nodes onto array? for future add / remove
+	// make array
+	// push every child node
+	
+	// then remove every childnode
+	return {
+		fragment,
+		slots,
+		references,
+		injections,
 	}
 }
+
+function updateRender(render: DOMRenderer, args: unknown[]) {
+	// iterate through args
+	
+	// get injection step
+	
+	// if children
+	// remove previous children
+	// add updated children
+}
+

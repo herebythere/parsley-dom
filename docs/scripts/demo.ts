@@ -1,48 +1,43 @@
 import { draw } from "./deps.ts";
 
-
-
-function testComponent() {
-	return draw`<p>${"hai!"}</p>`;
+// define minimal interface to interact with object
+interface State {
+	getAttribute: Element["getAttribute"];
 }
 
-function testStyles() {
-	return draw`<style>${"hai!"}</style>`;
+// reusable functions
+function testComponent<S extends State>(state: S) {
+	const message = state.getAttribute("message");
+	
+	return draw`<p>${message}</p>`;
 }
 
 
-
-// ideally the user can provide 
-// -> a template
-// -> a state object
-
-// state could be an htmlelement itself
-// it could be a store from service like redux
-
+// actual elements
 class TestComponent extends HTMLElement {
 	hanager: HangerInterface;
 	
 	// observedAttributes
 	static get observedAttributes() {
-		return [];
+		return ["message"];
 	}
 	
 	constructor() {
 		this.attachShadow({ mode: "open" });
 		if (this.shadowRoot) {
 			this.hangar = new Hangar(
-				[testStyles, testComponent],
+				[testComponent],
 				this.shadowRoot,
 			);
 		}
 	}
 	
 	attributeChangedCallback() {
-		this.wc.update(this);
+		this.hangar.update(this);
 	}
 	
 	update() {
-		this.wc.update(this);
+		this.hangar.update(this);
 	}
 }
 

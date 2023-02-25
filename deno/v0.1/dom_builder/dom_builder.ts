@@ -10,8 +10,6 @@ import type { Stacks, BuilderInjection, BuilderRender, BuilderDataInterface, Par
 import { getText } from "../deps.ts";
 
 
-
-
 function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
   if (step.type !== "BUILD") return;
   
@@ -46,10 +44,10 @@ function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
   }
 
 	// add attribute values to array
-  if (step.state === "ATTRIBUTE_VALUE" && data.stack.attribute !== undefined) {
+  if (step.state === "ATTRIBUTE_VALUE" && data.attribute !== undefined) {
   	
   	// logic neds to be updated to include
-  	if (data.stack.attribute) {
+  	if (data.attribute) {
   	
   	}
   	
@@ -60,7 +58,7 @@ function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
     	value !== undefined &&
       data.stack.attribute === "name"
     ) {
-      data.render.slots.set(value, data.stack.address.slice());
+      data.render.slots.set(value, data.address.slice());
     }
 
     // if (value !== undefined) {
@@ -86,34 +84,35 @@ function stackLogic(data: BuilderDataInterface, step: BuildStep) {
 
   if (step.state === "INITIAL") {
     data.stack.address.push(-1);
+    data.stack.nodes.push(undefined);
   }
 
   if (step.state === "TAGNAME") {
     const tagname = getText(data.template, step.vector);
     if (tagname === undefined) return;
     
-    data.stack.address[data.stack.address.length - 1] += 1;
-
+    const node = document.createElement("tagname");
+    data.stack.nodes[data.address.length - 1] = node;
+    data.stack.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "NODE_CLOSED") {
-    data.stack.address.push(-1);
+    data.address.push(-1);
+    data.nodes.push(undefined);
   }
 
   if (step.state === "TEXT") {
-
     const text = getText(data.template, step.vector)
     if (text === undefined) return;
-    // create node
-    // const node = hooks.createTextNode(text);
-    // data.stack.nodes[data.stack.address.length - 1] = node;
-    data.stack.address[data.stack.address.length - 1] += 1;
-    //add to stack
+    
+    const node = document.createTextNode(text);
+    data.stack.nodes[data.address.length - 1] = node;
+    data.stack.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
     data.stack.address.pop();
-    // data.stack.nodes.pop();
+    data.stack.nodes.pop();
   }
 }
 
@@ -122,22 +121,56 @@ function injectLogic(data: BuilderDataInterface, step: BuildStep) {
   const { state: type, index } = step;
 	
   data.render.injections.set(index, {
-    address: data.stack.address.slice(),
+    address: data.address.slice(),
     type,
     index,
   });
 }
 
 
+// unique circumstance of building template outside of service worker
+//
+// template
+// send build instructions
+//
+//
+//  DOMSender -> {build step}
+
+// this class is intended to reside on client ui
+// Web component built on UI thread
+
+
+/*
+	why does this feel wrong?
+	build something with steps
+	
+	need to cross from vector -> string
+	that requires a template
+	
+	that eventually has to happen
+*/
+
+const template = "template";
+
+
 class DOMBuilder implements BuilderInterface, BuilderDataInterface {
+	template!: Readonly<string[]>;
+	// results
 	fragment = document.creatDocumentFragment();
 	slots = new Map<string, number[]>();
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
+
+	// stack
   address: number[];
+  nodes: Element[];
   attribute?: string;
   
-  push(template: Readonly<string[]>, step: BuildStep) {
+  setup(template: Readonly<string[]>) {
+  	this.template = template;
+  }
+
+  push(step: BuildStep) {
     if (step.state === "ERROR") {
       // empty fragment
       // label as errored
@@ -151,14 +184,6 @@ class DOMBuilder implements BuilderInterface, BuilderDataInterface {
     if (step.type === "INJECT") {
       injectLogic(this, step);
     }
-  }
-  
-  createRender() {
-  	// clone fragment
-  	//
-  	// create slot map from addresses
-  	// create reference map from addresses
-  	// injections
   }
 }
 
