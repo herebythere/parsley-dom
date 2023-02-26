@@ -1,19 +1,55 @@
+import type { DrawFunc } form "../type_flyweight/hangar.ts";
+
 import { recursiveCheck } from "../dom_diff.ts";
 
-type RendererFunction<S> = (state: S) => Draw;
-
-const renderMap = new WeakMap<Readonly<string[]>, DOMBuilder>();
 
 
+/*
+	hangar
+	
+	controls render and flow
+	max node count?
+	
+	prevDraw -> what is returned from () => draw``;
+	
+	a draw can be a linear jaunt?
+	
+	
+	yes? it's just a stack
+	
+	const elements = [root, child1, child1A, child1B, child1C];
+	const draws = [rootDraw, childDraw];
+	const renders = [rootRender, childRender];
+	
+	iterate across new renders to find discrepancies
+	
+	
+	initial goal
+	remove prev render entirely
+	create entire new render
+	add new render to root
+	
+	secondary goal
+	iterate through array and find changes
+	
+	
+	available structures, previously rendered? before garbage collection?
+	-> template?
+	-> 
+	
+	
+	options
+*/
 
 
-class DOMHanger<N, S> {
-	templates: Map<Readonly<string[]>>, BuilderInterface> = new Map();
-	renderers!: RenderFunction<S>[];
-	prevBuild: unknown[];
+class DOMHangar<N, S> {
+	drawFuncs!: DrawFunc<S>[];
+	prevDraw: Draw[];
 	prevRender: unknown[];
 	
-	queuedForUpdate: boolean;
+	state!: S;
+	
+	queuedForUpdate: boolean = false;
 	
 	setup(renderers: RendererFunction<S>[], parentNode?: N, leftNode:? N) {
 		// remove all children
@@ -23,7 +59,7 @@ class DOMHanger<N, S> {
 	
 	update(state: S) {
 		this.state = state;
-		if (!queuedForUpdate) {
+		if (!this.queuedForUpdate) {
 			queueMicrotask(this.render);
 			this.queuedForUpdate = true;
 		}
@@ -34,33 +70,19 @@ class DOMHanger<N, S> {
 		
 		// get new template strings and args
 		const build = [];
-		for (const renderer of this.renderers) {
-			build.push(renderer(this.state));
+		for (const drawFunc of this.drawFuncs) {
+			build.push(drawFunc(this.state));
 		}
-		
-		// we need the top most nodes that have
 		
 		let addresses = []
 		recursiveCheck(addresses, this.prevBuild, build);
 		if (addresses.length !== 0) {
 			this.addresses = addresses;
-			
+			// enqueue build render with addresses
+			// build a new render map
 		}
-		// 
-		
-		//	compare string templates
-		// 		recursive call
-		//		if string templates are different
-		//			remove old tree
-		
-		
-		//	iterate tree for arguments
-		//		if args are different than previous render
-		//			update remove argument on render tree
-		
-		// set arguments
 	}
 }
 
-export { RendererFunction, WebComponentController }
+export { RendererFunction, DOMHangar }
 

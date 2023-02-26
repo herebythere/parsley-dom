@@ -23,6 +23,8 @@ class TestComponent extends HTMLElement {
 	}
 	
 	constructor() {
+		super();
+		
 		this.attachShadow({ mode: "open" });
 		if (this.shadowRoot) {
 			this.hangar = new Hangar(
@@ -34,10 +36,12 @@ class TestComponent extends HTMLElement {
 	
 	attributeChangedCallback() {
 		this.hangar.update(this);
+		// this.hangar.updateAsync(this);
 	}
 	
 	update() {
 		this.hangar.update(this);
+		// this.hangar.updateAsync(this);
 	}
 }
 

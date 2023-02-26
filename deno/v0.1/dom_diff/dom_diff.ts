@@ -17,10 +17,10 @@ function recursiveCheck(addresses: number[], prevDraws: unknown[], currDraws: un
 		// loop
 		const index = 0;
 		while (index < currDraw.injections.length) {
-			const prevInjection = prevDraw.injections[]
+			const prevInjection = prevDraw.injections[index];
 			const injection = currDraw.injections[index];
 			
-			if (injection instanceof Draw) {
+			 {
 				// get render data
 				return recursive(prevDraw, currDraw, prevRender);
 			}

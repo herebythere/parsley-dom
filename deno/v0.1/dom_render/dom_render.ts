@@ -50,13 +50,4 @@ function createRender(builder: BuilderInterface) {
 	}
 }
 
-function updateRender(render: DOMRenderer, args: unknown[]) {
-	// iterate through args
-	
-	// get injection step
-	
-	// if children
-	// remove previous children
-	// add updated children
-}
 
