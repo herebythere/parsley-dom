@@ -1,12 +1,16 @@
-import type { BuilderInjection } from "./dom_builder.ts";
+// import type { BuilderInjection } from "./dom_builder.ts";
 
 import { parse } from "../deps.ts";
 import { draw } from "../draw/draw.ts";
-import { DOMBuilder } from "./dom_builder.ts";
+// import { DOMBuilder } from "./dom_builder.ts";
 
 const title = "DOMBuilder";
 const runTestsAsynchronously = true;
 
+function autoFail() {
+	return ["fail first"];
+}
+/*
 function isNotEqual(
   mapA: Map<number, BuilderInjection>,
   mapB: Map<number, BuilderInjection>,
@@ -120,12 +124,16 @@ const testSlotAddresses = () => {
   }
   return assertions;
 };
+*/
 
 const tests = [
+	autoFail,
+  /*
   testInjectionAddresses,
   testInjectionAddressesWithText,
   testReferenceAddresses,
   testSlotAddresses,
+  */
 ];
 
 const unitTestDOMBuilder = {

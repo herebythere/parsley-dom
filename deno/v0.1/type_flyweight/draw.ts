@@ -1,6 +1,6 @@
 interface DrawInterface {
 	templateStrings: Readonly<string[]>;
-	injections: unknown[]
+	injections: unknown[];
 }
 
 export type { DrawInterface }

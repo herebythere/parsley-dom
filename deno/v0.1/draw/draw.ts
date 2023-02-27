@@ -4,7 +4,7 @@ class Draw implements DrawInterface {
 	templateStrings: Readonly<string[]>;
 	injections: unknown[];
 	
-	constructor(templateStrings, injections) {
+	constructor(templateStrings: Readonly<string[]>, injections: unknown[]) {
 		this.templateStrings = templateStrings;
 		this.injections = injections
 	}
@@ -12,10 +12,10 @@ class Draw implements DrawInterface {
 
 function draw(
   templateStrings: Readonly<string[]>,
-  ...injections: unknown[],
+  ...injections: unknown[]
 ): Draw {
   return new Draw(templateStrings, injections);
 }
 
-export { draw };
+export { draw, Draw };
 

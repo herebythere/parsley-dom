@@ -153,10 +153,11 @@ function injectLogic(data: BuilderDataInterface, step: BuildStep) {
 const template = "template";
 
 
-class DOMBuilder implements BuilderInterface, BuilderDataInterface {
+class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface {
 	template!: Readonly<string[]>;
+	
 	// results
-	fragment = document.creatDocumentFragment();
+	fragment = [];
 	slots = new Map<string, number[]>();
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();

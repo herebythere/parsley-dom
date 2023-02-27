@@ -1,4 +1,4 @@
-import { draw } from "./deps.ts";
+import { draw, Hangar } from "./deps.ts";
 
 // define minimal interface to interact with object
 interface State {
@@ -27,7 +27,8 @@ class TestComponent extends HTMLElement {
 		
 		this.attachShadow({ mode: "open" });
 		if (this.shadowRoot) {
-			this.hangar = new Hangar(
+			// this.hangar = new Hangar(
+			this.hangar = new HangarAsync(
 				[testComponent],
 				this.shadowRoot,
 			);
