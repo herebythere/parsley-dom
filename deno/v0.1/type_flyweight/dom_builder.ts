@@ -32,12 +32,18 @@ interface BuilderRender {
 interface RenderDataInterface {
   template: Readonly<string[]>;
   fragment: Element;
-	slots: Map<string, number[]>;
+  slots: Map<string, number[]>;
   references: Map<string, number[]>;
   injections: Map<number, BuilderInjection>;
   address: number[];
   attribute?: string;
 }
 
-
-export type { Stacks, BuilderInjection, BuilderRender, BuilderDataInterface, ParsleyNode, UtilityMethods }
+export type {
+  BuilderDataInterface,
+  BuilderInjection,
+  BuilderRender,
+  ParsleyNode,
+  Stacks,
+  UtilityMethods,
+};

@@ -1,4 +1,4 @@
-export type { HTMLElementInterface } from "./type_flyweight/dom_structure.ts"
+export type { HTMLElementInterface } from "./type_flyweight/dom_structure.ts";
 export type { DrawInterface } from "./type_flyweight/draw.ts";
 
 export { DOMHangar } from "./hangar/hangar.ts";

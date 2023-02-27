@@ -8,5 +8,4 @@ interface HTMLElementInterface {
   getAttribute(name: string): string;
 }
 
-
-export type { HTMLElementInterface }
+export type { HTMLElementInterface };

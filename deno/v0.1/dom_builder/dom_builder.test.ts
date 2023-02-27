@@ -8,7 +8,7 @@ const title = "DOMBuilder";
 const runTestsAsynchronously = true;
 
 function autoFail() {
-	return ["fail first"];
+  return ["fail first"];
 }
 /*
 function isNotEqual(
@@ -127,7 +127,7 @@ const testSlotAddresses = () => {
 */
 
 const tests = [
-	autoFail,
+  autoFail,
   /*
   testInjectionAddresses,
   testInjectionAddressesWithText,

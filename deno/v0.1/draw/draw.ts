@@ -1,13 +1,13 @@
 import { DrawInterface } from "../type_flyweight/draw.ts";
 
 class Draw implements DrawInterface {
-	templateStrings: Readonly<string[]>;
-	injections: unknown[];
-	
-	constructor(templateStrings: Readonly<string[]>, injections: unknown[]) {
-		this.templateStrings = templateStrings;
-		this.injections = injections
-	}
+  templateStrings: Readonly<string[]>;
+  injections: unknown[];
+
+  constructor(templateStrings: Readonly<string[]>, injections: unknown[]) {
+    this.templateStrings = templateStrings;
+    this.injections = injections;
+  }
 }
 
 function draw(
@@ -17,5 +17,4 @@ function draw(
   return new Draw(templateStrings, injections);
 }
 
-export { draw, Draw };
-
+export { Draw, draw };

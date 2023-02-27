@@ -2,38 +2,37 @@ import type { HTMLElementInterface } from "../type_flyweight/dom_structure.ts";
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 
+class DOMHangar<N extends HTMLElementInterface, S = unknown>
+  implements HangarInterface<N, S> {
+  drawFuncs!: DrawFunc<S>[];
+  parentNode?: N;
+  leftNode?: N;
 
-class DOMHangar<N extends HTMLElementInterface, S = unknown> implements HangarInterface<N, S> {
-	drawFuncs!: DrawFunc<S>[];
-	parentNode?: N;
-	leftNode?: N;
-	
-	prevDraw!: DrawInterface[];
-	prevRender!: unknown[];
-	state!: S;
-	
-	queuedForUpdate: boolean = false;
+  prevDraw!: DrawInterface[];
+  prevRender!: unknown[];
+  state!: S;
 
-	setup(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N) {
-		// remove all children
-		this.drawFuncs = drawFuncs;
-		this.parentNode = parentNode;
-		this.leftNode = leftNode;
-	}
+  queuedForUpdate: boolean = false;
 
-	update(state: S) {
-		this.state = state;
-		if (!this.queuedForUpdate) {
-			queueMicrotask(this.render);
-			this.queuedForUpdate = true;
-		}
-	}
+  setup(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N) {
+    // remove all children
+    this.drawFuncs = drawFuncs;
+    this.parentNode = parentNode;
+    this.leftNode = leftNode;
+  }
 
-	render = () => {
-		// perform render steps	
-		this.queuedForUpdate = false;
-	}
+  update(state: S) {
+    this.state = state;
+    if (!this.queuedForUpdate) {
+      queueMicrotask(this.render);
+      this.queuedForUpdate = true;
+    }
+  }
+
+  render = () => {
+    // perform render steps
+    this.queuedForUpdate = false;
+  };
 }
 
-export { DOMHangar }
-
+export { DOMHangar };
