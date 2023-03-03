@@ -1,49 +1,24 @@
-interface ParsleyNode {
-  nodeName: string;
-  parentNode: ParsleyNode | null;
-  prevSibling: ParsleyNode | null;
-  nextSibling: ParsleyNode | null;
-  childNodes: ParsleyNode[];
-  setAttribute(name: string, value?: string): void;
-  removeAttribute(name: string): void;
-}
+import type { HTMLElementInterface } from "./dom_structure.ts"
 
-interface DescendantInjection {
+// other types of injections later
+interface BuilderInjection {
   address: number[];
   type: string;
   index: number;
-}
+};
 
-interface DescendantInjectionBR {
-  element: Element;
-  type: string;
-  index: number;
-}
-
-// other types of injections later
-type BuilderInjection = DescendantInjection;
-
-interface BuilderRender {
-  slots: Map<string, number[]>;
-  references: Map<string, number[]>;
-  injections: Map<number, DescendantInjectionBR>;
-}
-
-interface RenderDataInterface {
+interface BuilderDataInterface<N> {
   template: Readonly<string[]>;
-  fragment: Element;
+  fragment: N;
   slots: Map<string, number[]>;
   references: Map<string, number[]>;
   injections: Map<number, BuilderInjection>;
   address: number[];
+  nodes: (N | undefined)[];
   attribute?: string;
 }
 
 export type {
   BuilderDataInterface,
   BuilderInjection,
-  BuilderRender,
-  ParsleyNode,
-  Stacks,
-  UtilityMethods,
 };

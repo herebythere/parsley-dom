@@ -8,20 +8,19 @@ import type { BuilderInterface, BuildStep } from "../deps.ts";
 import type {
   BuilderDataInterface,
   BuilderInjection,
-  BuilderRender,
-  ParsleyNode,
-  Stacks,
-  UtilityMethods,
 } from "../type_flyweight/dom_builder.ts";
+import type {
+	HTMLElementInterface
+} from "../type_flyweight/dom_structure.ts";
 
 import { getText } from "../deps.ts";
 
-function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
+function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
 
   // find independent attribute
   if (
-    data.stack.attribute &&
+    data.attribute &&
     (step.state !== "ATTRIBUTE_SETTER" &&
       step.state !== "ATTRIBUTE_DECLARATION")
   ) {
@@ -35,14 +34,14 @@ function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
 
     // if reference
     if (attribute.startsWith("*")) {
-      data.render.references.set(attribute, data.stack.address.slice());
+      data.references.set(attribute, data.address.slice());
       return;
     }
 
     // otherwise send to "set attribute" for handling
 
     // set attribute
-    data.stack.attribute = attribute;
+    data.attribute = attribute;
   }
 
   // if attribute undefined skip the rest?
@@ -60,18 +59,18 @@ function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
 
     const value = getText(data.template, step.vector);
     // need replacement logic
-    // data.stack.tagname === "slot" &&
+    // data.tagname === "slot" &&
     if (
       value !== undefined &&
-      data.stack.attribute === "name"
+      data.attribute === "name"
     ) {
-      data.render.slots.set(value, data.address.slice());
+      data.slots.set(value, data.address.slice());
     }
 
     // if (value !== undefined) {
     // set attribute
     // }
-    data.stack.attribute = undefined;
+    data.attribute = undefined;
   }
 
   // attribute declaration close
@@ -86,21 +85,21 @@ function attributeLogic(data: BuilderDataInterface, step: BuildStep) {
   }
 }
 
-function stackLogic(data: BuilderDataInterface, step: BuildStep) {
+function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
 
   if (step.state === "INITIAL") {
-    data.stack.address.push(-1);
-    data.stack.nodes.push(undefined);
+    data.address.push(-1);
+    data.nodes.push(undefined);
   }
 
   if (step.state === "TAGNAME") {
     const tagname = getText(data.template, step.vector);
-    if (tagname === undefined) return;
+    if (tagname === undefined || tagname === "") return;
 
-    const node = document.createElement("tagname");
-    data.stack.nodes[data.address.length - 1] = node;
-    data.stack.address[data.address.length - 1] += 1;
+    const node = document.createElement(tagname);
+    // data.nodes[data.nodes.length - 1] = node;
+    // data.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "NODE_CLOSED") {
@@ -113,21 +112,21 @@ function stackLogic(data: BuilderDataInterface, step: BuildStep) {
     if (text === undefined) return;
 
     const node = document.createTextNode(text);
-    data.stack.nodes[data.address.length - 1] = node;
-    data.stack.address[data.address.length - 1] += 1;
+    // data.nodes[data.nodes.length - 1] = node;
+    // data.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
-    data.stack.address.pop();
-    data.stack.nodes.pop();
+    data.address.pop();
+    data.nodes.pop();
   }
 }
 
-function injectLogic(data: BuilderDataInterface, step: BuildStep) {
+function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "INJECT") return;
   const { state: type, index } = step;
 
-  data.render.injections.set(index, {
+  data.injections.set(index, {
     address: data.address.slice(),
     type,
     index,
@@ -155,20 +154,20 @@ function injectLogic(data: BuilderDataInterface, step: BuildStep) {
 	that eventually has to happen
 */
 
-const template = "template";
 
-class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface {
+
+class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
+	fragment!: N;
   template!: Readonly<string[]>;
 
   // results
-  fragment = [];
   slots = new Map<string, number[]>();
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
   // stack
-  address: number[];
-  nodes: Element[];
+  address!: number[];
+  nodes!: (N | undefined)[];
   attribute?: string;
 
   setup(template: Readonly<string[]>) {

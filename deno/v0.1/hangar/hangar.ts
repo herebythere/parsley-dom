@@ -2,7 +2,7 @@ import type { HTMLElementInterface } from "../type_flyweight/dom_structure.ts";
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 
-class DOMHangar<N extends HTMLElementInterface, S = unknown>
+class DOMHangar<N = unknown, S = unknown>
   implements HangarInterface<N, S> {
   drawFuncs!: DrawFunc<S>[];
   parentNode?: N;
