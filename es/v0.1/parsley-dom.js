@@ -2,6 +2,22 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+class DOMUtils {
+    createNode(tagname) {
+        return document.createElement(tagname);
+    }
+    createTextNode(text) {
+        return document.createTextNode(text);
+    }
+    getAttribute(node, attribute) {
+        if (node instanceof HTMLElement) {
+            const value = node.getAttribute(attribute);
+            if (value) return value;
+        }
+    }
+    setAttribute(node, attribute, value) {}
+    removeAttribute(node, attribute, value) {}
+}
 class DOMHangar {
     drawFuncs;
     parentNode;
@@ -498,6 +514,7 @@ class DOMBuilder {
         }
     }
 }
+export { DOMUtils as DOMUtils };
 export { DOMHangar as DOMHangar };
 export { draw as draw, Draw as Draw };
 export { DOMBuilder as DOMBuilder };
