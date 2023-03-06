@@ -10,8 +10,8 @@ import type {
   BuilderInjection,
 } from "../type_flyweight/dom_builder.ts";
 import type {
-	HTMLElementInterface
-} from "../type_flyweight/dom_structure.ts";
+  Utils,
+} from "../type_flyweight/utils.ts";
 
 import { getText } from "../deps.ts";
 
@@ -97,9 +97,9 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     const tagname = getText(data.template, step.vector);
     if (tagname === undefined || tagname === "") return;
 
-    const node = document.createElement(tagname);
-    // data.nodes[data.nodes.length - 1] = node;
-    // data.address[data.address.length - 1] += 1;
+    const node = data.utils.createNode(tagname);
+    data.nodes[data.nodes.length - 1] = node;
+    data.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "NODE_CLOSED") {
@@ -111,9 +111,9 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     const text = getText(data.template, step.vector);
     if (text === undefined) return;
 
-    const node = document.createTextNode(text);
-    // data.nodes[data.nodes.length - 1] = node;
-    // data.address[data.address.length - 1] += 1;
+    const node = data.utils.createTextNode(text);
+    data.nodes[data.nodes.length - 1] = node;
+    data.address[data.address.length - 1] += 1;
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
@@ -157,7 +157,7 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 
 
 class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
-	fragment!: N;
+	utils!: Utils<N>;
   template!: Readonly<string[]>;
 
   // results
@@ -166,11 +166,13 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
   injections = new Map<number, BuilderInjection>();
 
   // stack
+  fragment!: N;
   address!: number[];
   nodes!: (N | undefined)[];
   attribute?: string;
 
-  setup(template: Readonly<string[]>) {
+  setup(utils: Utils<N>, template: Readonly<string[]>) {
+  	this.utils = utils;
     this.template = template;
   }
 

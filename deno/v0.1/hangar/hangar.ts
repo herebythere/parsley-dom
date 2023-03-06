@@ -1,4 +1,4 @@
-import type { HTMLElementInterface } from "../type_flyweight/dom_structure.ts";
+
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 

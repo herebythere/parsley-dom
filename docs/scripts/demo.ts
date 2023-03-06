@@ -32,9 +32,12 @@ class TestComponent extends HTMLElement {
         this.shadowRoot,
       );
     }
+    
+    this.hanger.update(this);
   }
 
   attributeChangedCallback() {
+  	// this is where microtask should be called
     this.hangar.update(this);
     // this.hangar.updateAsync(this);
   }
@@ -44,3 +47,4 @@ class TestComponent extends HTMLElement {
     // this.hangar.updateAsync(this);
   }
 }
+

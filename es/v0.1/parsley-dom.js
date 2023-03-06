@@ -444,7 +444,9 @@ function stackLogic(data, step) {
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
         if (tagname === undefined || tagname === "") return;
-        document.createElement(tagname);
+        const node = data.utils.createNode(tagname);
+        data.nodes[data.nodes.length - 1] = node;
+        data.address[data.address.length - 1] += 1;
     }
     if (step.state === "NODE_CLOSED") {
         data.address.push(-1);
@@ -453,7 +455,9 @@ function stackLogic(data, step) {
     if (step.state === "TEXT") {
         const text = getText(data.template, step.vector);
         if (text === undefined) return;
-        document.createTextNode(text);
+        const node1 = data.utils.createTextNode(text);
+        data.nodes[data.nodes.length - 1] = node1;
+        data.address[data.address.length - 1] += 1;
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
         data.address.pop();
@@ -470,15 +474,17 @@ function injectLogic(data, step) {
     });
 }
 class DOMBuilder {
-    fragment;
+    utils;
     template;
     slots = new Map();
     references = new Map();
     injections = new Map();
+    fragment;
     address;
     nodes;
     attribute;
-    setup(template) {
+    setup(utils, template) {
+        this.utils = utils;
         this.template = template;
     }
     push(step) {
@@ -493,5 +499,5 @@ class DOMBuilder {
     }
 }
 export { DOMHangar as DOMHangar };
-export { draw as draw };
+export { draw as draw, Draw as Draw };
 export { DOMBuilder as DOMBuilder };

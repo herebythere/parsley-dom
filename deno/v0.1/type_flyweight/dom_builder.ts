@@ -1,4 +1,4 @@
-import type { HTMLElementInterface } from "./dom_structure.ts"
+import { Utils } from "./utils.ts";
 
 // other types of injections later
 interface BuilderInjection {
@@ -8,6 +8,7 @@ interface BuilderInjection {
 };
 
 interface BuilderDataInterface<N> {
+	utils: Utils<N>;
   template: Readonly<string[]>;
   fragment: N;
   slots: Map<string, number[]>;
