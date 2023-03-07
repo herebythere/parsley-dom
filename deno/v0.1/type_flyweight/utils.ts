@@ -1,9 +1,7 @@
 interface Utils<N> {
 	createNode(tagname: string): N;
 	createTextNode(text: string): N;
-	getAttribute(node: N, attribute: string): string | undefined;
-	setAttribute(node: N, attribute: string, value: unknown): void;
-	removeAttribute(node: N, attribute: string, value: unknown): void;
+	insertNode(node: N, parentNode?: N, leftNode?: N): void;
 }
 
 export type { Utils }

@@ -9,18 +9,17 @@ class DOMUtils implements Utils<Node> {
 	createTextNode(text: string) {
 		return document.createTextNode(text);
 	}
-	getAttribute(node: Node, attribute: string) {
-		if (node instanceof HTMLElement) {
-			const value = node.getAttribute(attribute);
-			if (value) return value;
+	insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
+		if (parentNode === undefined) return;
+		
+		if (leftNode) {
+			node.insertBefore(node, leftNode);
+			return;
 		}
-	}
-	setAttribute(node: Node, attribute: string, value: unknown) {
-	
-	}
-	removeAttribute(node: Node, attribute: string, value: unknown) {
-	
+		
+		parentNode.appendChild(node);
 	}
 }
 
 export { DOMUtils }
+

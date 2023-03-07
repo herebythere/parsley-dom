@@ -9,14 +9,14 @@ class DOMUtils {
     createTextNode(text) {
         return document.createTextNode(text);
     }
-    getAttribute(node, attribute) {
-        if (node instanceof HTMLElement) {
-            const value = node.getAttribute(attribute);
-            if (value) return value;
+    insertNode(node, parentNode, leftNode) {
+        if (parentNode === undefined) return;
+        if (leftNode) {
+            node.insertBefore(node, leftNode);
+            return;
         }
+        parentNode.appendChild(node);
     }
-    setAttribute(node, attribute, value) {}
-    removeAttribute(node, attribute, value) {}
 }
 class DOMHangar {
     drawFuncs;
@@ -37,10 +37,9 @@ class DOMHangar {
             queueMicrotask(this.render);
             this.queuedForUpdate = true;
         }
-    }
-    render = ()=>{
         this.queuedForUpdate = false;
-    };
+    }
+    render = ()=>{};
 }
 class Draw {
     templateStrings;
