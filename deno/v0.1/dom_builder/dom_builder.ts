@@ -85,6 +85,17 @@ function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   }
 }
 
+function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
+  const leftIndex = data.nodes.length - 1;
+  const parentIndex = data.nodes.length - 2;
+  const leftNode = data.nodes[leftIndex];
+  const parentNode = data.nodes[parentIndex];
+  data.utils.insertNode(node, parentNode, leftNode);
+  
+  data.nodes[data.nodes.length - 1] = node;
+  data.address[data.address.length - 1] += 1;
+}
+
 function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
 
@@ -98,8 +109,7 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     if (tagname === undefined || tagname === "") return;
 
     const node = data.utils.createNode(tagname);
-    data.nodes[data.nodes.length - 1] = node;
-    data.address[data.address.length - 1] += 1;
+    insertNode(data, node);
   }
 
   if (step.state === "NODE_CLOSED") {
@@ -111,9 +121,9 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     const text = getText(data.template, step.vector);
     if (text === undefined) return;
 
+    // insert node
     const node = data.utils.createTextNode(text);
-    data.nodes[data.nodes.length - 1] = node;
-    data.address[data.address.length - 1] += 1;
+    insertNode(data, node);
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {

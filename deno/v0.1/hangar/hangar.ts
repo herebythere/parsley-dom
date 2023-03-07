@@ -27,12 +27,11 @@ class DOMHangar<N = unknown, S = unknown>
       queueMicrotask(this.render);
       this.queuedForUpdate = true;
     }
-    this.queuedForUpdate = false;
   }
 
   render = () => {
     // perform render steps
-
+    this.queuedForUpdate = false;
   };
 }
 

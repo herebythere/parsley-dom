@@ -45,6 +45,11 @@ class TestComponent extends HTMLElement {
   update() {
     this.hangar.update(this);
     // this.hangar.updateAsync(this);
+        this.state = state;
+    if (!this.queuedForUpdate) {
+      queueMicrotask(this.render);
+      this.queuedForUpdate = true;
+    }
   }
 }
 
