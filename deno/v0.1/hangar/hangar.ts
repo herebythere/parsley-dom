@@ -1,4 +1,3 @@
-
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 
@@ -10,9 +9,6 @@ class DOMHangar<N = unknown, S = unknown>
 
   prevDraw!: DrawInterface[];
   prevRender!: unknown[];
-  state!: S;
-
-  queuedForUpdate: boolean = false;
 
   setup(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N) {
     // remove all children
@@ -22,17 +18,11 @@ class DOMHangar<N = unknown, S = unknown>
   }
 
   update(state: S) {
-    this.state = state;
-    if (!this.queuedForUpdate) {
-      queueMicrotask(this.render);
-      this.queuedForUpdate = true;
-    }
+		// call functions
+		// compare diff
+		// update structure
+		// update properties
   }
-
-  render = () => {
-    // perform render steps
-    this.queuedForUpdate = false;
-  };
 }
 
 export { DOMHangar };

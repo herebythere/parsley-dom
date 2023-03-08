@@ -24,22 +24,12 @@ class DOMHangar {
     leftNode;
     prevDraw;
     prevRender;
-    state;
-    queuedForUpdate = false;
     setup(drawFuncs, parentNode, leftNode) {
         this.drawFuncs = drawFuncs;
         this.parentNode = parentNode;
         this.leftNode = leftNode;
     }
-    update(state) {
-        this.state = state;
-        if (!this.queuedForUpdate) {
-            queueMicrotask(this.render);
-            this.queuedForUpdate = true;
-        }
-        this.queuedForUpdate = false;
-    }
-    render = ()=>{};
+    update(state) {}
 }
 class Draw {
     templateStrings;
@@ -450,29 +440,36 @@ function attributeLogic(data, step) {
     }
     if (step.state === "ATTRIBUTE_DECLARATION_END") {}
 }
+function insertNode(data, node) {
+    const leftIndex = data.nodes.length - 1;
+    const parentIndex = data.nodes.length - 2;
+    const leftNode = data.nodes[leftIndex];
+    const parentNode = data.nodes[parentIndex];
+    data.utils.insertNode(node, parentNode, leftNode);
+    data.nodes[data.nodes.length - 1] = node;
+    data.address[data.address.length - 1] += 1;
+}
 function stackLogic(data, step) {
     if (step.type !== "BUILD") return;
     if (step.state === "INITIAL") {
         data.address.push(-1);
         data.nodes.push(undefined);
     }
+    if (step.state === "TEXT") {
+        const text = getText(data.template, step.vector);
+        if (text === undefined) return;
+        const node = data.utils.createTextNode(text);
+        insertNode(data, node);
+    }
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
         if (tagname === undefined || tagname === "") return;
-        const node = data.utils.createNode(tagname);
-        data.nodes[data.nodes.length - 1] = node;
-        data.address[data.address.length - 1] += 1;
+        const node1 = data.utils.createNode(tagname);
+        insertNode(data, node1);
     }
     if (step.state === "NODE_CLOSED") {
         data.address.push(-1);
         data.nodes.push(undefined);
-    }
-    if (step.state === "TEXT") {
-        const text = getText(data.template, step.vector);
-        if (text === undefined) return;
-        const node1 = data.utils.createTextNode(text);
-        data.nodes[data.nodes.length - 1] = node1;
-        data.address[data.address.length - 1] += 1;
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
         data.address.pop();

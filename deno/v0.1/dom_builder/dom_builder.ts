@@ -103,6 +103,14 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     data.address.push(-1);
     data.nodes.push(undefined);
   }
+  
+  if (step.state === "TEXT") {
+    const text = getText(data.template, step.vector);
+    if (text === undefined) return;
+
+    const node = data.utils.createTextNode(text);
+    insertNode(data, node);
+  }
 
   if (step.state === "TAGNAME") {
     const tagname = getText(data.template, step.vector);
@@ -115,15 +123,6 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.state === "NODE_CLOSED") {
     data.address.push(-1);
     data.nodes.push(undefined);
-  }
-
-  if (step.state === "TEXT") {
-    const text = getText(data.template, step.vector);
-    if (text === undefined) return;
-
-    // insert node
-    const node = data.utils.createTextNode(text);
-    insertNode(data, node);
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
@@ -142,29 +141,6 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     index,
   });
 }
-
-// unique circumstance of building template outside of service worker
-//
-// template
-// send build instructions
-//
-//
-//  DOMSender -> {build step}
-
-// this class is intended to reside on client ui
-// Web component built on UI thread
-
-/*
-	why does this feel wrong?
-	build something with steps
-
-	need to cross from vector -> string
-	that requires a template
-
-	that eventually has to happen
-*/
-
-
 
 class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
 	utils!: Utils<N>;
