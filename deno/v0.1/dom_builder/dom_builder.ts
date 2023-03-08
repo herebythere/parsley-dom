@@ -15,11 +15,12 @@ function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 
 function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
   const parentIndex = data.nodes.length - 2;
-  const parentNode = data.nodes[parentIndex];
-  const leftIndex = data.nodes.length - 1;
-  const leftNode = data.nodes[leftIndex];
+  let parentNode = data.nodes[parentIndex];
+  if (parentIndex === -1) {
+  	parentNode = data.fragment
+  }
   
-  data.utils.insertNode(node, parentNode, leftNode);
+  data.utils.insertNode(node, parentNode);
   
   data.nodes[data.nodes.length - 1] = node;
   data.address[data.address.length - 1] += 1;
@@ -75,21 +76,23 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
 	utils!: Utils<N>;
   template!: Readonly<string[]>;
 
-  // results
-  references = new Map<string, number[]>();
-  injections = new Map<number, BuilderInjection>();
-
   // stack
   fragment!: N;
   address!: number[];
   nodes!: (N | undefined)[];
   attribute?: string;
+  
+  // results
+  references = new Map<string, number[]>();
+  injections = new Map<number, BuilderInjection>();
 
   setup(utils: Utils<N>, template: Readonly<string[]>) {
   	this.utils = utils;
     this.template = template;
+    
     this.address = [];
     this.nodes = [];
+    this.fragment = utils.createNode(":fragment");
   }
 
   push(step: BuildStep) {

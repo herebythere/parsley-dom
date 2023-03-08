@@ -4,6 +4,9 @@ import type { Utils } from "../type_flyweight/utils.ts";
 // the general implementation of Hanger Draw DomBuilder and DomReder
 class DOMUtils implements Utils<Node> {
 	createNode(tagname: string) {
+		if (tagname === ":fragment") {
+			return document.createDocumentFragment();
+		}
 		return document.createElement(tagname);
 	}
 	createTextNode(text: string) {

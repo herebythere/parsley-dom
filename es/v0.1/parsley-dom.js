@@ -4,6 +4,9 @@
 
 class DOMUtils {
     createNode(tagname) {
+        if (tagname === ":fragment") {
+            return document.createDocumentFragment();
+        }
         return document.createElement(tagname);
     }
     createTextNode(text) {
@@ -479,6 +482,7 @@ class DOMBuilder {
         this.template = template;
         this.address = [];
         this.nodes = [];
+        this.fragment = utils.createNode(":fragment");
     }
     push(step) {
         if (step.state === "ERROR") {}
