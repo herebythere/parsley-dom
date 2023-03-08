@@ -11,7 +11,6 @@ interface BuilderDataInterface<N> {
 	utils: Utils<N>;
   template: Readonly<string[]>;
   fragment: N;
-  slots: Map<string, number[]>;
   references: Map<string, number[]>;
   injections: Map<number, BuilderInjection>;
   address: number[];

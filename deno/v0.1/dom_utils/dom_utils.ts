@@ -12,8 +12,8 @@ class DOMUtils implements Utils<Node> {
 	insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
 		if (parentNode === undefined) return;
 		
-		if (leftNode) {
-			node.insertBefore(node, leftNode);
+		if (leftNode?.nextSibling) {
+			node.insertBefore(node, leftNode.nextSibling);
 			return;
 		}
 		

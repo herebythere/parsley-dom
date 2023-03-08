@@ -11,8 +11,8 @@ class DOMUtils {
     }
     insertNode(node, parentNode, leftNode) {
         if (parentNode === undefined) return;
-        if (leftNode) {
-            node.insertBefore(node, leftNode);
+        if (leftNode?.nextSibling) {
+            node.insertBefore(node, leftNode.nextSibling);
             return;
         }
         parentNode.appendChild(node);
@@ -419,32 +419,12 @@ new Map([
 ]);
 function attributeLogic(data, step) {
     if (step.type !== "BUILD") return;
-    if (data.attribute && step.state !== "ATTRIBUTE_SETTER" && step.state !== "ATTRIBUTE_DECLARATION") {}
-    if (step.state === "ATTRIBUTE") {
-        const attribute = getText(data.template, step.vector);
-        if (attribute === undefined) return;
-        if (attribute.startsWith("*")) {
-            data.references.set(attribute, data.address.slice());
-            return;
-        }
-        data.attribute = attribute;
-    }
-    if (step.state === "ATTRIBUTE_DECLARATION") {}
-    if (step.state === "ATTRIBUTE_VALUE" && data.attribute !== undefined) {
-        if (data.attribute) {}
-        const value = getText(data.template, step.vector);
-        if (value !== undefined && data.attribute === "name") {
-            data.slots.set(value, data.address.slice());
-        }
-        data.attribute = undefined;
-    }
-    if (step.state === "ATTRIBUTE_DECLARATION_END") {}
 }
 function insertNode(data, node) {
-    const leftIndex = data.nodes.length - 1;
     const parentIndex = data.nodes.length - 2;
-    const leftNode = data.nodes[leftIndex];
     const parentNode = data.nodes[parentIndex];
+    const leftIndex = data.nodes.length - 1;
+    const leftNode = data.nodes[leftIndex];
     data.utils.insertNode(node, parentNode, leftNode);
     data.nodes[data.nodes.length - 1] = node;
     data.address[data.address.length - 1] += 1;
@@ -488,7 +468,6 @@ function injectLogic(data, step) {
 class DOMBuilder {
     utils;
     template;
-    slots = new Map();
     references = new Map();
     injections = new Map();
     fragment;
@@ -498,6 +477,8 @@ class DOMBuilder {
     setup(utils, template) {
         this.utils = utils;
         this.template = template;
+        this.address = [];
+        this.nodes = [];
     }
     push(step) {
         if (step.state === "ERROR") {}

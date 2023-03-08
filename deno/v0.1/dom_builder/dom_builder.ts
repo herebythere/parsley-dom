@@ -1,9 +1,3 @@
-/*
-	build DrawInterface
-
-	addresses for elements
-*/
-
 import type { BuilderInterface, BuildStep } from "../deps.ts";
 import type {
   BuilderDataInterface,
@@ -17,79 +11,14 @@ import { getText } from "../deps.ts";
 
 function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
-
-  // find independent attribute
-  if (
-    data.attribute &&
-    (step.state !== "ATTRIBUTE_SETTER" &&
-      step.state !== "ATTRIBUTE_DECLARATION")
-  ) {
-    // if attribute
-  }
-
-  // add attribute
-  if (step.state === "ATTRIBUTE") {
-    const attribute = getText(data.template, step.vector);
-    if (attribute === undefined) return;
-
-    // if reference
-    if (attribute.startsWith("*")) {
-      data.references.set(attribute, data.address.slice());
-      return;
-    }
-
-    // otherwise send to "set attribute" for handling
-
-    // set attribute
-    data.attribute = attribute;
-  }
-
-  // if attribute undefined skip the rest?
-
-  // attribute declaration close
-  if (step.state === "ATTRIBUTE_DECLARATION") {
-    // add new array for attributes
-  }
-
-  // add attribute values to array
-  if (step.state === "ATTRIBUTE_VALUE" && data.attribute !== undefined) {
-    // logic neds to be updated to include
-    if (data.attribute) {
-    }
-
-    const value = getText(data.template, step.vector);
-    // need replacement logic
-    // data.tagname === "slot" &&
-    if (
-      value !== undefined &&
-      data.attribute === "name"
-    ) {
-      data.slots.set(value, data.address.slice());
-    }
-
-    // if (value !== undefined) {
-    // set attribute
-    // }
-    data.attribute = undefined;
-  }
-
-  // attribute declaration close
-  if (step.state === "ATTRIBUTE_DECLARATION_END") {
-    // if attribute value length < 2
-    // 	set attribute
-    //	return
-
-    //  otherwise its an injection
-    //	set array in attribute injections
-    //	{ address, name, array, index }
-  }
 }
 
 function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
-  const leftIndex = data.nodes.length - 1;
   const parentIndex = data.nodes.length - 2;
-  const leftNode = data.nodes[leftIndex];
   const parentNode = data.nodes[parentIndex];
+  const leftIndex = data.nodes.length - 1;
+  const leftNode = data.nodes[leftIndex];
+  
   data.utils.insertNode(node, parentNode, leftNode);
   
   data.nodes[data.nodes.length - 1] = node;
@@ -147,7 +76,6 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
   template!: Readonly<string[]>;
 
   // results
-  slots = new Map<string, number[]>();
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
@@ -160,6 +88,8 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
   setup(utils: Utils<N>, template: Readonly<string[]>) {
   	this.utils = utils;
     this.template = template;
+    this.address = [];
+    this.nodes = [];
   }
 
   push(step: BuildStep) {
