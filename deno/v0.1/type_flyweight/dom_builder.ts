@@ -1,5 +1,3 @@
-import { Utils } from "./utils.ts";
-
 // other types of injections later
 interface BuilderInjection {
   address: number[];

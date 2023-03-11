@@ -483,18 +483,15 @@ function injectLogic(data, step) {
     });
 }
 class DOMBuilder {
-    template;
-    baseTier;
-    address;
-    nodes;
+    baseTier = [];
+    address = [];
+    nodes = [];
     attribute;
     references = new Map();
     injections = new Map();
-    setup(template) {
+    template;
+    constructor(template){
         this.template = template;
-        this.baseTier = [];
-        this.address = [];
-        this.nodes = [];
     }
     push(step) {
         if (step.state === "ERROR") {}

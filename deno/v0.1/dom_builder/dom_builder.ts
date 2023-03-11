@@ -86,23 +86,20 @@ function injectLogic(data: BuilderDataInterface, step: BuildStep) {
 }
 
 class DOMBuilder implements BuilderInterface, BuilderDataInterface {
-  template!: Readonly<string[]>;
-
   // stack
-  baseTier!: Node[];
-  address!: number[];
-  nodes!: (Node | undefined)[];
+  baseTier: Node[] = [];
+  address: number[] = [];
+  nodes: (Node | undefined)[] = [];
   attribute?: string;
   
   // results
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
-  setup(template: Readonly<string[]>) {
+  template: Readonly<string[]>;
+  
+  constructor(template: Readonly<string[]>) {
     this.template = template;
-    this.baseTier = [];
-    this.address = [];
-    this.nodes = [];
   }
 
   push(step: BuildStep) {
