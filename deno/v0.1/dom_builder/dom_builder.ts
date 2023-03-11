@@ -9,24 +9,37 @@ import type {
 
 import { getText } from "../deps.ts";
 
+/*
 function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
 }
+*/
 
-function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
+function insertNodeLogic(node: Node, parentNode?: Node, leftNode?: Node) {
+	if (parentNode === undefined) return;
+	
+	if (leftNode?.nextSibling) {
+		node.insertBefore(node, leftNode.nextSibling);
+		return;
+	}
+	
+	parentNode.appendChild(node);
+}
+
+function insertNode(data: BuilderDataInterface, node: Node) {
   const parentIndex = data.nodes.length - 2;
   let parentNode = data.nodes[parentIndex];
   if (parentIndex === -1) {
-  	parentNode = data.fragment
+  	data.baseTier.push(node)
   }
   
-  data.utils.insertNode(node, parentNode);
+  insertNodeLogic(node, parentNode);
   
   data.nodes[data.nodes.length - 1] = node;
   data.address[data.address.length - 1] += 1;
 }
 
-function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
+function stackLogic(data: BuilderDataInterface, step: BuildStep) {
   if (step.type !== "BUILD") return;
 
   if (step.state === "INITIAL") {
@@ -38,7 +51,7 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     const text = getText(data.template, step.vector);
     if (text === undefined) return;
 
-    const node = data.utils.createTextNode(text);
+    const node = document.createTextNode(text);
     insertNode(data, node);
   }
 
@@ -46,7 +59,7 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     const tagname = getText(data.template, step.vector);
     if (tagname === undefined || tagname === "") return;
 
-    const node = data.utils.createNode(tagname);
+    const node = document.createElement(tagname);
     insertNode(data, node);
   }
 
@@ -61,7 +74,7 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   }
 }
 
-function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
+function injectLogic(data: BuilderDataInterface, step: BuildStep) {
   if (step.type !== "INJECT") return;
   const { state: type, index } = step;
 
@@ -72,27 +85,24 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   });
 }
 
-class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
-	utils!: Utils<N>;
+class DOMBuilder implements BuilderInterface, BuilderDataInterface {
   template!: Readonly<string[]>;
 
   // stack
-  fragment!: N;
+  baseTier!: Node[];
   address!: number[];
-  nodes!: (N | undefined)[];
+  nodes!: (Node | undefined)[];
   attribute?: string;
   
   // results
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
-  setup(utils: Utils<N>, template: Readonly<string[]>) {
-  	this.utils = utils;
+  setup(template: Readonly<string[]>) {
     this.template = template;
-    
+    this.baseTier = [];
     this.address = [];
     this.nodes = [];
-    this.fragment = utils.createNode(":fragment");
   }
 
   push(step: BuildStep) {
@@ -102,7 +112,7 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
     }
 
     if (step.type === "BUILD") {
-      attributeLogic(this, step);
+      // attributeLogic(this, step);
       stackLogic(this, step);
     }
 
@@ -114,4 +124,3 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
 
 export { DOMBuilder };
 
-export type { BuilderInjection };

@@ -22,6 +22,14 @@ class DOMUtils implements Utils<Node> {
 		
 		parentNode.appendChild(node);
 	}
+	cloneNode(node: Node) {
+		if (!(node instanceof Element)) return;
+		return node.cloneNode(true);
+	}
+	getChildNodes(node: Node) {
+		if (!(node instanceof Element)) return;
+		return node.childNodes as unknown as Node[];
+	}
 }
 
 export { DOMUtils }

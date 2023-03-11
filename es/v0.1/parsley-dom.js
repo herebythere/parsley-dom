@@ -20,6 +20,14 @@ class DOMUtils {
         }
         parentNode.appendChild(node);
     }
+    cloneNode(node) {
+        if (!(node instanceof Element)) return;
+        return node.cloneNode(true);
+    }
+    getChildNodes(node) {
+        if (!(node instanceof Element)) return;
+        return node.childNodes;
+    }
 }
 class DOMHangar {
     drawFuncs;
@@ -27,7 +35,7 @@ class DOMHangar {
     leftNode;
     prevDraw;
     prevRender;
-    setup(drawFuncs, parentNode, leftNode) {
+    constructor(drawFuncs, parentNode, leftNode){
         this.drawFuncs = drawFuncs;
         this.parentNode = parentNode;
         this.leftNode = leftNode;
@@ -420,15 +428,21 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-function attributeLogic(data, step) {
-    if (step.type !== "BUILD") return;
+function insertNodeLogic(node, parentNode, leftNode) {
+    if (parentNode === undefined) return;
+    if (leftNode?.nextSibling) {
+        node.insertBefore(node, leftNode.nextSibling);
+        return;
+    }
+    parentNode.appendChild(node);
 }
 function insertNode(data, node) {
     const parentIndex = data.nodes.length - 2;
-    const parentNode = data.nodes[parentIndex];
-    const leftIndex = data.nodes.length - 1;
-    const leftNode = data.nodes[leftIndex];
-    data.utils.insertNode(node, parentNode, leftNode);
+    let parentNode = data.nodes[parentIndex];
+    if (parentIndex === -1) {
+        data.baseTier.push(node);
+    }
+    insertNodeLogic(node, parentNode);
     data.nodes[data.nodes.length - 1] = node;
     data.address[data.address.length - 1] += 1;
 }
@@ -441,13 +455,13 @@ function stackLogic(data, step) {
     if (step.state === "TEXT") {
         const text = getText(data.template, step.vector);
         if (text === undefined) return;
-        const node = data.utils.createTextNode(text);
+        const node = document.createTextNode(text);
         insertNode(data, node);
     }
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
         if (tagname === undefined || tagname === "") return;
-        const node1 = data.utils.createNode(tagname);
+        const node1 = document.createElement(tagname);
         insertNode(data, node1);
     }
     if (step.state === "NODE_CLOSED") {
@@ -469,25 +483,22 @@ function injectLogic(data, step) {
     });
 }
 class DOMBuilder {
-    utils;
     template;
-    references = new Map();
-    injections = new Map();
-    fragment;
+    baseTier;
     address;
     nodes;
     attribute;
-    setup(utils, template) {
-        this.utils = utils;
+    references = new Map();
+    injections = new Map();
+    setup(template) {
         this.template = template;
+        this.baseTier = [];
         this.address = [];
         this.nodes = [];
-        this.fragment = utils.createNode(":fragment");
     }
     push(step) {
         if (step.state === "ERROR") {}
         if (step.type === "BUILD") {
-            attributeLogic(this, step);
             stackLogic(this, step);
         }
         if (step.type === "INJECT") {

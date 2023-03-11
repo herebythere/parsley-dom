@@ -1,5 +1,15 @@
+import type { BuilderDataInterface, BuilderInjection } from "../type_flyweight/dom_builder.ts";
+
+// fragment get children to start the address crawl
+
+interface RenderInjection {
+	node: Node;
+	index: number;
+	type: string;
+}
+
 function getNodeByAddress(
-  fragment: Element,
+  fragment: DocumentFragment,
   address: number[],
 ): Element | undefined {
   let node = fragment;
@@ -11,12 +21,12 @@ function getNodeByAddress(
   return node;
 }
 
-function getReferenceElements<N>(
-  fragment: Element,
-  addresses: Map<N, number[]>,
+function getReferenceElements(
+  fragment: DocumentFragment,
+  addresses: Map<string, number[]>,
 ) {
-  const references = new Map<N, Element>();
-  for (const [index, address] of map) {
+  const references = new Map<string, Node>();
+  for (const [index, address] of addresses) {
     const node = getNodeByAddress(fragment, address);
     if (node !== undefined) {
       references.set(index, node);
@@ -26,20 +36,22 @@ function getReferenceElements<N>(
   return references;
 }
 
-function getInjections(fragment: Element, addresses: Map<N, BuilderInjection>) {
-  const injections = new Map<N, RenderInjection>();
-  for (const [index, entry] of map) {
+function getInjections(fragment: DocumentFragment, addresses: Map<number, BuilderInjection>) {
+  const injections = new Map<number, RenderInjection>();
+  for (const [index, entry] of addresses) {
     const node = getNodeByAddress(fragment, entry.address);
-    references.set(index, { node, index, type: entry.type });
+    if (node === undefined) return;
+    injections.set(index, { node, index, type: entry.type });
   }
 
   return injections;
 }
 
-function createRender(builder: BuilderInterface) {
+function createRender(builder: BuilderDataInterface) {
   const fragment = builder.fragment.cloneNode(true);
-  const slots = getReferenceElements<number>(fragment, builder.slots);
-  const references = getReferenceELements<string>(fragment, builder.references);
+  if (fragment === undefined) return;
+  
+  const references = getReferenceElements(fragment, builder.references);
   const injections = getInjections(fragment, builder.injections);
 
   // pop nodes onto array? for future add / remove
@@ -49,8 +61,9 @@ function createRender(builder: BuilderInterface) {
   // then remove every childnode
   return {
     fragment,
-    slots,
     references,
     injections,
   };
 }
+
+export { createRender }

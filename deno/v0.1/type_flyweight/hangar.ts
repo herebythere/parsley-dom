@@ -2,8 +2,7 @@ import type { DrawInterface } from "./draw.ts";
 
 type DrawFunc<S = unknown> = (state: S) => DrawInterface;
 
-interface HangarInterface<N, S> {
-  setup(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N): void;
+interface HangarInterface<S> {
   update(state: S): void;
 }
 

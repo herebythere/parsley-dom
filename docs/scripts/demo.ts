@@ -27,7 +27,7 @@ class TestComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
       // this.hangar = new Hangar(
-      this.hangar = new HangarAsync(
+      this.hangar = new Hangar(
         [testComponent],
         this.shadowRoot,
       );

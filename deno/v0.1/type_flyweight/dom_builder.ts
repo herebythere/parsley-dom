@@ -7,14 +7,13 @@ interface BuilderInjection {
   index: number;
 };
 
-interface BuilderDataInterface<N> {
-	utils: Utils<N>;
+interface BuilderDataInterface {
   template: Readonly<string[]>;
-  fragment: N;
+  baseTier: Node[];
   references: Map<string, number[]>;
   injections: Map<number, BuilderInjection>;
   address: number[];
-  nodes: (N | undefined)[];
+  nodes: (Node | undefined)[];
   attribute?: string;
 }
 
