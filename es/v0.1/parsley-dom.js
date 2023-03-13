@@ -486,7 +486,6 @@ class Builder {
     ];
     baseTier = [];
     attribute;
-    references = new Map();
     injections = new Map();
     utils;
     template;

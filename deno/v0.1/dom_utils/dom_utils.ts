@@ -3,6 +3,9 @@ import type { Utils } from "../type_flyweight/utils.ts";
 // this class encapsulates all dom specific methods from
 // the general implementation of Hanger Draw DomBuilder and DomReder
 
+// this could be entirely implemented in the "environment" of the usage context
+// this could exist at the "docs level" or as a separate module
+
 // should render cache be set here?
 const builderCache = new WeakMap();
 

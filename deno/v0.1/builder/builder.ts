@@ -74,7 +74,6 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   attribute?: string;
 
   // results
-  references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
   // utils

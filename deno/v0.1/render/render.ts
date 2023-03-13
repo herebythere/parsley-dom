@@ -5,23 +5,10 @@ import type {
 
 // fragment get children to start the address crawl
 
-interface RenderInjection {
-  node: Node;
+interface RenderInjection<N> {
+  node: N;
   index: number;
   type: string;
-}
-
-function getNodeByAddress(
-  fragment: DocumentFragment,
-  address: number[],
-): Element | undefined {
-  let node;
-  for (const index of address) {
-    node = node.childNodes[index];
-    if (node === undefined) return;
-  }
-
-  return node;
 }
 
 function getReferenceElements(
@@ -53,20 +40,17 @@ function getInjections(
   return injections;
 }
 
-function createRender(builder: BuilderDataInterface) {
-  const fragment = builder.fragment.cloneNode(true);
+function createRender<N>(builder: BuilderDataInterface<N>) {
+	// copy of base tier not fragment
+	
+  const baseTier = builder.fragment.cloneNode(true);
   if (fragment === undefined) return;
 
-  const references = getReferenceElements(fragment, builder.references);
+  const references = new Map<string, N>();
   const injections = getInjections(fragment, builder.injections);
 
-  // pop nodes onto array? for future add / remove
-  // make array
-  // push every child node
-
-  // then remove every childnode
   return {
-    fragment,
+    baseTier,
     references,
     injections,
   };
