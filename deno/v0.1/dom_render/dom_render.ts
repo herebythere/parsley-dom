@@ -12,7 +12,7 @@ function getNodeByAddress(
   fragment: DocumentFragment,
   address: number[],
 ): Element | undefined {
-  let node = fragment;
+  let node;
   for (const index of address) {
     node = node.childNodes[index];
     if (node === undefined) return;

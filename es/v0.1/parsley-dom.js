@@ -2,7 +2,11 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+new WeakMap();
 class DOMUtils {
+    createFragment() {
+        return document.createDocumentFragment();
+    }
     createNode(tagname) {
         if (tagname === ":fragment") {
             return document.createDocumentFragment();
@@ -20,13 +24,19 @@ class DOMUtils {
         }
         parentNode.appendChild(node);
     }
-    cloneNode(node) {
-        if (!(node instanceof Element)) return;
+    removeNode(node, parentNode) {
+        parentNode.removeChild(node);
+    }
+    cloneTree(node) {
         return node.cloneNode(true);
     }
-    getChildNodes(node) {
-        if (!(node instanceof Element)) return;
-        return node.childNodes;
+    getDescendent(node, address) {
+        let currNode = node;
+        for (const index of address){
+            currNode = node.childNodes[index];
+            if (currNode !== undefined) return;
+        }
+        return currNode;
     }
 }
 class DOMHangar {
@@ -428,40 +438,28 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-function insertNodeLogic(node, parentNode, leftNode) {
-    if (parentNode === undefined) return;
-    if (leftNode?.nextSibling) {
-        node.insertBefore(node, leftNode.nextSibling);
-        return;
-    }
-    parentNode.appendChild(node);
-}
 function insertNode(data, node) {
     const parentIndex = data.nodes.length - 2;
     let parentNode = data.nodes[parentIndex];
     if (parentIndex === -1) {
-        data.baseTier.push(node);
+        parentNode = data.fragment;
     }
-    insertNodeLogic(node, parentNode);
+    data.utils.insertNode(node, parentNode);
     data.nodes[data.nodes.length - 1] = node;
     data.address[data.address.length - 1] += 1;
 }
 function stackLogic(data, step) {
     if (step.type !== "BUILD") return;
-    if (step.state === "INITIAL") {
-        data.address.push(-1);
-        data.nodes.push(undefined);
-    }
     if (step.state === "TEXT") {
         const text = getText(data.template, step.vector);
         if (text === undefined) return;
-        const node = document.createTextNode(text);
+        const node = data.utils.createTextNode(text);
         insertNode(data, node);
     }
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
         if (tagname === undefined || tagname === "") return;
-        const node1 = document.createElement(tagname);
+        const node1 = data.utils.createNode(tagname);
         insertNode(data, node1);
     }
     if (step.state === "NODE_CLOSED") {
@@ -475,7 +473,7 @@ function stackLogic(data, step) {
 }
 function injectLogic(data, step) {
     if (step.type !== "INJECT") return;
-    const { state: type , index  } = step;
+    const { index , state: type  } = step;
     data.injections.set(index, {
         address: data.address.slice(),
         type,
@@ -483,15 +481,22 @@ function injectLogic(data, step) {
     });
 }
 class DOMBuilder {
-    baseTier = [];
-    address = [];
-    nodes = [];
+    address = [
+        -1
+    ];
+    nodes = [
+        undefined
+    ];
     attribute;
     references = new Map();
     injections = new Map();
+    utils;
     template;
-    constructor(template){
+    fragment;
+    constructor(utils, template){
+        this.utils = utils;
         this.template = template;
+        this.fragment = utils.createFragment();
     }
     push(step) {
         if (step.state === "ERROR") {}

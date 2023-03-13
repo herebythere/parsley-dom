@@ -18,7 +18,7 @@ class DOMHangar<S = unknown>
   }
 
   update(state: S) {
-		// call functions
+		// call draw functions
 		// compare diff
 		// update structure
 		// update properties
