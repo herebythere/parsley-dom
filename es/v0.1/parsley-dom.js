@@ -506,5 +506,5 @@ class Builder {
 }
 export { DOMUtils as DOMUtils };
 export { Hangar as Hangar };
-export { draw as draw, Draw as Draw };
+export { Draw as Draw, draw as draw };
 export { Builder as Builder };

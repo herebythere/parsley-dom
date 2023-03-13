@@ -32,12 +32,12 @@ class TestComponent extends HTMLElement {
         this.shadowRoot,
       );
     }
-    
+
     this.hanger.update(this);
   }
 
   attributeChangedCallback() {
-  	// this is where microtask should be called
+    // this is where microtask should be called
     this.hangar.update(this);
     // this.hangar.updateAsync(this);
   }
@@ -45,11 +45,10 @@ class TestComponent extends HTMLElement {
   update() {
     this.hangar.update(this);
     // this.hangar.updateAsync(this);
-        this.state = state;
+    this.state = state;
     if (!this.queuedForUpdate) {
       queueMicrotask(this.render);
       this.queuedForUpdate = true;
     }
   }
 }
-

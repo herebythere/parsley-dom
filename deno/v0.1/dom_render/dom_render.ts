@@ -1,11 +1,14 @@
-import type { BuilderDataInterface, BuilderInjection } from "../type_flyweight/dom_builder.ts";
+import type {
+  BuilderDataInterface,
+  BuilderInjection,
+} from "../type_flyweight/dom_builder.ts";
 
 // fragment get children to start the address crawl
 
 interface RenderInjection {
-	node: Node;
-	index: number;
-	type: string;
+  node: Node;
+  index: number;
+  type: string;
 }
 
 function getNodeByAddress(
@@ -36,7 +39,10 @@ function getReferenceElements(
   return references;
 }
 
-function getInjections(fragment: DocumentFragment, addresses: Map<number, BuilderInjection>) {
+function getInjections(
+  fragment: DocumentFragment,
+  addresses: Map<number, BuilderInjection>,
+) {
   const injections = new Map<number, RenderInjection>();
   for (const [index, entry] of addresses) {
     const node = getNodeByAddress(fragment, entry.address);
@@ -50,7 +56,7 @@ function getInjections(fragment: DocumentFragment, addresses: Map<number, Builde
 function createRender(builder: BuilderDataInterface) {
   const fragment = builder.fragment.cloneNode(true);
   if (fragment === undefined) return;
-  
+
   const references = getReferenceElements(fragment, builder.references);
   const injections = getInjections(fragment, builder.injections);
 
@@ -66,4 +72,4 @@ function createRender(builder: BuilderDataInterface) {
   };
 }
 
-export { createRender }
+export { createRender };

@@ -3,9 +3,7 @@ import type {
   BuilderDataInterface,
   BuilderInjection,
 } from "../type_flyweight/builder.ts";
-import type {
-  Utils,
-} from "../type_flyweight/utils.ts";
+import type { Utils } from "../type_flyweight/utils.ts";
 
 import { getText } from "../deps.ts";
 
@@ -19,18 +17,18 @@ function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
   const parentIndex = data.nodes.length - 2;
   let parentNode = data.nodes[parentIndex];
   if (parentIndex === -1) {
-  	data.baseTier.push(node);
+    data.baseTier.push(node);
   }
-  
+
   data.utils.insertNode(node, parentNode);
-  
+
   data.nodes[data.nodes.length - 1] = node;
   data.address[data.address.length - 1] += 1;
 }
 
 function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
-  
+
   if (step.state === "TEXT") {
     const text = getText(data.template, step.vector);
     if (text === undefined) return;
@@ -60,7 +58,7 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 
 function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "INJECT") return;
-	const {index, state: type} = step;
+  const { index, state: type } = step;
   data.injections.set(index, {
     address: data.address.slice(),
     type,
@@ -74,18 +72,17 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   address: number[] = [-1];
   baseTier: N[] = [];
   attribute?: string;
-  
+
   // results
   references = new Map<string, number[]>();
   injections = new Map<number, BuilderInjection>();
 
-	// utils
-	utils: Utils<N>;
+  // utils
+  utils: Utils<N>;
   template: Readonly<string[]>;
 
-
   constructor(utils: Utils<N>, template: Readonly<string[]>) {
-  	this.utils = utils;
+    this.utils = utils;
     this.template = template;
   }
 
@@ -107,4 +104,3 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
 }
 
 export { Builder };
-

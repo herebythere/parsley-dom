@@ -4,6 +4,6 @@ export type { Utils } from "./type_flyweight/utils.ts";
 
 export { DOMUtils } from "./dom_utils/dom_utils.ts";
 export { Hangar } from "./hangar/hangar.ts";
-export { draw, Draw } from "./draw/draw.ts";
+export { Draw, draw } from "./draw/draw.ts";
 export { Builder } from "./builder/builder.ts";
 // export { createRender } from "./dom_render/dom_render.ts";

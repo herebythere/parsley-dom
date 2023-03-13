@@ -5,10 +5,10 @@ interface BuilderInjection {
   address: number[];
   type: string;
   index: number;
-};
+}
 
 interface BuilderDataInterface<N> {
-	utils: Utils<N>;
+  utils: Utils<N>;
   template: Readonly<string[]>;
   baseTier: N[];
   references: Map<string, number[]>;
@@ -18,7 +18,4 @@ interface BuilderDataInterface<N> {
   attribute?: string;
 }
 
-export type {
-  BuilderDataInterface,
-  BuilderInjection,
-};
+export type { BuilderDataInterface, BuilderInjection };
