@@ -1,23 +1,39 @@
 import type {
   BuilderDataInterface,
   BuilderInjection,
-} from "../type_flyweight/dom_builder.ts";
-
+} from "../type_flyweight/builder.ts";
+import type {
+  RenderInterface,
+  RenderInjection,
+} from "../type_flyweight/render.ts";
 // fragment get children to start the address crawl
 
-interface RenderInjection<N> {
-  node: N;
-  index: number;
-  type: string;
+class Render<N> implements RenderInterface<N> {
+	descendants: N[];
+	references: Map<string, N>;
+	injections: Map<number, RenderInjection<N>>;
+	
+	constructor(
+		data: BuilderDataInterface<N>
+  ) {
+  	let descendants = [];
+		for (const node of data.baseTier) {
+			descendants.push(data.utils.cloneTree(node));
+		}
+		
+		this.descendants = descendants;
+		this.references = new Map<string, N>();
+		this.injections = getInjections(data, descendants);
+	}
 }
 
-function getReferenceElements(
-  fragment: DocumentFragment,
-  addresses: Map<string, number[]>,
+/*
+function getReferenceElements<N>(
+	data: BuilderDataInterface<N>,
 ) {
   const references = new Map<string, Node>();
-  for (const [index, address] of addresses) {
-    const node = getNodeByAddress(fragment, address);
+  for (const [index, address] of data.addresses) {
+    const node = data(fragment, address);
     if (node !== undefined) {
       references.set(index, node);
     }
@@ -25,35 +41,22 @@ function getReferenceElements(
 
   return references;
 }
+*/
 
-function getInjections(
-  fragment: DocumentFragment,
-  addresses: Map<number, BuilderInjection>,
+function getInjections<N>(
+  data: BuilderDataInterface<N>,
+  descendants: N[],
 ) {
-  const injections = new Map<number, RenderInjection>();
-  for (const [index, entry] of addresses) {
-    const node = getNodeByAddress(fragment, entry.address);
-    if (node === undefined) return;
-    injections.set(index, { node, index, type: entry.type });
+  const injections = new Map<number, RenderInjection<N>>();
+  for (const [index, entry] of data.injections) {
+    const node = data.utils.getDescendant(descendants, entry.address);
+    if (node !== undefined) {
+      injections.set(index, { node, index, type: entry.type });
+    };
   }
 
   return injections;
 }
 
-function createRender<N>(builder: BuilderDataInterface<N>) {
-	// copy of base tier not fragment
-	
-  const baseTier = builder.fragment.cloneNode(true);
-  if (fragment === undefined) return;
 
-  const references = new Map<string, N>();
-  const injections = getInjections(fragment, builder.injections);
-
-  return {
-    baseTier,
-    references,
-    injections,
-  };
-}
-
-export { createRender };
+export { Render };

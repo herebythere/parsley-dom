@@ -1,8 +1,0 @@
-draw class - done
-hangar class - done
-
-
-
-dom builder
-dom diff
-dom render

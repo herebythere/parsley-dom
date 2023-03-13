@@ -27,11 +27,14 @@ class DOMUtils {
     cloneTree(node) {
         return node.cloneNode(true);
     }
-    getDescendent(node, address) {
-        let currNode = node;
-        for (const index of address){
-            currNode = node.childNodes[index];
-            if (currNode !== undefined) return;
+    getDescendant(baseTier, address) {
+        let currNode = baseTier[address[0]];
+        if (currNode === undefined) return;
+        let index = 1;
+        while(index < address.length){
+            currNode = currNode.childNodes[index];
+            if (currNode === undefined) return;
+            index += 1;
         }
         return currNode;
     }
@@ -486,6 +489,7 @@ class Builder {
     ];
     baseTier = [];
     attribute;
+    references = new Map();
     injections = new Map();
     utils;
     template;
@@ -503,7 +507,36 @@ class Builder {
         }
     }
 }
+class Render {
+    descendants;
+    references;
+    injections;
+    constructor(data){
+        let descendants = [];
+        for (const node of data.baseTier){
+            descendants.push(data.utils.cloneTree(node));
+        }
+        this.descendants = descendants;
+        this.references = new Map();
+        this.injections = getInjections(data, descendants);
+    }
+}
+function getInjections(data, descendants) {
+    const injections = new Map();
+    for (const [index, entry] of data.injections){
+        const node = data.utils.getDescendant(descendants, entry.address);
+        if (node !== undefined) {
+            injections.set(index, {
+                node,
+                index,
+                type: entry.type
+            });
+        }
+    }
+    return injections;
+}
 export { DOMUtils as DOMUtils };
 export { Hangar as Hangar };
 export { Draw as Draw, draw as draw };
 export { Builder as Builder };
+export { Render as Render };
