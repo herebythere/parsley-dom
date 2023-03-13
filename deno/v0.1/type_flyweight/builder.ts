@@ -10,7 +10,7 @@ interface BuilderInjection {
 interface BuilderDataInterface<N> {
 	utils: Utils<N>;
   template: Readonly<string[]>;
-  fragment: N;
+  baseTier: N[];
   references: Map<string, number[]>;
   injections: Map<number, BuilderInjection>;
   address: number[];

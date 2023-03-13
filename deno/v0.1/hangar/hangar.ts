@@ -1,16 +1,16 @@
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 
-class DOMHangar<S = unknown>
+class Hangar<N, S = unknown>
   implements HangarInterface<S> {
   drawFuncs!: DrawFunc<S>[];
-  parentNode?: Node;
-  leftNode?: Node;
+  parentNode?: N;
+  leftNode?: N;
 
   prevDraw!: DrawInterface[];
   prevRender!: unknown[];
 
-  constructor(drawFuncs: DrawFunc<S>[], parentNode?: Node, leftNode?: Node) {
+  constructor(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N) {
     // remove all children
     this.drawFuncs = drawFuncs;
     this.parentNode = parentNode;
@@ -25,4 +25,4 @@ class DOMHangar<S = unknown>
   }
 }
 
-export { DOMHangar };
+export { Hangar };

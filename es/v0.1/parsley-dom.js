@@ -4,9 +4,6 @@
 
 new WeakMap();
 class DOMUtils {
-    createFragment() {
-        return document.createDocumentFragment();
-    }
     createNode(tagname) {
         if (tagname === ":fragment") {
             return document.createDocumentFragment();
@@ -39,7 +36,7 @@ class DOMUtils {
         return currNode;
     }
 }
-class DOMHangar {
+class Hangar {
     drawFuncs;
     parentNode;
     leftNode;
@@ -442,7 +439,7 @@ function insertNode(data, node) {
     const parentIndex = data.nodes.length - 2;
     let parentNode = data.nodes[parentIndex];
     if (parentIndex === -1) {
-        parentNode = data.fragment;
+        data.baseTier.push(node);
     }
     data.utils.insertNode(node, parentNode);
     data.nodes[data.nodes.length - 1] = node;
@@ -480,23 +477,22 @@ function injectLogic(data, step) {
         index
     });
 }
-class DOMBuilder {
-    address = [
-        -1
-    ];
+class Builder {
     nodes = [
         undefined
     ];
+    address = [
+        -1
+    ];
+    baseTier = [];
     attribute;
     references = new Map();
     injections = new Map();
     utils;
     template;
-    fragment;
     constructor(utils, template){
         this.utils = utils;
         this.template = template;
-        this.fragment = utils.createFragment();
     }
     push(step) {
         if (step.state === "ERROR") {}
@@ -509,6 +505,6 @@ class DOMBuilder {
     }
 }
 export { DOMUtils as DOMUtils };
-export { DOMHangar as DOMHangar };
+export { Hangar as Hangar };
 export { draw as draw, Draw as Draw };
-export { DOMBuilder as DOMBuilder };
+export { Builder as Builder };

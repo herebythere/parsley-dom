@@ -2,7 +2,7 @@ import type { BuilderInterface, BuildStep } from "../deps.ts";
 import type {
   BuilderDataInterface,
   BuilderInjection,
-} from "../type_flyweight/dom_builder.ts";
+} from "../type_flyweight/builder.ts";
 import type {
   Utils,
 } from "../type_flyweight/utils.ts";
@@ -19,7 +19,7 @@ function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
   const parentIndex = data.nodes.length - 2;
   let parentNode = data.nodes[parentIndex];
   if (parentIndex === -1) {
-  	parentNode = data.fragment;
+  	data.baseTier.push(node);
   }
   
   data.utils.insertNode(node, parentNode);
@@ -68,10 +68,11 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   });
 }
 
-class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
+class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   // stack
-  address: number[] = [-1];
   nodes: (N | undefined)[] = [undefined];
+  address: number[] = [-1];
+  baseTier: N[] = [];
   attribute?: string;
   
   // results
@@ -81,12 +82,11 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
 	// utils
 	utils: Utils<N>;
   template: Readonly<string[]>;
-  fragment: N;
+
 
   constructor(utils: Utils<N>, template: Readonly<string[]>) {
   	this.utils = utils;
     this.template = template;
-    this.fragment = utils.createFragment();
   }
 
   push(step: BuildStep) {
@@ -106,5 +106,5 @@ class DOMBuilder<N> implements BuilderInterface, BuilderDataInterface<N> {
   }
 }
 
-export { DOMBuilder };
+export { Builder };
 

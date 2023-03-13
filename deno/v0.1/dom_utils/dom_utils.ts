@@ -8,9 +8,6 @@ const builderCache = new WeakMap();
 
 
 class DOMUtils implements Utils<Node> {
-	createFragment() {
-		return document.createDocumentFragment();
-	}
 	createNode(tagname: string) {
 		if (tagname === ":fragment") {
 			return document.createDocumentFragment();
