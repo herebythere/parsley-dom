@@ -9,21 +9,23 @@ import type {
 // fragment get children to start the address crawl
 
 class Render<N> implements RenderInterface<N> {
-	descendants: N[];
+	nodeTier: N[];
+	descendants: RenderInjection<N>[];
 	references: Map<string, N>;
-	injections: Map<number, RenderInjection<N>>;
+	injections: RenderInjection<N>[];
 	
 	constructor(
 		data: BuilderDataInterface<N>
   ) {
-  	let descendants = [];
-		for (const node of data.baseTier) {
-			descendants.push(data.utils.cloneTree(node));
+  	let nodeTier = [];
+		for (const node of data.nodeTier) {
+			nodeTier.push(data.utils.cloneTree(node));
 		}
 		
-		this.descendants = descendants;
+		this.nodeTier = nodeTier;
+		this.descendants = [];
 		this.references = new Map<string, N>();
-		this.injections = getInjections(data, descendants);
+		this.injections = getInjections(data, this.nodeTier);
 	}
 }
 
@@ -47,11 +49,11 @@ function getInjections<N>(
   data: BuilderDataInterface<N>,
   descendants: N[],
 ) {
-  const injections = new Map<number, RenderInjection<N>>();
-  for (const [index, entry] of data.injections) {
+  const injections = [];
+  for (const entry of data.injections) {
     const node = data.utils.getDescendant(descendants, entry.address);
     if (node !== undefined) {
-      injections.set(index, { node, index, type: entry.type });
+      injections.push({ node, index: entry.index, type: entry.type });
     };
   }
 

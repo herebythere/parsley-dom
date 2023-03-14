@@ -442,7 +442,7 @@ function insertNode(data, node) {
     const parentIndex = data.nodes.length - 2;
     let parentNode = data.nodes[parentIndex];
     if (parentIndex === -1) {
-        data.baseTier.push(node);
+        data.nodeTier.push(node);
     }
     data.utils.insertNode(node, parentNode);
     data.nodes[data.nodes.length - 1] = node;
@@ -474,7 +474,15 @@ function stackLogic(data, step) {
 function injectLogic(data, step) {
     if (step.type !== "INJECT") return;
     const { index , state: type  } = step;
-    data.injections.set(index, {
+    if (type === "DESCENDANT_INJECTION") {
+        data.descendants.push({
+            address: data.address.slice(),
+            type,
+            index
+        });
+        return;
+    }
+    data.injections.push({
         address: data.address.slice(),
         type,
         index
@@ -487,10 +495,11 @@ class Builder {
     address = [
         -1
     ];
-    baseTier = [];
+    nodeTier = [];
     attribute;
     references = new Map();
-    injections = new Map();
+    injections = [];
+    descendants = [];
     utils;
     template;
     constructor(utils, template){
@@ -508,27 +517,29 @@ class Builder {
     }
 }
 class Render {
+    nodeTier;
     descendants;
     references;
     injections;
     constructor(data){
-        let descendants = [];
-        for (const node of data.baseTier){
-            descendants.push(data.utils.cloneTree(node));
+        let nodeTier = [];
+        for (const node of data.nodeTier){
+            nodeTier.push(data.utils.cloneTree(node));
         }
-        this.descendants = descendants;
+        this.nodeTier = nodeTier;
+        this.descendants = [];
         this.references = new Map();
-        this.injections = getInjections(data, descendants);
+        this.injections = getInjections(data, this.nodeTier);
     }
 }
 function getInjections(data, descendants) {
-    const injections = new Map();
-    for (const [index, entry] of data.injections){
+    const injections = [];
+    for (const entry of data.injections){
         const node = data.utils.getDescendant(descendants, entry.address);
         if (node !== undefined) {
-            injections.set(index, {
+            injections.push({
                 node,
-                index,
+                index: entry.index,
                 type: entry.type
             });
         }

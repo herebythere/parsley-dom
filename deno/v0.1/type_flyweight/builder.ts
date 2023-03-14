@@ -10,9 +10,10 @@ interface BuilderInjection {
 interface BuilderDataInterface<N> {
   utils: Utils<N>;
   template: Readonly<string[]>;
-  baseTier: N[];
+  nodeTier: N[];
   references: Map<string, number[]>;
-  injections: Map<number, BuilderInjection>;
+  injections: BuilderInjection[];
+  descendants: BuilderInjection[];
   address: number[];
   nodes: (N | undefined)[];
   attribute?: string;

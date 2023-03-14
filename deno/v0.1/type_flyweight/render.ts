@@ -5,9 +5,10 @@ interface RenderInjection<N> {
 }
 
 interface RenderInterface<N> {
-	descendants: N[];
+	nodeTier: N[];
   references: Map<string, N>;
-  injections: Map<number, RenderInjection<N>>;
+  descendants: RenderInjection<N>[];
+  injections: RenderInjection<N>[];
 }
 
 export type { RenderInjection, RenderInterface }
