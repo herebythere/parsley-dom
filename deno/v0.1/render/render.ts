@@ -17,12 +17,7 @@ class Render<N> implements RenderInterface<N> {
 	constructor(
 		data: BuilderDataInterface<N>
   ) {
-  	let nodeTier = [];
-		for (const node of data.nodeTier) {
-			nodeTier.push(data.utils.cloneTree(node));
-		}
-		
-		this.nodeTier = nodeTier;
+		this.nodeTier = cloneNodeTier(data);
 		this.descendants = [];
 		this.references = new Map<string, N>();
 		this.injections = getInjections(data, this.nodeTier);
@@ -44,6 +39,14 @@ function getReferenceElements<N>(
   return references;
 }
 */
+
+function cloneNodeTier(data: BuilderDataInterface<N>) {
+	let nodeTier = [];
+	for (const node of data.nodeTier) {
+		nodeTier.push(data.utils.cloneTree(node));
+	}
+	return nodeTier;
+}
 
 function getInjections<N>(
   data: BuilderDataInterface<N>,
