@@ -36,14 +36,14 @@ function cloneNodeTier<N>(utils: Utils<N>, data: BuilderDataInterface<N>) {
 	return nodeTier;
 }
 
-function getInjections<N>(
+function createRenderInjections<N>(
 	utils: Utils<N>,
-  data: BuilderDataInterface<N>,
-  descendants: N[],
+	nodeTier: N[],
+  builderInjections: BuilderInjection[],
 ) {
   const injections = [];
-  for (const entry of data.injections) {
-    const node = utils.getDescendant(descendants, entry.address);
+  for (const entry of builderInjections) {
+    const node = utils.getDescendant(nodeTier, entry.address);
     if (node !== undefined) {
       injections.push({ index: entry.index, type: entry.type, node });
     };
@@ -63,9 +63,9 @@ class Render<N> implements RenderInterface<N> {
 		data: BuilderDataInterface<N>,
   ) {
 		this.nodeTier = cloneNodeTier(utils, data);
-		this.injections = getInjections(utils, data, this.nodeTier);
+		this.injections = createRenderInjections(utils, this.nodeTier, data.injections);
+		this.descendants = createRenderInjections(utils, this.nodeTier, data.descendants);
 		
-		this.descendants = [];
 		this.references = new Map<string, N>();
 	}
 }

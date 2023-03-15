@@ -77,10 +77,10 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   // stack
   nodes: (N | undefined)[] = [undefined];
   address: number[] = [-1];
-  nodeTier: N[] = [];
   attribute?: string;
 
   // results
+  nodeTier: N[] = [];
   injections: BuilderInjection[] = [];
 	descendants: BuilderInjection[] = [];
 	references = new Map<string, number[]>();

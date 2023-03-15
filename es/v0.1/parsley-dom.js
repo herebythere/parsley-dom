@@ -492,8 +492,8 @@ class Builder {
     address = [
         -1
     ];
-    nodeTier = [];
     attribute;
+    nodeTier = [];
     injections = [];
     descendants = [];
     references = new Map();
@@ -520,10 +520,10 @@ function cloneNodeTier(utils, data) {
     }
     return nodeTier;
 }
-function getInjections(utils, data, descendants) {
+function createRenderInjections(utils, nodeTier, builderInjections) {
     const injections = [];
-    for (const entry of data.injections){
-        const node = utils.getDescendant(descendants, entry.address);
+    for (const entry of builderInjections){
+        const node = utils.getDescendant(nodeTier, entry.address);
         if (node !== undefined) {
             injections.push({
                 index: entry.index,
@@ -541,8 +541,8 @@ class Render {
     references;
     constructor(utils, data){
         this.nodeTier = cloneNodeTier(utils, data);
-        this.injections = getInjections(utils, data, this.nodeTier);
-        this.descendants = [];
+        this.injections = createRenderInjections(utils, this.nodeTier, data.injections);
+        this.descendants = createRenderInjections(utils, this.nodeTier, data.descendants);
         this.references = new Map();
     }
 }
