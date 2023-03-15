@@ -36,7 +36,7 @@ function cloneNodeTier<N>(utils: Utils<N>, data: BuilderDataInterface<N>) {
 	return nodeTier;
 }
 
-function createRenderInjections<N>(
+function createInjections<N>(
 	utils: Utils<N>,
 	nodeTier: N[],
   builderInjections: BuilderInjection[],
@@ -44,8 +44,9 @@ function createRenderInjections<N>(
   const injections = [];
   for (const entry of builderInjections) {
     const node = utils.getDescendant(nodeTier, entry.address);
+    const parentNode = utils.getDescendant(nodeTier, entry.address, entry.address.length - 1);
     if (node !== undefined) {
-      injections.push({ index: entry.index, type: entry.type, node });
+      injections.push({ index: entry.index, type: entry.type, node, parentNode });
     };
   }
 
@@ -63,8 +64,8 @@ class Render<N> implements RenderInterface<N> {
 		data: BuilderDataInterface<N>,
   ) {
 		this.nodeTier = cloneNodeTier(utils, data);
-		this.injections = createRenderInjections(utils, this.nodeTier, data.injections);
-		this.descendants = createRenderInjections(utils, this.nodeTier, data.descendants);
+		this.injections = createInjections(utils, this.nodeTier, data.injections);
+		this.descendants = createInjections(utils, this.nodeTier, data.descendants);
 		
 		this.references = new Map<string, N>();
 	}

@@ -1,5 +1,6 @@
 interface RenderInjection<N> {
-  node: N;
+	parentNode?: N;
+  node?: N;
   index: number;
   type: string;
 }

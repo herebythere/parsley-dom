@@ -36,12 +36,14 @@ class DOMUtils implements Utils<Node> {
   cloneTree(node: Node) {
     return node.cloneNode(true);
   }
-  getDescendant(baseTier: Node[], address: number[]) {
+  getDescendant(baseTier: Node[], address: number[], depth: number = address.length) {
+  	if (address.length === 0) return;
+  	
     let currNode = baseTier[address[0]];
     if (currNode === undefined) return;
     
     let index = 1;
-    while (index < address.length) {
+    while (index < depth) {
       currNode = currNode.childNodes[index];
       if (currNode === undefined) return;
     	index += 1;

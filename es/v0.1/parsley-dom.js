@@ -27,11 +27,12 @@ class DOMUtils {
     cloneTree(node) {
         return node.cloneNode(true);
     }
-    getDescendant(baseTier, address) {
+    getDescendant(baseTier, address, depth = address.length) {
+        if (address.length === 0) return;
         let currNode = baseTier[address[0]];
         if (currNode === undefined) return;
         let index = 1;
-        while(index < address.length){
+        while(index < depth){
             currNode = currNode.childNodes[index];
             if (currNode === undefined) return;
             index += 1;
@@ -520,15 +521,17 @@ function cloneNodeTier(utils, data) {
     }
     return nodeTier;
 }
-function createRenderInjections(utils, nodeTier, builderInjections) {
+function createInjections(utils, nodeTier, builderInjections) {
     const injections = [];
     for (const entry of builderInjections){
         const node = utils.getDescendant(nodeTier, entry.address);
+        const parentNode = utils.getDescendant(nodeTier, entry.address, entry.address.length - 1);
         if (node !== undefined) {
             injections.push({
                 index: entry.index,
                 type: entry.type,
-                node
+                node,
+                parentNode
             });
         }
     }
@@ -541,8 +544,8 @@ class Render {
     references;
     constructor(utils, data){
         this.nodeTier = cloneNodeTier(utils, data);
-        this.injections = createRenderInjections(utils, this.nodeTier, data.injections);
-        this.descendants = createRenderInjections(utils, this.nodeTier, data.descendants);
+        this.injections = createInjections(utils, this.nodeTier, data.injections);
+        this.descendants = createInjections(utils, this.nodeTier, data.descendants);
         this.references = new Map();
     }
 }
