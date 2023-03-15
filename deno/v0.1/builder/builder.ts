@@ -13,7 +13,11 @@ function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 }
 */
 
-function insertNode<N>(utils: Utils<N>, data: BuilderDataInterface<N>, node: N) {
+function insertNode<N>(
+  utils: Utils<N>,
+  data: BuilderDataInterface<N>,
+  node: N,
+) {
   const parentIndex = data.nodes.length - 2;
   let parentNode = data.nodes[parentIndex];
   if (parentIndex === -1) {
@@ -26,7 +30,11 @@ function insertNode<N>(utils: Utils<N>, data: BuilderDataInterface<N>, node: N) 
   data.address[data.address.length - 1] += 1;
 }
 
-function stackLogic<N>(utils: Utils<N>, data: BuilderDataInterface<N>, step: BuildStep) {
+function stackLogic<N>(
+  utils: Utils<N>,
+  data: BuilderDataInterface<N>,
+  step: BuildStep,
+) {
   if (step.type !== "BUILD") return;
 
   if (step.state === "TEXT") {
@@ -64,12 +72,12 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
     index,
     type,
   };
-  
+
   if (type === "DESCENDANT_INJECTION") {
     data.descendants.push(injection);
-		return;
+    return;
   }
-  
+
   data.injections.push(injection);
 }
 
@@ -82,8 +90,8 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   // results
   nodeTier: N[] = [];
   injections: BuilderInjection[] = [];
-	descendants: BuilderInjection[] = [];
-	references = new Map<string, number[]>();
+  descendants: BuilderInjection[] = [];
+  references = new Map<string, number[]>();
 
   // utils
   utils: Utils<N>;

@@ -3,14 +3,11 @@ import type {
   BuilderInjection,
 } from "../type_flyweight/builder.ts";
 import type {
-  RenderInterface,
   RenderInjection,
+  RenderInterface,
 } from "../type_flyweight/render.ts";
-import type {
-  Utils
-} from "../type_flyweight/utils.ts";
+import type { Utils } from "../type_flyweight/utils.ts";
 // fragment get children to start the address crawl
-
 
 /*
 function getReferenceElements<N>(
@@ -28,48 +25,56 @@ function getReferenceElements<N>(
 }
 */
 
-function cloneNodeTier<N>(utils: Utils<N>, data: BuilderDataInterface<N>) {
-	let nodeTier = [];
-	for (const node of data.nodeTier) {
-		nodeTier.push(utils.cloneTree(node));
-	}
-	return nodeTier;
+function cloneNodeTier<N>(utils: Utils<N>, nodeTier: N[]) {
+  let nodes = [];
+  for (const node of nodeTier) {
+    nodes.push(utils.cloneTree(node));
+  }
+  return nodes;
 }
 
 function createInjections<N>(
-	utils: Utils<N>,
-	nodeTier: N[],
+  utils: Utils<N>,
+  nodeTier: N[],
   builderInjections: BuilderInjection[],
 ) {
   const injections = [];
   for (const entry of builderInjections) {
     const node = utils.getDescendant(nodeTier, entry.address);
-    const parentNode = utils.getDescendant(nodeTier, entry.address, entry.address.length - 1);
+    const parentNode = utils.getDescendant(
+      nodeTier,
+      entry.address,
+      entry.address.length - 1,
+    );
     if (node !== undefined) {
-      injections.push({ index: entry.index, type: entry.type, node, parentNode });
-    };
+      injections.push({
+        index: entry.index,
+        type: entry.type,
+        node,
+        parentNode,
+      });
+    }
   }
 
   return injections;
 }
 
 class Render<N> implements RenderInterface<N> {
-	nodeTier: N[];
-	descendants: RenderInjection<N>[];
-	injections: RenderInjection<N>[];
-	references: Map<string, N>;
-	
-	constructor(
-		utils: Utils<N>,
-		data: BuilderDataInterface<N>,
-  ) {
-		this.nodeTier = cloneNodeTier(utils, data);
-		this.injections = createInjections(utils, this.nodeTier, data.injections);
-		this.descendants = createInjections(utils, this.nodeTier, data.descendants);
-		
-		this.references = new Map<string, N>();
-	}
-}
+  nodeTier: N[];
+  descendants: RenderInjection<N>[];
+  injections: RenderInjection<N>[];
+  references: Map<string, N>;
 
+  constructor(
+    utils: Utils<N>,
+    data: BuilderDataInterface<N>,
+  ) {
+    this.nodeTier = cloneNodeTier(utils, data.nodeTier);
+    this.injections = createInjections(utils, this.nodeTier, data.injections);
+    this.descendants = createInjections(utils, this.nodeTier, data.descendants);
+
+    this.references = new Map<string, N>();
+  }
+}
 
 export { Render };

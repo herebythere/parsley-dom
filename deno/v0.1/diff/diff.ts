@@ -1,6 +1,4 @@
-
 function diff(prevDraw: Draw, currDraw: Draw, render: Render) {
-
 }
 
 /*

@@ -9,7 +9,6 @@ import type { Utils } from "../type_flyweight/utils.ts";
 // should render cache be set here?
 const builderCache = new WeakMap();
 
-
 class DOMUtils implements Utils<Node> {
   createNode(tagname: string) {
     if (tagname === ":fragment") {
@@ -36,17 +35,21 @@ class DOMUtils implements Utils<Node> {
   cloneTree(node: Node) {
     return node.cloneNode(true);
   }
-  getDescendant(baseTier: Node[], address: number[], depth: number = address.length) {
-  	if (address.length === 0) return;
-  	
+  getDescendant(
+    baseTier: Node[],
+    address: number[],
+    depth: number = address.length,
+  ) {
+    if (address.length === 0) return;
+
     let currNode = baseTier[address[0]];
     if (currNode === undefined) return;
-    
+
     let index = 1;
     while (index < depth) {
       currNode = currNode.childNodes[index];
       if (currNode === undefined) return;
-    	index += 1;
+      index += 1;
     }
 
     return currNode;

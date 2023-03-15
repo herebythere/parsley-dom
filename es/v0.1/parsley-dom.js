@@ -514,12 +514,12 @@ class Builder {
         }
     }
 }
-function cloneNodeTier(utils, data) {
-    let nodeTier = [];
-    for (const node of data.nodeTier){
-        nodeTier.push(utils.cloneTree(node));
+function cloneNodeTier(utils, nodeTier) {
+    let nodes = [];
+    for (const node of nodeTier){
+        nodes.push(utils.cloneTree(node));
     }
-    return nodeTier;
+    return nodes;
 }
 function createInjections(utils, nodeTier, builderInjections) {
     const injections = [];
@@ -543,7 +543,7 @@ class Render {
     injections;
     references;
     constructor(utils, data){
-        this.nodeTier = cloneNodeTier(utils, data);
+        this.nodeTier = cloneNodeTier(utils, data.nodeTier);
         this.injections = createInjections(utils, this.nodeTier, data.injections);
         this.descendants = createInjections(utils, this.nodeTier, data.descendants);
         this.references = new Map();
