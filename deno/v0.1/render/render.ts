@@ -6,23 +6,11 @@ import type {
   RenderInterface,
   RenderInjection,
 } from "../type_flyweight/render.ts";
+import type {
+  Utils
+} from "../type_flyweight/utils.ts";
 // fragment get children to start the address crawl
 
-class Render<N> implements RenderInterface<N> {
-	nodeTier: N[];
-	descendants: RenderInjection<N>[];
-	references: Map<string, N>;
-	injections: RenderInjection<N>[];
-	
-	constructor(
-		data: BuilderDataInterface<N>
-  ) {
-		this.nodeTier = cloneNodeTier(data);
-		this.descendants = [];
-		this.references = new Map<string, N>();
-		this.injections = getInjections(data, this.nodeTier);
-	}
-}
 
 /*
 function getReferenceElements<N>(
@@ -40,27 +28,46 @@ function getReferenceElements<N>(
 }
 */
 
-function cloneNodeTier(data: BuilderDataInterface<N>) {
+function cloneNodeTier<N>(utils: Utils<N>, data: BuilderDataInterface<N>) {
 	let nodeTier = [];
 	for (const node of data.nodeTier) {
-		nodeTier.push(data.utils.cloneTree(node));
+		nodeTier.push(utils.cloneTree(node));
 	}
 	return nodeTier;
 }
 
 function getInjections<N>(
+	utils: Utils<N>,
   data: BuilderDataInterface<N>,
   descendants: N[],
 ) {
   const injections = [];
   for (const entry of data.injections) {
-    const node = data.utils.getDescendant(descendants, entry.address);
+    const node = utils.getDescendant(descendants, entry.address);
     if (node !== undefined) {
-      injections.push({ node, index: entry.index, type: entry.type });
+      injections.push({ index: entry.index, type: entry.type, node });
     };
   }
 
   return injections;
+}
+
+class Render<N> implements RenderInterface<N> {
+	nodeTier: N[];
+	descendants: RenderInjection<N>[];
+	injections: RenderInjection<N>[];
+	references: Map<string, N>;
+	
+	constructor(
+		utils: Utils<N>,
+		data: BuilderDataInterface<N>,
+  ) {
+		this.nodeTier = cloneNodeTier(utils, data);
+		this.injections = getInjections(utils, data, this.nodeTier);
+		
+		this.descendants = [];
+		this.references = new Map<string, N>();
+	}
 }
 
 

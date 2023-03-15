@@ -8,7 +8,6 @@ interface BuilderInjection {
 }
 
 interface BuilderDataInterface<N> {
-  utils: Utils<N>;
   template: Readonly<string[]>;
   nodeTier: N[];
   references: Map<string, number[]>;

@@ -438,29 +438,29 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-function insertNode(data, node) {
+function insertNode(utils, data, node) {
     const parentIndex = data.nodes.length - 2;
     let parentNode = data.nodes[parentIndex];
     if (parentIndex === -1) {
         data.nodeTier.push(node);
     }
-    data.utils.insertNode(node, parentNode);
+    utils.insertNode(node, parentNode);
     data.nodes[data.nodes.length - 1] = node;
     data.address[data.address.length - 1] += 1;
 }
-function stackLogic(data, step) {
+function stackLogic(utils, data, step) {
     if (step.type !== "BUILD") return;
     if (step.state === "TEXT") {
         const text = getText(data.template, step.vector);
         if (text === undefined) return;
-        const node = data.utils.createTextNode(text);
-        insertNode(data, node);
+        const node = utils.createTextNode(text);
+        insertNode(utils, data, node);
     }
     if (step.state === "TAGNAME") {
         const tagname = getText(data.template, step.vector);
         if (tagname === undefined || tagname === "") return;
-        const node1 = data.utils.createNode(tagname);
-        insertNode(data, node1);
+        const node1 = utils.createNode(tagname);
+        insertNode(utils, data, node1);
     }
     if (step.state === "NODE_CLOSED") {
         data.address.push(-1);
@@ -474,19 +474,16 @@ function stackLogic(data, step) {
 function injectLogic(data, step) {
     if (step.type !== "INJECT") return;
     const { index , state: type  } = step;
+    const injection = {
+        address: data.address.slice(),
+        index,
+        type
+    };
     if (type === "DESCENDANT_INJECTION") {
-        data.descendants.push({
-            address: data.address.slice(),
-            type,
-            index
-        });
+        data.descendants.push(injection);
         return;
     }
-    data.injections.push({
-        address: data.address.slice(),
-        type,
-        index
-    });
+    data.injections.push(injection);
 }
 class Builder {
     nodes = [
@@ -497,9 +494,9 @@ class Builder {
     ];
     nodeTier = [];
     attribute;
-    references = new Map();
     injections = [];
     descendants = [];
+    references = new Map();
     utils;
     template;
     constructor(utils, template){
@@ -509,42 +506,45 @@ class Builder {
     push(step) {
         if (step.state === "ERROR") {}
         if (step.type === "BUILD") {
-            stackLogic(this, step);
+            stackLogic(this.utils, this, step);
         }
         if (step.type === "INJECT") {
             injectLogic(this, step);
         }
     }
 }
-class Render {
-    nodeTier;
-    descendants;
-    references;
-    injections;
-    constructor(data){
-        let nodeTier = [];
-        for (const node of data.nodeTier){
-            nodeTier.push(data.utils.cloneTree(node));
-        }
-        this.nodeTier = nodeTier;
-        this.descendants = [];
-        this.references = new Map();
-        this.injections = getInjections(data, this.nodeTier);
+function cloneNodeTier(utils, data) {
+    let nodeTier = [];
+    for (const node of data.nodeTier){
+        nodeTier.push(utils.cloneTree(node));
     }
+    return nodeTier;
 }
-function getInjections(data, descendants) {
+function getInjections(utils, data, descendants) {
     const injections = [];
     for (const entry of data.injections){
-        const node = data.utils.getDescendant(descendants, entry.address);
+        const node = utils.getDescendant(descendants, entry.address);
         if (node !== undefined) {
             injections.push({
-                node,
                 index: entry.index,
-                type: entry.type
+                type: entry.type,
+                node
             });
         }
     }
     return injections;
+}
+class Render {
+    nodeTier;
+    descendants;
+    injections;
+    references;
+    constructor(utils, data){
+        this.nodeTier = cloneNodeTier(utils, data);
+        this.injections = getInjections(utils, data, this.nodeTier);
+        this.descendants = [];
+        this.references = new Map();
+    }
 }
 export { DOMUtils as DOMUtils };
 export { Hangar as Hangar };

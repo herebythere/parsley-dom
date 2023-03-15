@@ -13,36 +13,36 @@ function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 }
 */
 
-function insertNode<N>(data: BuilderDataInterface<N>, node: N) {
+function insertNode<N>(utils: Utils<N>, data: BuilderDataInterface<N>, node: N) {
   const parentIndex = data.nodes.length - 2;
   let parentNode = data.nodes[parentIndex];
   if (parentIndex === -1) {
     data.nodeTier.push(node);
   }
 
-  data.utils.insertNode(node, parentNode);
+  utils.insertNode(node, parentNode);
 
   data.nodes[data.nodes.length - 1] = node;
   data.address[data.address.length - 1] += 1;
 }
 
-function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
+function stackLogic<N>(utils: Utils<N>, data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "BUILD") return;
 
   if (step.state === "TEXT") {
     const text = getText(data.template, step.vector);
     if (text === undefined) return;
 
-    const node = data.utils.createTextNode(text);
-    insertNode(data, node);
+    const node = utils.createTextNode(text);
+    insertNode(utils, data, node);
   }
 
   if (step.state === "TAGNAME") {
     const tagname = getText(data.template, step.vector);
     if (tagname === undefined || tagname === "") return;
 
-    const node = data.utils.createNode(tagname);
-    insertNode(data, node);
+    const node = utils.createNode(tagname);
+    insertNode(utils, data, node);
   }
 
   if (step.state === "NODE_CLOSED") {
@@ -59,21 +59,18 @@ function stackLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
   if (step.type !== "INJECT") return;
   const { index, state: type } = step;
+  const injection = {
+    address: data.address.slice(),
+    index,
+    type,
+  };
   
   if (type === "DESCENDANT_INJECTION") {
-    data.descendants.push({
-		  address: data.address.slice(),
-		  type,
-		  index,
-		});
+    data.descendants.push(injection);
 		return;
   }
   
-  data.injections.push({
-    address: data.address.slice(),
-    type,
-    index,
-  });
+  data.injections.push(injection);
 }
 
 class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
@@ -84,9 +81,9 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   attribute?: string;
 
   // results
-  references = new Map<string, number[]>();
   injections: BuilderInjection[] = [];
 	descendants: BuilderInjection[] = [];
+	references = new Map<string, number[]>();
 
   // utils
   utils: Utils<N>;
@@ -105,7 +102,7 @@ class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
 
     if (step.type === "BUILD") {
       // attributeLogic(this, step);
-      stackLogic(this, step);
+      stackLogic(this.utils, this, step);
     }
 
     if (step.type === "INJECT") {
