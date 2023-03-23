@@ -8,7 +8,6 @@ import type {
 } from "../type_flyweight/build.ts";
 import type { Utils } from "../type_flyweight/utils.ts";
 
-
 function cloneNodeTier<N>(utils: Utils<N>, nodeTier: N[]) {
   let nodes = [];
   for (const node of nodeTier) {
@@ -24,7 +23,7 @@ function createInjections<N>(
 ) {
   const injections = [];
   for (const entry of builderInjections) {
-  	const { address } = entry;
+    const { address } = entry;
     const node = utils.getDescendant(nodeTier, address);
     const parentNode = utils.getDescendant(
       nodeTier,
@@ -32,7 +31,7 @@ function createInjections<N>(
       address.length - 1,
     );
 
-		const {index, type} = entry;
+    const { index, type } = entry;
     injections.push({
       index,
       node,

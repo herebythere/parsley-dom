@@ -19,7 +19,7 @@ class Hangar<N, S = unknown> implements HangarInterface<S> {
   }
 
   update(state: S) {
-		// update tree
+    // update tree
   }
 }
 

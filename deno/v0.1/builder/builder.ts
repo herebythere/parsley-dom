@@ -26,7 +26,7 @@ function insertNode<N>(
 
   utils.insertNode(node, parentNode);
 
-	const nodeLength = data.nodeStack.length - 1;
+  const nodeLength = data.nodeStack.length - 1;
   data.nodeStack[nodeLength] = node;
   data.address[nodeLength] += 1;
 }
