@@ -9,12 +9,12 @@ interface BuilderInjection {
 
 interface BuilderDataInterface<N> {
   template: Readonly<string[]>;
-  nodeTier: N[];
+  nodes: N[];
   references: Map<string, number[]>;
   injections: BuilderInjection[];
   descendants: BuilderInjection[];
   address: number[];
-  nodes: (N | undefined)[];
+  nodeStack: (N | undefined)[];
   attribute?: string;
 }
 

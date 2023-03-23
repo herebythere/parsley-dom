@@ -18,16 +18,17 @@ function insertNode<N>(
   data: BuilderDataInterface<N>,
   node: N,
 ) {
-  const parentIndex = data.nodes.length - 2;
-  let parentNode = data.nodes[parentIndex];
-  if (parentIndex === -1) {
-    data.nodeTier.push(node);
+  const parentIndex = data.nodeStack.length - 2;
+  let parentNode = data.nodeStack[parentIndex];
+  if (parentNode === undefined) {
+    data.nodes.push(node);
   }
 
   utils.insertNode(node, parentNode);
 
-  data.nodes[data.nodes.length - 1] = node;
-  data.address[data.address.length - 1] += 1;
+	const nodeLength = data.nodeStack.length - 1;
+  data.nodeStack[nodeLength] = node;
+  data.address[nodeLength] += 1;
 }
 
 function stackLogic<N>(
@@ -55,12 +56,12 @@ function stackLogic<N>(
 
   if (step.state === "NODE_CLOSED") {
     data.address.push(-1);
-    data.nodes.push(undefined);
+    data.nodeStack.push(undefined);
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
     data.address.pop();
-    data.nodes.pop();
+    data.nodeStack.pop();
   }
 }
 
@@ -83,12 +84,12 @@ function injectLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 
 class Builder<N> implements BuilderInterface, BuilderDataInterface<N> {
   // stack
-  nodes: (N | undefined)[] = [undefined];
+  nodeStack: (N | undefined)[] = [undefined];
   address: number[] = [-1];
   attribute?: string;
 
   // results
-  nodeTier: N[] = [];
+  nodes: N[] = [];
   injections: BuilderInjection[] = [];
   descendants: BuilderInjection[] = [];
   references = new Map<string, number[]>();

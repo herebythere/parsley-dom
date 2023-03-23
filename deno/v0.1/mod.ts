@@ -6,4 +6,4 @@ export { DOMUtils } from "./dom_utils/dom_utils.ts";
 export { Hangar } from "./hangar/hangar.ts";
 export { Draw, draw } from "./draw/draw.ts";
 export { Builder } from "./builder/builder.ts";
-export { Render } from "./render/render.ts";
+export { Build } from "./build/build.ts";

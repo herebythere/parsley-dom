@@ -7,7 +7,6 @@ import type { Utils } from "../type_flyweight/utils.ts";
 // this could exist at the "docs level" or as a separate module
 
 // should render cache be set here?
-const builderCache = new WeakMap();
 
 class DOMUtils implements Utils<Node> {
   createNode(tagname: string) {

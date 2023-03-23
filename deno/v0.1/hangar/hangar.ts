@@ -1,6 +1,8 @@
 import type { DrawFunc, HangarInterface } from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 
+import { diff } from "../diff/diff.ts";
+
 class Hangar<N, S = unknown> implements HangarInterface<S> {
   drawFuncs!: DrawFunc<S>[];
   parentNode?: N;
@@ -17,10 +19,7 @@ class Hangar<N, S = unknown> implements HangarInterface<S> {
   }
 
   update(state: S) {
-    // call draw functions
-    // compare diff
-    // update structure
-    // update properties
+		// update tree
   }
 }
 

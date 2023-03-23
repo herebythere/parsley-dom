@@ -2,7 +2,6 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-new WeakMap();
 class DOMUtils {
     createNode(tagname) {
         if (tagname === ":fragment") {
@@ -442,12 +441,13 @@ new Map([
 function insertNode(utils, data, node) {
     const parentIndex = data.nodes.length - 2;
     let parentNode = data.nodes[parentIndex];
-    if (parentIndex === -1) {
+    if (parentNode === undefined) {
         data.nodeTier.push(node);
     }
     utils.insertNode(node, parentNode);
-    data.nodes[data.nodes.length - 1] = node;
-    data.address[data.address.length - 1] += 1;
+    const nodeLength = data.nodes.length - 1;
+    data.nodes[nodeLength] = node;
+    data.address[nodeLength] += 1;
 }
 function stackLogic(utils, data, step) {
     if (step.type !== "BUILD") return;
@@ -524,20 +524,20 @@ function cloneNodeTier(utils, nodeTier) {
 function createInjections(utils, nodeTier, builderInjections) {
     const injections = [];
     for (const entry of builderInjections){
-        const node = utils.getDescendant(nodeTier, entry.address);
-        const parentNode = utils.getDescendant(nodeTier, entry.address, entry.address.length - 1);
-        if (node !== undefined) {
-            injections.push({
-                index: entry.index,
-                type: entry.type,
-                node,
-                parentNode
-            });
-        }
+        const { address  } = entry;
+        const node = utils.getDescendant(nodeTier, address);
+        const parentNode = utils.getDescendant(nodeTier, address, address.length - 1);
+        const { index , type  } = entry;
+        injections.push({
+            index,
+            node,
+            parentNode,
+            type
+        });
     }
     return injections;
 }
-class Render {
+class Build {
     nodeTier;
     descendants;
     injections;
@@ -553,4 +553,4 @@ export { DOMUtils as DOMUtils };
 export { Hangar as Hangar };
 export { Draw as Draw, draw as draw };
 export { Builder as Builder };
-export { Render as Render };
+export { Build as Build };
