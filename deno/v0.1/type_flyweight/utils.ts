@@ -1,3 +1,5 @@
+import type { BuilderDataInterface } from "./builder.ts";
+
 interface Utils<N> {
   createNode(tagname: string): N;
   createTextNode(text: string): N;
@@ -8,6 +10,8 @@ interface Utils<N> {
     address: number[],
     depth?: number,
   ): N | undefined;
+  getBuilder(template: Readonly<string[]>): BuilderDataInterface<N> | undefined;
+  setBuilder(template: Readonly<string[]>, builder: BuilderDataInterface<N>): void; 
   // setAttribute(references: Map<string, N>, node: N, name: string, value: unknown)
 }
 

@@ -1,38 +1,46 @@
-import { Utils } from "../type_flyweight/utils.ts";
-import { DrawInterface } from "../type_flyweight/draw.ts";
-import { BuildInterface } from "../type_flyweight/build.ts";
+import type { Utils } from "../type_flyweight/utils.ts";
+import type { DrawInterface } from "../type_flyweight/draw.ts";
+import type { BuildInterface } from "../type_flyweight/build.ts";
+import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
+
+import { Draw } from "../draw/draw.ts";
+import { Build } from "../build/build.ts";
+import { Builder } from "../builder/builder.ts";
 
 interface RenderNode<N> {
   id: number;
   parentId: number;
   leftId: number;
-  prevId: number;
   draw: DrawInterface;
   build: BuildInterface<N>;
 }
 
-interface RenderStack<N> {
-  // the missing renders from current draw (clean up)
-  prevRender: RenderNode<N>[];
-  // the current renders
-  currRender: RenderNode<N>[];
-}
-
 // we get two
 
-function getBuilder(template: ReadonlyArray<string>): BuilderInterface {
-	let builder = builderCache.get(draw.template);
+function getBuilder<N>(utils: Utils<N>, template: ReadonlyArray<string>): BuilderDataInterface<N> {
+	let builder = utils.getBuilder(template);
   if (builder !== undefined) return builder;
 
-  builder = new Builder(utils, draw.template);
-  builderCache.set(draw.template, builder);
+  builder = new Builder(utils, template);
+  utils.setBuilder(template, builder);
+  
+  return builder;
 }
+
+// diffs are 
 
 function createBuilderArray<N>(
   utils: Utils<N>,
   prevRender: RenderNode<N>[],
   draw: DrawInterface,
 ) {
+
+	// keep track of parent render and left render
+	//	can grab nodes[] from render 
+	
+	//
+
+	
 	const drawStack = [draw];
 	const drawStackIndex = [0];
 	
@@ -42,6 +50,7 @@ function createBuilderArray<N>(
 		const draw = drawStack[stackIndex];
 		const drawIndex = drawStackIndex[stackIndex];
 		const builder = getBuilder(utils, draw.templateStrings);
+		
 		// go back in queue
 		if (builder.descendants.length >= drawIndex) {
 			drawStack.pop();
@@ -50,13 +59,29 @@ function createBuilderArray<N>(
 		}
 		
 		// compare draws
+		//
+		//	if prevDraw === last draw
+		// 		add render to new renders
+		//		remove old properties; add new properties; combine as update?
+		//		mount parent and left node
+
+		//
+		
+		//	if prevDraw !== currDraw
+		//		unmount prevRender
+		//		remove old properties
+		//		
+		//		create new Render
+		//		add updated properties
+		//		mount new render
 
 		// moving to next descendant in current queue
 		drawStackIndex[stackIndex] += 1;
 		const { index } = builder.descendants[drawIndex];
 		const descendant = draw.injections[index];
 
-		// there needs to be a space to decide if draw is sames
+		// could be an already composed "render"
+		// something static who's args can be updated
 		if (descendant instanceof Draw) {
 			drawStack.push(descendant);
 			drawStackIndex.push(0);

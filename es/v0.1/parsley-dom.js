@@ -2,6 +2,7 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+const builderCache = new Map();
 class DOMUtils {
     createNode(tagname) {
         if (tagname === ":fragment") {
@@ -14,11 +15,11 @@ class DOMUtils {
     }
     insertNode(node, parentNode, leftNode) {
         if (parentNode === undefined) return;
-        if (leftNode?.nextSibling) {
-            node.insertBefore(node, leftNode.nextSibling);
+        if (leftNode?.nextSibling === undefined) {
+            parentNode.appendChild(node);
             return;
         }
-        parentNode.appendChild(node);
+        node.insertBefore(node, leftNode.nextSibling);
     }
     removeNode(node, parentNode) {
         parentNode.removeChild(node);
@@ -37,6 +38,12 @@ class DOMUtils {
             index += 1;
         }
         return currNode;
+    }
+    setBuilder(template, builder) {
+        builderCache.set(template, builder);
+    }
+    getBuilder(template) {
+        return builderCache.get(template);
     }
 }
 class Hangar {
@@ -439,14 +446,14 @@ new Map([
     ]
 ]);
 function insertNode(utils, data, node) {
-    const parentIndex = data.nodes.length - 2;
-    let parentNode = data.nodes[parentIndex];
+    const parentIndex = data.nodeStack.length - 2;
+    let parentNode = data.nodeStack[parentIndex];
     if (parentNode === undefined) {
-        data.nodeTier.push(node);
+        data.nodes.push(node);
     }
     utils.insertNode(node, parentNode);
-    const nodeLength = data.nodes.length - 1;
-    data.nodes[nodeLength] = node;
+    const nodeLength = data.nodeStack.length - 1;
+    data.nodeStack[nodeLength] = node;
     data.address[nodeLength] += 1;
 }
 function stackLogic(utils, data, step) {
@@ -465,11 +472,11 @@ function stackLogic(utils, data, step) {
     }
     if (step.state === "NODE_CLOSED") {
         data.address.push(-1);
-        data.nodes.push(undefined);
+        data.nodeStack.push(undefined);
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
         data.address.pop();
-        data.nodes.pop();
+        data.nodeStack.pop();
     }
 }
 function injectLogic(data, step) {
@@ -487,14 +494,14 @@ function injectLogic(data, step) {
     data.injections.push(injection);
 }
 class Builder {
-    nodes = [
+    nodeStack = [
         undefined
     ];
     address = [
         -1
     ];
     attribute;
-    nodeTier = [];
+    nodes = [];
     injections = [];
     descendants = [];
     references = new Map();
@@ -514,19 +521,19 @@ class Builder {
         }
     }
 }
-function cloneNodeTier(utils, nodeTier) {
-    let nodes = [];
-    for (const node of nodeTier){
-        nodes.push(utils.cloneTree(node));
+function cloneNodes(utils, nodes) {
+    let clonedNodes = [];
+    for (const node of nodes){
+        clonedNodes.push(utils.cloneTree(node));
     }
-    return nodes;
+    return clonedNodes;
 }
-function createInjections(utils, nodeTier, builderInjections) {
+function createInjections(utils, nodes, builderInjections) {
     const injections = [];
     for (const entry of builderInjections){
         const { address  } = entry;
-        const node = utils.getDescendant(nodeTier, address);
-        const parentNode = utils.getDescendant(nodeTier, address, address.length - 1);
+        const node = utils.getDescendant(nodes, address);
+        const parentNode = utils.getDescendant(nodes, address, address.length - 1);
         const { index , type  } = entry;
         injections.push({
             index,
@@ -538,14 +545,14 @@ function createInjections(utils, nodeTier, builderInjections) {
     return injections;
 }
 class Build {
-    nodeTier;
+    nodes;
     descendants;
     injections;
     references;
     constructor(utils, data){
-        this.nodeTier = cloneNodeTier(utils, data.nodeTier);
-        this.injections = createInjections(utils, this.nodeTier, data.injections);
-        this.descendants = createInjections(utils, this.nodeTier, data.descendants);
+        this.nodes = cloneNodes(utils, data.nodes);
+        this.injections = createInjections(utils, this.nodes, data.injections);
+        this.descendants = createInjections(utils, this.nodes, data.descendants);
         this.references = new Map();
     }
 }
