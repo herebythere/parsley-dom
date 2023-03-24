@@ -5,6 +5,8 @@ import { BuildInterface } from "../type_flyweight/build.ts";
 interface RenderNode<N> {
   id: number;
   parentId: number;
+  leftId: number;
+  prevId: number;
   draw: DrawInterface;
   build: BuildInterface<N>;
 }
@@ -18,63 +20,45 @@ interface RenderStack<N> {
 
 // we get two
 
+function getBuilder(template: ReadonlyArray<string>): BuilderInterface {
+	let builder = builderCache.get(draw.template);
+  if (builder !== undefined) return builder;
+
+  builder = new Builder(utils, draw.template);
+  builderCache.set(draw.template, builder);
+}
+
 function createBuilderArray<N>(
   utils: Utils<N>,
-  prevBuild: RenderNode<N>[],
+  prevRender: RenderNode<N>[],
   draw: DrawInterface,
 ) {
-  // swap prev build
-  stack.index = 0;
-  stack.prevBuild = stack.build;
+	const drawStack = [draw];
+	const drawStackIndex = [0];
+	
+	while (drawStack.length > 0) {		
+		// get draw
+		const draw = drawStack[drawStack.length - 1];
+		const builder = getBuilder(utils, draw.templateStrings);
+		
+		const stackIndex = drawStackIndex.length - 1;
+		const drawIndex = drawStackIndex[stackIndex];
+		drawStackIndex[stackIndex] += 1;
+		
+		// pop if draw index past descendant length
+		if (builder.descendants.length <= drawIndex) {
+			drawStack.pop();
+			drawStackIndex.pop();
+			continue;
+		}
 
-  //
-  // iterate through draws
-  //
-  const index = 0;
-  const currBuild: RenderNode<N> = [{ id: index, parentId: -1, draw, build }];
-  while (index < drwStack.length) {
-    // get build
-
-    // if instance of build or draw
-    // for now just draw
-    let builder = builderCache.get(draw.template);
-    if (builder === undefined) {
-      builder = new Builder(utils, draw.template);
-      builderCache.set(draw.template, builder);
-    }
-
-    // add children to drwStack
-    for (const descendant of builder.descendants) {
-      const draw = draw.args[descendant.index];
-      const build = prevBuild[1 + index + descendant.index];
-      if (draw instanceof Draw) {
-        drwStack.push(draw);
-      }
-    }
-
-    // if they match that's great
-    // this should be the easy part
-    const drw = drwStack[index];
-    if (drw.template === builder.template) {
-      // indexes need to be reconciled
-      currBuild[index] = prevBuild[index];
-      index += 1;
-      continue;
-    }
-
-    // if they don't
-    // the index of the previous build will be off from the current build
-    // but I only add to the tail because there is order to the render
-    //
-
-    // remove subsequent renders from previous renders
-    // create a stack
-    // remove descendants from parent nodes
-    // remove mapped properties
-    //
-
-    // add children and create Current render
-  }
+		const { index } = builder.descendants[drawIndex];
+		const descendant = draw.injections[index];
+		if (descendant instanceof Draw) {
+			drawStack.push(descendant);
+			drawStackIndex.push(0);
+		}
+	}
 }
 
 function diff() {
