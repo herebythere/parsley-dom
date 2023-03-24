@@ -24,8 +24,8 @@ class DOMUtils implements Utils<Node> {
   insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
     if (leftNode?.nextSibling === undefined) {
-        parentNode.appendChild(node);
-        return;
+      parentNode.appendChild(node);
+      return;
     }
 
     node.insertBefore(node, leftNode.nextSibling);
@@ -55,11 +55,14 @@ class DOMUtils implements Utils<Node> {
 
     return currNode;
   }
-  setBuilder(template: Readonly<string[]>, builder: BuilderDataInterface<Node>) {
-  	builderCache.set(template, builder);
+  setBuilder(
+    template: Readonly<string[]>,
+    builder: BuilderDataInterface<Node>,
+  ) {
+    builderCache.set(template, builder);
   }
   getBuilder(template: Readonly<string[]>) {
-  	return builderCache.get(template);
+    return builderCache.get(template);
   }
 }
 
