@@ -37,23 +37,26 @@ function createBuilderArray<N>(
 	const drawStackIndex = [0];
 	
 	while (drawStack.length > 0) {		
-		// get draw
-		const draw = drawStack[drawStack.length - 1];
-		const builder = getBuilder(utils, draw.templateStrings);
-		
-		const stackIndex = drawStackIndex.length - 1;
+		// get draw and builder
+		const stackIndex = drawStack.length - 1;
+		const draw = drawStack[stackIndex];
 		const drawIndex = drawStackIndex[stackIndex];
-		drawStackIndex[stackIndex] += 1;
-		
-		// pop if draw index past descendant length
-		if (builder.descendants.length <= drawIndex) {
+		const builder = getBuilder(utils, draw.templateStrings);
+		// go back in queue
+		if (builder.descendants.length >= drawIndex) {
 			drawStack.pop();
 			drawStackIndex.pop();
 			continue;
 		}
+		
+		// compare draws
 
+		// moving to next descendant in current queue
+		drawStackIndex[stackIndex] += 1;
 		const { index } = builder.descendants[drawIndex];
 		const descendant = draw.injections[index];
+
+		// there needs to be a space to decide if draw is sames
 		if (descendant instanceof Draw) {
 			drawStack.push(descendant);
 			drawStackIndex.push(0);
