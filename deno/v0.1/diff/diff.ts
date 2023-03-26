@@ -11,8 +11,13 @@ interface BuildNode<N> {
   id: number;
   parentId: number;
   leftId: number;
+  buildID: number;
   descendants: number[];
-  build: BuildInterface<N>;
+}
+
+interface Render<N> {
+  builds: BuildInterface<N>,
+  renders: BuildNode<N>[],
 }
 
 function getBuilder<N>(
@@ -28,13 +33,22 @@ function getBuilder<N>(
   return builder;
 }
 
+// case #0 build Render Tree
+function buildSubtree() {
+	// add new renders to builds
+	//
+	// walk through draw descendants
+	//
+	// add descendant ids to parents
+}
+
 // diffs are
 
 function diff<N>(
   utils: Utils<N>,
-  prevBuilds: BuildNode<N>[],
   curDraw: DrawInterface,
   prvDraw?: DrawInterface,
+  prevRender?: Render<N>,
 ): BuildNode<N>[] {
 	// this function renders new builds
   const builds: BuildNode<N>[] = [];
@@ -42,26 +56,38 @@ function diff<N>(
   const descendantIndex = [0];
   const prevDrawStack = [prvDraw];
   const currDrawStack = [curDraw];
-  const currBuildIDStack = [prevBuilds[0]?.id];
+  const prevBuildIDStack = [0];
+  const currBuildIDStack = [0];
   
   const stackIndex = descendantIndex.length - 1;
   const descIndex = descendantIndex[stackIndex];
   const prevDraw = prevDrawStack[stackIndex];
   const currDraw = currDrawStack[stackIndex];
-  const buildID = currBuildIDStack[stackIndex];
+  const prevBuildID = prevBuildIDStack[stackIndex];
+  const currBuildID = currBuildIDStack[stackIndex];
 
-	/*
-  if (prevDraw.templateStrings === currDraw.templateStrings) {
-  	
-  	let build = prevBuilds[prevBuilds.length - 1];
-		if (build === undefined) {
-			const builder = getBuilder(utils, draw.templateStrings);
-			const build = new Build(utils, builder);
-			buildNode = {id: builds.length, parentID: -1, leftId: -1, descendants: [], build};
-		}
-		currBuilds.push(buildNode);
+	// case #1 prevDraw does not exist (first render)
+  if (prevDraw.templateStrings === undefined) {
+  	// create build
+  	// get buildID
+  	// create build node
+  	// add injected properties to render
+  	// add build node to render
+  	//
   }
   
+  // case #2 prevDraw equals currDraw
+  if (prevDraw.templateStrings === currDraw.templateStrings) {
+  	// get prevBuild
+  	// 
+  }
+  
+  // case #3 tree differs at this node
+  
+  
+  
+
+	/*
 	const builder = getBuilder(utils, draw.templateStrings);
 
   // go back in queue
