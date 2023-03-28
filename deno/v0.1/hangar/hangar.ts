@@ -8,8 +8,8 @@ class Hangar<N, S = unknown> implements HangarInterface<S> {
   parentNode?: N;
   leftNode?: N;
 
-  prevDraw!: DrawInterface[];
-  prevRender!: unknown[];
+  prevDraw?: DrawInterface[];
+  prevRender?: unknown[];
 
   constructor(drawFuncs: DrawFunc<S>[], parentNode?: N, leftNode?: N) {
     // remove all children

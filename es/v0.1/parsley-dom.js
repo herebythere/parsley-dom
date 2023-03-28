@@ -445,45 +445,45 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-function insertNode(utils, data, node) {
-    const parentIndex = data.nodeStack.length - 2;
-    let parentNode = data.nodeStack[parentIndex];
+function insertNode(utils, stack, data, node) {
+    const parentIndex = stack.nodes.length - 2;
+    let parentNode = stack.nodes[parentIndex];
     if (parentNode === undefined) {
         data.nodes.push(node);
     }
     utils.insertNode(node, parentNode);
-    const nodeLength = data.nodeStack.length - 1;
-    data.nodeStack[nodeLength] = node;
-    data.address[nodeLength] += 1;
+    const nodesLength = stack.nodes.length - 1;
+    stack.nodes[nodesLength] = node;
+    stack.address[nodesLength] += 1;
 }
-function stackLogic(utils, data, step) {
+function stackLogic(utils, template, stack, step, data) {
     if (step.type !== "BUILD") return;
     if (step.state === "TEXT") {
-        const text = getText(data.template, step.vector);
+        const text = getText(template, step.vector);
         if (text === undefined) return;
         const node = utils.createTextNode(text);
-        insertNode(utils, data, node);
+        insertNode(utils, stack, data, node);
     }
     if (step.state === "TAGNAME") {
-        const tagname = getText(data.template, step.vector);
+        const tagname = getText(template, step.vector);
         if (tagname === undefined || tagname === "") return;
         const node1 = utils.createNode(tagname);
-        insertNode(utils, data, node1);
+        insertNode(utils, stack, data, node1);
     }
     if (step.state === "NODE_CLOSED") {
-        data.address.push(-1);
-        data.nodeStack.push(undefined);
+        stack.address.push(-1);
+        stack.nodes.push(undefined);
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
-        data.address.pop();
-        data.nodeStack.pop();
+        stack.address.pop();
+        stack.nodes.pop();
     }
 }
-function injectLogic(data, step) {
+function injectLogic(stack, step, data) {
     if (step.type !== "INJECT") return;
     const { index , state: type  } = step;
     const injection = {
-        address: data.address.slice(),
+        address: stack.address.slice(),
         index,
         type
     };
@@ -494,31 +494,40 @@ function injectLogic(data, step) {
     data.injections.push(injection);
 }
 class Builder {
-    nodeStack = [
-        undefined
-    ];
-    address = [
-        -1
-    ];
-    attribute;
-    nodes = [];
-    injections = [];
-    descendants = [];
-    references = new Map();
-    utils;
-    template;
-    constructor(utils, template){
-        this.utils = utils;
-        this.template = template;
-    }
+    steps = [];
     push(step) {
-        if (step.state === "ERROR") {}
-        if (step.type === "BUILD") {
-            stackLogic(this.utils, this, step);
+        this.steps.push(step);
+    }
+    build(utils, template) {
+        const error = this.steps[this.steps.length - 1];
+        if (error?.state === "ERROR") {
+            return;
         }
-        if (step.type === "INJECT") {
-            injectLogic(this, step);
+        const stack = {
+            nodes: [
+                undefined
+            ],
+            address: [
+                -1
+            ],
+            attribute: undefined
+        };
+        const data = {
+            nodes: [],
+            injections: [],
+            descendants: [],
+            references: new Map()
+        };
+        for (const step of this.steps){
+            if (step.state === "ERROR") {}
+            if (step.type === "BUILD") {
+                stackLogic(utils, template, stack, step, data);
+            }
+            if (step.type === "INJECT") {
+                injectLogic(stack, step, data);
+            }
         }
+        return data;
     }
 }
 function cloneNodes(utils, nodes) {

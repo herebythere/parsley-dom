@@ -7,6 +7,8 @@ import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 
+import { parse } from "../deps.ts";
+
 interface BuildNode<N> {
   id: number;
   parentId: number;
@@ -23,14 +25,19 @@ interface Render<N> {
 function getBuilder<N>(
   utils: Utils<N>,
   template: ReadonlyArray<string>,
-): BuilderDataInterface<N> {
-  let builder = utils.getBuilder(template);
-  if (builder === undefined) {
-    builder = new Builder(utils, template);
-  	utils.setBuilder(template, builder);
-  };
-
-  return builder;
+): BuilderDataInterface<N> | undefined {
+  const builderData = utils.getBuilder(template);
+  if (builderData !== undefined) return builderData;
+  
+	const builder = new Builder();
+	parse(template, builder);
+  
+  const data = builder.build(utils, template);
+  if (data !== undefined) {
+  	utils.setBuilder(template, data);
+  }
+	
+  return data;
 }
 
 // case #0 build Render Tree
@@ -44,11 +51,14 @@ function buildSubtree() {
 
 // diffs are
 
+// perhaps make this a params object
 function diff<N>(
   utils: Utils<N>,
   curDraw: DrawInterface,
   prvDraw?: DrawInterface,
   prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
 ): BuildNode<N>[] {
 	// this function renders new builds
   const builds: BuildNode<N>[] = [];
@@ -67,13 +77,14 @@ function diff<N>(
   const currBuildID = currBuildIDStack[stackIndex];
 
 	// case #1 prevDraw does not exist (first render)
-  if (prevDraw.templateStrings === undefined) {
+  if (prevDraw === undefined) {
   	// create build
   	// get buildID
   	// create build node
   	// add injected properties to render
   	// add build node to render
   	//
+  	return builds;
   }
   
   // case #2 prevDraw equals currDraw
