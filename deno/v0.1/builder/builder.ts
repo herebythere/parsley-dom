@@ -69,7 +69,11 @@ function stackLogic<N>(
   }
 }
 
-function injectLogic<N>(stack: BuilderStack<N>, step: BuildStep, data: BuilderDataInterface<N>) {
+function injectLogic<N>(
+  stack: BuilderStack<N>,
+  step: BuildStep,
+  data: BuilderDataInterface<N>,
+) {
   if (step.type !== "INJECT") return;
   const { index, state: type } = step;
   const injection = {
@@ -87,48 +91,50 @@ function injectLogic<N>(stack: BuilderStack<N>, step: BuildStep, data: BuilderDa
 }
 
 class Builder implements BuilderInterface {
-	steps: BuildStep[] = [];
+  steps: BuildStep[] = [];
 
   push(step: BuildStep) {
-  	this.steps.push(step);
+    this.steps.push(step);
   }
-  
-  // build, gather steps, then build steps
-  build<N>(utils: Utils<N>, template: Readonly<string[]>): BuilderDataInterface<N> | undefined {
-  	const error = this.steps[this.steps.length - 1];
-  	if (error?.state === "ERROR") {
-  		return;
-  	};
-  	
-  	const stack: BuilderStack<N> = {
-			nodes: [undefined],
-			address: [-1],
-			attribute: undefined,
-		};
-		
-		const data: BuilderDataInterface<N> = {
-			nodes: [],
-			injections: [],
-			descendants: [],
-			references: new Map<string, number[]>(),
-		}
 
-  	for (const step of this.steps) {
+  build<N>(
+    utils: Utils<N>,
+    template: Readonly<string[]>,
+  ): BuilderDataInterface<N> | undefined {
+    const error = this.steps[this.steps.length - 1];
+    if (error?.state === "ERROR") {
+      return;
+    }
+
+    const stack: BuilderStack<N> = {
+      nodes: [undefined],
+      address: [-1],
+      attribute: undefined,
+    };
+
+    const data: BuilderDataInterface<N> = {
+      nodes: [],
+      injections: [],
+      descendants: [],
+      references: new Map<string, number[]>(),
+    };
+
+    for (const step of this.steps) {
       if (step.state === "ERROR") {
-				// do something
-		  }
+        // do something
+      }
 
-		  if (step.type === "BUILD") {
-		    // attributeLogic(this, step);
-		    stackLogic(utils, template, stack, step, data);
-		  }
+      if (step.type === "BUILD") {
+        // attributeLogic(this, step);
+        stackLogic(utils, template, stack, step, data);
+      }
 
-		  if (step.type === "INJECT") {
-		    injectLogic(stack, step, data);
-		  }
-  	}
-  	
-  	return data;
+      if (step.type === "INJECT") {
+        injectLogic(stack, step, data);
+      }
+    }
+
+    return data;
   }
 }
 
