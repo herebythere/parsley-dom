@@ -2,6 +2,7 @@ import type { Utils } from "../type_flyweight/utils.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 import type { BuildInterface } from "../type_flyweight/build.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
+import type { RenderNode, Render } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
@@ -9,16 +10,6 @@ import { Builder } from "../builder/builder.ts";
 
 import { parse } from "../deps.ts";
 
-interface RenderNode<N> {
-  id: number;
-  parentId: number;
-  descendants: number[];
-}
-
-interface Render<N> {
-  builds: BuildInterface<N>[];
-  renders: RenderNode<N>[];
-}
 
 function getBuilderData<N>(
   utils: Utils<N>,

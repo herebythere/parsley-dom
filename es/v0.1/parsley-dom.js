@@ -52,7 +52,7 @@ class Hangar {
     leftNode;
     prevDraw;
     prevRender;
-    constructor(drawFuncs, parentNode, leftNode){
+    constructor(drawFuncs, state, parentNode, leftNode){
         this.drawFuncs = drawFuncs;
         this.parentNode = parentNode;
         this.leftNode = leftNode;

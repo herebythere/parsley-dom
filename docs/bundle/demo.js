@@ -3,6 +3,30 @@
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
 new Map();
+class Hangar {
+    drawFuncs;
+    parentNode;
+    leftNode;
+    prevDraw;
+    prevRender;
+    constructor(drawFuncs, parentNode, leftNode){
+        this.drawFuncs = drawFuncs;
+        this.parentNode = parentNode;
+        this.leftNode = leftNode;
+    }
+    update(state) {}
+}
+class Draw {
+    templateStrings;
+    injections;
+    constructor(templateStrings, injections){
+        this.templateStrings = templateStrings;
+        this.injections = injections;
+    }
+}
+function draw(templateStrings, ...injections) {
+    return new Draw(templateStrings, injections);
+}
 const ATTRIBUTE = "ATTRIBUTE";
 const ATTRIBUTE_DECLARATION = "ATTRIBUTE_DECLARATION";
 const ATTRIBUTE_DECLARATION_CLOSE = "ATTRIBUTE_DECLARATION_CLOSE";
@@ -371,3 +395,37 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
+function messageComponent(state) {
+    const message = state.getAttribute("message");
+    return draw`<p>${message}</p>`;
+}
+class TestComponent extends HTMLElement {
+    hangar;
+    static get observedAttributes() {
+        return [
+            "message"
+        ];
+    }
+    constructor(){
+        super();
+        this.attachShadow({
+            mode: "open"
+        });
+        if (this.shadowRoot) {
+            this.hangar = new Hangar([
+                messageComponent
+            ], this.shadowRoot);
+            this.hangar.update(this);
+        }
+        console.log(this.hangar);
+    }
+    attributeChangedCallback() {
+        this.hangar?.update(this);
+    }
+    update() {
+        this.hangar?.update(this);
+    }
+}
+customElements.define("test-component", TestComponent);
+const testComponent = document.querySelector("test-component");
+console.log(testComponent);

@@ -7,7 +7,7 @@ interface State {
 }
 
 // reusable functions
-function testComponent<S extends State>(state: S) {
+function messageComponent<S extends State>(state: S) {
   const message = state.getAttribute("message");
 
   return draw`<p>${message}</p>`;
@@ -27,16 +27,14 @@ class TestComponent extends HTMLElement {
 
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
-      // this.hangar = new Hangar(
       this.hangar = new Hangar(
-        [testComponent],
+        [messageComponent],
+        this,
         this.shadowRoot,
       );
       
       this.hangar.update(this);
     }
-
-
   }
 
   attributeChangedCallback() {
@@ -47,12 +45,10 @@ class TestComponent extends HTMLElement {
 
   update() {
     this.hangar?.update(this);
-
-		/*
-    if (!this.queuedForUpdate) {
-      queueMicrotask(this.render);
-      this.queuedForUpdate = true;
-    }
-    */
   }
 }
+
+customElements.define("test-component", TestComponent);
+
+const testComponent = document.querySelector("test-component");
+
