@@ -1,3 +1,4 @@
+import type { HangarInterface } from "./deps.ts";
 import { draw, Hangar } from "./deps.ts";
 
 // define minimal interface to interact with object
@@ -14,7 +15,7 @@ function testComponent<S extends State>(state: S) {
 
 // actual elements
 class TestComponent extends HTMLElement {
-  hanager: HangerInterface;
+  hangar?: Hangar<Node, State>;
 
   // observedAttributes
   static get observedAttributes() {
@@ -31,24 +32,27 @@ class TestComponent extends HTMLElement {
         [testComponent],
         this.shadowRoot,
       );
+      
+      this.hangar.update(this);
     }
 
-    this.hanger.update(this);
+
   }
 
   attributeChangedCallback() {
     // this is where microtask should be called
-    this.hangar.update(this);
+    this.hangar?.update(this);
     // this.hangar.updateAsync(this);
   }
 
   update() {
-    this.hangar.update(this);
-    // this.hangar.updateAsync(this);
-    this.state = state;
+    this.hangar?.update(this);
+
+		/*
     if (!this.queuedForUpdate) {
       queueMicrotask(this.render);
       this.queuedForUpdate = true;
     }
+    */
   }
 }
