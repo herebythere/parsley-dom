@@ -519,7 +519,6 @@ class Builder {
             references: new Map()
         };
         for (const step of this.steps){
-            if (step.state === "ERROR") {}
             if (step.type === "BUILD") {
                 stackLogic(utils, template, stack, step, data);
             }

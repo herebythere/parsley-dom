@@ -120,10 +120,6 @@ class Builder implements BuilderInterface {
     };
 
     for (const step of this.steps) {
-      if (step.state === "ERROR") {
-        // do something
-      }
-
       if (step.type === "BUILD") {
         // attributeLogic(this, step);
         stackLogic(utils, template, stack, step, data);

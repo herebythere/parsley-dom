@@ -9,17 +9,15 @@ import { Builder } from "../builder/builder.ts";
 
 import { parse } from "../deps.ts";
 
-interface BuildNode<N> {
+interface RenderNode<N> {
   id: number;
   parentId: number;
-  leftId: number;
-  buildID: number;
   descendants: number[];
 }
 
 interface Render<N> {
   builds: BuildInterface<N>[];
-  renders: BuildNode<N>[];
+  renders: RenderNode<N>[];
 }
 
 function getBuilderData<N>(
@@ -44,43 +42,83 @@ function getBuilderData<N>(
 function buildSubtree<N>(
   utils: Utils<N>,
   render: Render<N>,
+  parentID: number,
   draw: DrawInterface,
 ) {
   const builderData = getBuilderData(utils, draw.templateStrings);
   if (builderData === undefined) return;
 
   const build = new Build(utils, builderData);
-  /*
-	while (drawStack.length > 0) {
-		const stackIndex = drawStack.length - 1;
-		const idIndex = idStack[stackIndex];
-		const descendantIndex = descendantIndexStack[stackIndex];
-
-		const { index } = builder.descendants[drawIndex];
-		const descendant = currDraw.injections[index];
-		// go back in queue
-		if (builder.descendants.length >= drawIndex) {
-		  idStack.pop();
+  render.builds.push(build);
+  
+  const buildID = render.builds.length - 1;
+  const parentRender = render.renders[parentID];
+  parentRender.descendants.push(buildID);
+  
+  const rend = {
+  	id: buildID,
+  	parentId: parentID,
+  	descendants: [],
+  };
+  render.renders.push(rend);
+  
+  // mount render to parent and left node
+  
+  // create stack
+  const drawStack = [draw];
+  const buildIDStack = [buildID];
+  const descIndexStack = [0];
+  
+  while (drawStack.length > 0) {
+  	const stackIndex = drawStack.length - 1;
+  	const draw = drawStack[stackIndex];
+  	const builderData = getBuilderData(utils, draw.templateStrings);
+  	if (builderData === undefined) break;
+		
+		const descIndex = descIndexStack[stackIndex];
+		if (descIndex >= builderData.descendants.length ) {
 		  drawStack.pop();
+		  buildIDStack.pop();
+		  descIndexStack.pop();
 		  continue;
 		}
+		
+		// increase descendant index
+		descIndexStack[stackIndex] += 1;
 
-	  const { index } = builder.descendants[drawIndex];
-		const descendant = currDraw.injections[index];
-		// move to next descendant in current queue
-		drawStackIndex[stackIndex] += 1;
+		const { index } = builderData.descendants[descIndex];
+		const descendant = draw.injections[index];
+		if (descendant instanceof Draw) {		
+	  	const builderData = getBuilderData(utils, descendant.templateStrings);
+  		if (builderData === undefined) break;
+ 
+			const build = new Build(utils, builderData);
+			render.builds.push(build);
 
-		if (descendant instanceof Draw) {
-		  drawStack.push(descendant);
-		  drawStackIndex.push(0);
+			const parentBuildID = buildIDStack[stackIndex];
+			const parentRender = render.renders[parentBuildID];
+			const parentBuild = render.builds[parentBuildID];
+			
+			const buildID = render.builds.length - 1;
+			parentRender.descendants.push(buildID);
+			const rend = {
+				id: buildID,
+				parentId: parentBuildID,
+				descendants: [],
+			};
+			render.renders.push(rend);
+
+			// mount build to Parent Build
+
+			drawStack.push(descendant);
+			descIndexStack.push(0);
+			buildIDStack.push(buildID);
 		}
-	}
-	*/
-  // add new renders to builds
-  //
-  // walk through draw descendants
-  //
-  // add descendant ids to parents
+		
+		// if descendant instance of Build
+		
+		// if descendant instanceof N
+  }
 }
 
 // diffs are
@@ -93,41 +131,25 @@ function diff<N>(
   prevRender?: Render<N>,
   parentNode?: N,
   leftNode?: N,
-): BuildNode<N>[] {
+): Render<N> {
   // this function renders new builds
-  const builds: BuildNode<N>[] = [];
-
-  const descendantIndex = [0];
-  const prevDrawStack = [prvDraw];
-  const currDrawStack = [curDraw];
-  const prevBuildIDStack = [0];
-  const currBuildIDStack = [0];
-
-  const stackIndex = descendantIndex.length - 1;
-  const descIndex = descendantIndex[stackIndex];
-  const prevDraw = prevDrawStack[stackIndex];
-  const currDraw = currDrawStack[stackIndex];
-  const prevBuildID = prevBuildIDStack[stackIndex];
-  const currBuildID = currBuildIDStack[stackIndex];
+  const render: Render<N> = {
+  	builds: [],
+  	renders: [],
+  };
 
   // case #1 prevDraw does not exist (first render)
-  if (prevDraw === undefined) {
-    // create build
-    // get buildID
-    // create build node
-    // add injected properties to render
-    // add build node to render
-    //
-    return builds;
+  if (prvDraw === undefined) {
+
   }
 
   // case #2 prevDraw equals currDraw
-  if (prevDraw.templateStrings === currDraw.templateStrings) {
+  if (prvDraw?.templateStrings === curDraw.templateStrings) {
     // get prevBuild
     //
   }
 
-  return builds;
+  return render;
 }
 
 export { diff };
