@@ -1,4 +1,4 @@
-import type { BuildInterface } from "./build.ts";
+import type { Draws } from "./hangar.ts";
 
 interface RenderNode<N> {
   id: number;
@@ -7,7 +7,7 @@ interface RenderNode<N> {
 }
 
 interface Render<N> {
-  builds: BuildInterface<N>[];
+  builds: Draws<N>[];
   renders: RenderNode<N>[];
 }
 

@@ -3,13 +3,13 @@ import type { DrawInterface } from "../type_flyweight/draw.ts";
 import type { BuildInterface } from "../type_flyweight/build.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
 import type { RenderNode, Render } from "../type_flyweight/render.ts";
+import type { Draws } from "../type_flyweight/hangar.ts";
 
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 
 import { parse } from "../deps.ts";
-
 
 function getBuilderData<N>(
   utils: Utils<N>,
@@ -30,11 +30,12 @@ function getBuilderData<N>(
 }
 
 // case #0 build Render Tree
-function buildSubtree<N>(
+/*
+function buildSubtree<N, S>(
   utils: Utils<N>,
   render: Render<N>,
   parentID: number,
-  draw: DrawInterface,
+  draw: Draws<N, S>,
 ) {
   const builderData = getBuilderData(utils, draw.templateStrings);
   if (builderData === undefined) return;
@@ -111,14 +112,14 @@ function buildSubtree<N>(
 		// if descendant instanceof N
   }
 }
-
+*/
 // diffs are
 
 // perhaps make this a params object
 function diff<N>(
   utils: Utils<N>,
-  curDraw: DrawInterface,
-  prvDraw?: DrawInterface,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
   prevRender?: Render<N>,
   parentNode?: N,
   leftNode?: N,
@@ -128,17 +129,38 @@ function diff<N>(
   	builds: [],
   	renders: [],
   };
+  
+  let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
+  let index = 0;
+  while (index < drawLength) {
+  	const prevDraw = prvDraw?.[index];
+  	if (prevDraw !== undefined) {}
+  	
+  	const currDraw = curDraw[index];
+  	
+  	const node = utils.getIfNode(currDraw);
+  	if (node !== undefined) {
+  		render.builds.push(node);
+  		render.renders.push({
+  			id: render.builds.length - 1,
+  			parentId: -1,
+  			descendants: []
+  		})
+  		utils.insertNode(node, parentNode, leftNode);
+  	}
+  	
+  	index += 1;
+  }
+  
+  // iterate over draws
+  
+  
 
   // case #1 prevDraw does not exist (first render)
-  if (prvDraw === undefined) {
-
-  }
+  // if (prvDraw === undefined) {}
 
   // case #2 prevDraw equals currDraw
-  if (prvDraw?.templateStrings === curDraw.templateStrings) {
-    // get prevBuild
-    //
-  }
+  // if (prvDraw?.templateStrings === curDraw.templateStrings) {  }
 
   return render;
 }

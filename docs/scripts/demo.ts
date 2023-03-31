@@ -1,5 +1,7 @@
 import type { HangarInterface } from "./deps.ts";
-import { draw, Hangar } from "./deps.ts";
+import { draw, Hangar, DOMUtils } from "./deps.ts";
+
+const domutils = new DOMUtils();
 
 // define minimal interface to interact with object
 interface State {
@@ -10,8 +12,14 @@ interface State {
 function messageComponent<S extends State>(state: S) {
   const message = state.getAttribute("message");
 
-  return draw`<p>${message}</p>`;
+  return draw`<p>hello!</p>`;
 }
+
+const textNode = document.createTextNode("hello!");
+
+const textNodeComponent = () => textNode;
+
+const nodeArray = [textNodeComponent];
 
 // actual elements
 class TestComponent extends HTMLElement {
@@ -27,28 +35,31 @@ class TestComponent extends HTMLElement {
 
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
-      this.hangar = new Hangar(
-        [messageComponent],
-        this,
+      this.hangar = new Hangar<Node, State>(
+        nodeArray,
         this.shadowRoot,
       );
       
-      this.hangar.update(this);
+      this.hangar?.update(domutils, this);
+      console.log(this.hangar);
     }
   }
 
   attributeChangedCallback() {
     // this is where microtask should be called
-    this.hangar?.update(this);
+    this.hangar?.update(domutils, this);
     // this.hangar.updateAsync(this);
   }
 
   update() {
-    this.hangar?.update(this);
+    this.hangar?.update(domutils, this);
+    console.log(this.hangar);
   }
 }
 
 customElements.define("test-component", TestComponent);
 
 const testComponent = document.querySelector("test-component");
+
+console.log(testComponent);
 

@@ -2,30 +2,54 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-new Map();
-class Hangar {
-    drawFuncs;
-    parentNode;
-    leftNode;
-    prevDraw;
-    prevRender;
-    constructor(drawFuncs, parentNode, leftNode){
-        this.drawFuncs = drawFuncs;
-        this.parentNode = parentNode;
-        this.leftNode = leftNode;
+const builderCache = new Map();
+class DOMUtils {
+    createNode(tagname) {
+        if (tagname === ":fragment") {
+            return document.createDocumentFragment();
+        }
+        return document.createElement(tagname);
     }
-    update(state) {}
-}
-class Draw {
-    templateStrings;
-    injections;
-    constructor(templateStrings, injections){
-        this.templateStrings = templateStrings;
-        this.injections = injections;
+    createTextNode(text) {
+        return document.createTextNode(text);
     }
-}
-function draw(templateStrings, ...injections) {
-    return new Draw(templateStrings, injections);
+    insertNode(node, parentNode, leftNode) {
+        if (parentNode === undefined) return;
+        if (leftNode?.nextSibling === undefined) {
+            parentNode.appendChild(node);
+            return;
+        }
+        node.insertBefore(node, leftNode.nextSibling);
+    }
+    getIfNode(node) {
+        if (node instanceof Node) {
+            return node;
+        }
+    }
+    removeNode(node, parentNode) {
+        parentNode.removeChild(node);
+    }
+    cloneTree(node) {
+        return node.cloneNode(true);
+    }
+    getDescendant(baseTier, address, depth = address.length) {
+        if (address.length === 0) return;
+        let currNode = baseTier[address[0]];
+        if (currNode === undefined) return;
+        let index = 1;
+        while(index < depth){
+            currNode = currNode.childNodes[index];
+            if (currNode === undefined) return;
+            index += 1;
+        }
+        return currNode;
+    }
+    setBuilder(template, builder) {
+        builderCache.set(template, builder);
+    }
+    getBuilder(template) {
+        return builderCache.get(template);
+    }
 }
 const ATTRIBUTE = "ATTRIBUTE";
 const ATTRIBUTE_DECLARATION = "ATTRIBUTE_DECLARATION";
@@ -395,10 +419,58 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
-function messageComponent(state) {
-    const message = state.getAttribute("message");
-    return draw`<p>${message}</p>`;
+function diff(utils, curDraw, prvDraw, prevRender, parentNode, leftNode) {
+    const render = {
+        builds: [],
+        renders: []
+    };
+    let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
+    let index = 0;
+    while(index < drawLength){
+        const prevDraw = prvDraw?.[index];
+        if (prevDraw !== undefined) {}
+        const currDraw = curDraw[index];
+        const node = utils.getIfNode(currDraw);
+        if (node !== undefined) {
+            render.builds.push(node);
+            render.renders.push({
+                id: render.builds.length - 1,
+                parentId: -1,
+                descendants: []
+            });
+            utils.insertNode(node, parentNode, leftNode);
+        }
+        index += 1;
+    }
+    return render;
 }
+class Hangar {
+    drawFuncs;
+    parentNode;
+    leftNode;
+    prevDraws;
+    prevRender;
+    constructor(drawFuncs, parentNode, leftNode){
+        this.drawFuncs = drawFuncs;
+        this.parentNode = parentNode;
+        this.leftNode = leftNode;
+    }
+    update(utils, state) {
+        let draws = [];
+        for (const func of this.drawFuncs){
+            draws.push(func(state));
+        }
+        const render = diff(utils, draws, this.prevDraws, this.prevRender, this.parentNode, this.leftNode);
+        this.prevDraws = draws;
+        this.prevRender = render;
+    }
+}
+const domutils = new DOMUtils();
+const textNode = document.createTextNode("hello!");
+const textNodeComponent = ()=>textNode;
+const nodeArray = [
+    textNodeComponent
+];
 class TestComponent extends HTMLElement {
     hangar;
     static get observedAttributes() {
@@ -412,18 +484,17 @@ class TestComponent extends HTMLElement {
             mode: "open"
         });
         if (this.shadowRoot) {
-            this.hangar = new Hangar([
-                messageComponent
-            ], this.shadowRoot);
-            this.hangar.update(this);
+            this.hangar = new Hangar(nodeArray, this.shadowRoot);
+            this.hangar?.update(domutils, this);
+            console.log(this.hangar);
         }
-        console.log(this.hangar);
     }
     attributeChangedCallback() {
-        this.hangar?.update(this);
+        this.hangar?.update(domutils, this);
     }
     update() {
-        this.hangar?.update(this);
+        this.hangar?.update(domutils, this);
+        console.log(this.hangar);
     }
 }
 customElements.define("test-component", TestComponent);

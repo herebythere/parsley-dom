@@ -1,15 +1,9 @@
 import type { Utils } from "../type_flyweight/utils.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-
-// this class encapsulates all dom specific methods from
-// the general implementation of Hanger Draw DomBuilder and DomReder
-
-// this could be entirely implemented in the "environment" of the usage context
-// this could exist at the "docs level" or as a separate module
-
-// should render cache be set here?
+import type { Draws, DrawFunc } from "../type_flyweight/hangar.ts";
 
 const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
+
 
 class DOMUtils implements Utils<Node> {
   createNode(tagname: string) {
@@ -21,6 +15,7 @@ class DOMUtils implements Utils<Node> {
   createTextNode(text: string) {
     return document.createTextNode(text);
   }
+  // update for node[], node, string
   insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
     if (leftNode?.nextSibling === undefined) {
@@ -30,6 +25,23 @@ class DOMUtils implements Utils<Node> {
 
     node.insertBefore(node, leftNode.nextSibling);
   }
+  getIfNode(node: Draws<Node>): Node | undefined {
+  	if (node instanceof Node) {
+  		return node;
+  	}
+  }
+  /*
+  getIfDrawFunc(node: Draws<Node>) {
+  	if (node instanceof Node) {
+  		return;
+  	}
+  	if (typeof node === "string") {
+  		return;
+  	}
+  	
+  	return node;
+  }
+  */
   removeNode(node: Node, parentNode: Node) {
     parentNode.removeChild(node);
   }

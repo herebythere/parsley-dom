@@ -1,9 +1,12 @@
-import type { DrawInterface } from "./draw.ts";
+import type { BuildInterface } from "./build.ts";
+import type { Utils } from "./utils.ts";
 
-type DrawFunc<S = unknown> = (state: S) => DrawInterface;
 
-interface HangarInterface<S> {
-  update(state: S): void;
+type Draws<N> = BuildInterface<N> | N | string;
+type DrawFunc<N> = (state: unknown) => Draws<N>;
+
+interface HangarInterface<N, S> {
+  update(utils: Utils<N>, state: S): void;
 }
 
-export type { DrawFunc, HangarInterface };
+export type { DrawFunc, HangarInterface, Draws };

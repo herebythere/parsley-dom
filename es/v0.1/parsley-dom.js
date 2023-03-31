@@ -21,6 +21,11 @@ class DOMUtils {
         }
         node.insertBefore(node, leftNode.nextSibling);
     }
+    getIfNode(node) {
+        if (node instanceof Node) {
+            return node;
+        }
+    }
     removeNode(node, parentNode) {
         parentNode.removeChild(node);
     }
@@ -45,30 +50,6 @@ class DOMUtils {
     getBuilder(template) {
         return builderCache.get(template);
     }
-}
-class Hangar {
-    drawFuncs;
-    parentNode;
-    leftNode;
-    prevDraw;
-    prevRender;
-    constructor(drawFuncs, state, parentNode, leftNode){
-        this.drawFuncs = drawFuncs;
-        this.parentNode = parentNode;
-        this.leftNode = leftNode;
-    }
-    update(state) {}
-}
-class Draw {
-    templateStrings;
-    injections;
-    constructor(templateStrings, injections){
-        this.templateStrings = templateStrings;
-        this.injections = injections;
-    }
-}
-function draw(templateStrings, ...injections) {
-    return new Draw(templateStrings, injections);
 }
 function getText(template, vector) {
     const origin = vector.origin;
@@ -528,6 +509,63 @@ class Builder {
         }
         return data;
     }
+}
+function diff(utils, curDraw, prvDraw, prevRender, parentNode, leftNode) {
+    const render = {
+        builds: [],
+        renders: []
+    };
+    let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
+    let index = 0;
+    while(index < drawLength){
+        const prevDraw = prvDraw?.[index];
+        if (prevDraw !== undefined) {}
+        const currDraw = curDraw[index];
+        const node = utils.getIfNode(currDraw);
+        if (node !== undefined) {
+            render.builds.push(node);
+            render.renders.push({
+                id: render.builds.length - 1,
+                parentId: -1,
+                descendants: []
+            });
+            utils.insertNode(node, parentNode, leftNode);
+        }
+        index += 1;
+    }
+    return render;
+}
+class Hangar {
+    drawFuncs;
+    parentNode;
+    leftNode;
+    prevDraws;
+    prevRender;
+    constructor(drawFuncs, parentNode, leftNode){
+        this.drawFuncs = drawFuncs;
+        this.parentNode = parentNode;
+        this.leftNode = leftNode;
+    }
+    update(utils, state) {
+        let draws = [];
+        for (const func of this.drawFuncs){
+            draws.push(func(state));
+        }
+        const render = diff(utils, draws, this.prevDraws, this.prevRender, this.parentNode, this.leftNode);
+        this.prevDraws = draws;
+        this.prevRender = render;
+    }
+}
+class Draw {
+    templateStrings;
+    injections;
+    constructor(templateStrings, injections){
+        this.templateStrings = templateStrings;
+        this.injections = injections;
+    }
+}
+function draw(templateStrings, ...injections) {
+    return new Draw(templateStrings, injections);
 }
 function cloneNodes(utils, nodes) {
     let clonedNodes = [];
