@@ -62,4 +62,3 @@ class Build<N> implements BuildInterface<N> {
 }
 
 export { Build };
-

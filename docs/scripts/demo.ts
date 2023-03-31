@@ -1,5 +1,5 @@
 import type { HangarInterface } from "./deps.ts";
-import { draw, Hangar, DOMUtils } from "./deps.ts";
+import { DOMUtils, draw, Hangar } from "./deps.ts";
 
 const domutils = new DOMUtils();
 
@@ -39,7 +39,7 @@ class TestComponent extends HTMLElement {
         nodeArray,
         this.shadowRoot,
       );
-      
+
       this.hangar?.update(domutils, this);
       console.log(this.hangar);
     }
@@ -62,4 +62,3 @@ customElements.define("test-component", TestComponent);
 const testComponent = document.querySelector("test-component");
 
 console.log(testComponent);
-

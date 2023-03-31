@@ -11,4 +11,4 @@ interface Render<N> {
   renders: RenderNode<N>[];
 }
 
-export type { RenderNode, Render }
+export type { Render, RenderNode };

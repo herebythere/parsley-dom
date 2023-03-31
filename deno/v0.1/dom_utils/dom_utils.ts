@@ -1,9 +1,8 @@
 import type { Utils } from "../type_flyweight/utils.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-import type { Draws, DrawFunc } from "../type_flyweight/hangar.ts";
+import type { DrawFunc, Draws } from "../type_flyweight/hangar.ts";
 
 const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
-
 
 class DOMUtils implements Utils<Node> {
   createNode(tagname: string) {
@@ -26,9 +25,9 @@ class DOMUtils implements Utils<Node> {
     node.insertBefore(node, leftNode.nextSibling);
   }
   getIfNode(node: Draws<Node>): Node | undefined {
-  	if (node instanceof Node) {
-  		return node;
-  	}
+    if (node instanceof Node) {
+      return node;
+    }
   }
   /*
   getIfDrawFunc(node: Draws<Node>) {
@@ -38,7 +37,7 @@ class DOMUtils implements Utils<Node> {
   	if (typeof node === "string") {
   		return;
   	}
-  	
+
   	return node;
   }
   */

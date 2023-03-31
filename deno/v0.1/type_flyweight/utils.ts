@@ -1,13 +1,13 @@
 import type { BuilderDataInterface } from "./builder.ts";
 import type { DrawInterface } from "./draw.ts";
-import type { Draws, DrawFunc } from "./hangar.ts";
+import type { DrawFunc, Draws } from "./hangar.ts";
 
 interface Utils<N> {
   createNode(tagname: string): N;
   createTextNode(text: string): N;
   insertNode(node: N, parentNode?: N, leftNode?: N): void;
-	getIfNode(node: Draws<N>): N | undefined;
-//  getIfDrawFunc(node: Draws<N>): DrawFunc | undefined;
+  getIfNode(node: Draws<N>): N | undefined;
+  //  getIfDrawFunc(node: Draws<N>): DrawFunc | undefined;
   cloneTree(node: N): N;
   getDescendant(
     baseTier: N[],

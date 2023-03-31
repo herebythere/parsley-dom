@@ -1,6 +1,6 @@
 export type { DrawInterface } from "./type_flyweight/draw.ts";
 export type { BuilderDataInterface } from "./type_flyweight/builder.ts";
-export type { HangarInterface, Draws } from "./type_flyweight/hangar.ts";
+export type { Draws, HangarInterface } from "./type_flyweight/hangar.ts";
 export type { Utils } from "./type_flyweight/utils.ts";
 
 export { DOMUtils } from "./dom_utils/dom_utils.ts";

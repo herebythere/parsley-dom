@@ -1,4 +1,8 @@
-import type { DrawFunc, HangarInterface, Draws } from "../type_flyweight/hangar.ts";
+import type {
+  DrawFunc,
+  Draws,
+  HangarInterface,
+} from "../type_flyweight/hangar.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 import type { Render } from "../type_flyweight/render.ts";
 import type { Utils } from "../type_flyweight/utils.ts";
@@ -6,7 +10,6 @@ import type { Utils } from "../type_flyweight/utils.ts";
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { diff } from "../diff/diff.ts";
-
 
 class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   drawFuncs!: DrawFunc<N>[];
@@ -24,24 +27,24 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   }
 
   update(utils: Utils<N>, state: S) {
-  	// create draws
+    // create draws
     let draws: Draws<N>[] = [];
-    
+
     // diff prev draw with curr draw
     for (const func of this.drawFuncs) {
-    	// this needs to be in utils
-  		draws.push(func(state));
+      // this needs to be in utils
+      draws.push(func(state));
     }
-    
+
     const render = diff(
-    	utils,
-    	draws,
-    	this.prevDraws,
-    	this.prevRender,
-    	this.parentNode,
-    	this.leftNode,
+      utils,
+      draws,
+      this.prevDraws,
+      this.prevRender,
+      this.parentNode,
+      this.leftNode,
     );
-    
+
     this.prevDraws = draws;
     this.prevRender = render;
   }
