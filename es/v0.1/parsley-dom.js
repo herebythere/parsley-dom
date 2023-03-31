@@ -554,6 +554,7 @@ class Hangar {
         const render = diff(utils, draws, this.prevDraws, this.prevRender, this.parentNode, this.leftNode);
         this.prevDraws = draws;
         this.prevRender = render;
+        console.log(this);
     }
 }
 class Draw {

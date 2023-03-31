@@ -463,6 +463,7 @@ class Hangar {
         const render = diff(utils, draws, this.prevDraws, this.prevRender, this.parentNode, this.leftNode);
         this.prevDraws = draws;
         this.prevRender = render;
+        console.log(this);
     }
 }
 const domutils = new DOMUtils();
@@ -494,9 +495,15 @@ class TestComponent extends HTMLElement {
     }
     update() {
         this.hangar?.update(domutils, this);
-        console.log(this.hangar);
     }
 }
 customElements.define("test-component", TestComponent);
 const testComponent = document.querySelector("test-component");
+function onButtonClick() {
+    if (testComponent instanceof TestComponent) {
+        testComponent.update();
+    }
+}
+const button = document.querySelector("button");
+button?.addEventListener("click", onButtonClick);
 console.log(testComponent);

@@ -29,8 +29,6 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   update(utils: Utils<N>, state: S) {
     // create draws
     let draws: Draws<N>[] = [];
-
-    // diff prev draw with curr draw
     for (const func of this.drawFuncs) {
       // this needs to be in utils
       draws.push(func(state));
@@ -47,6 +45,8 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
 
     this.prevDraws = draws;
     this.prevRender = render;
+    
+    console.log(this);
   }
 }
 

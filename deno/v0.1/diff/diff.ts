@@ -151,15 +151,7 @@ function diff<N>(
 
     index += 1;
   }
-
-  // iterate over draws
-
-  // case #1 prevDraw does not exist (first render)
-  // if (prvDraw === undefined) {}
-
-  // case #2 prevDraw equals currDraw
-  // if (prvDraw?.templateStrings === curDraw.templateStrings) {  }
-
+  
   return render;
 }
 

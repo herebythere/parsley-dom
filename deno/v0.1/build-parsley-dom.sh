@@ -14,5 +14,5 @@ es_test_parsley=$es_dir/parsley-dom.test.js
 deno bundle --config $tsconfig $parsley_dom $es_pathname 
 deno bundle --config $tsconfig $parsley_dom_test $es_test_parsley
 
-deno fmt $current_dir
-deno fmt $es_dir
+# deno fmt $current_dir
+# deno fmt $es_dir
