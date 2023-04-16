@@ -9,7 +9,6 @@ interface BuilderInjection {
 
 interface BuilderDataInterface<N> {
   nodes: N[];
-  references: Map<string, number[]>;
   injections: BuilderInjection[];
   descendants: BuilderInjection[];
 }

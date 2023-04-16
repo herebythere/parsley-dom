@@ -7,7 +7,6 @@ interface BuildInjection<N> {
 
 interface BuildInterface<N> {
   nodes: N[];
-  references: Map<string, N>;
   descendants: BuildInjection<N>[];
   injections: BuildInjection<N>[];
 }

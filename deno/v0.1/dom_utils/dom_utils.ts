@@ -29,18 +29,6 @@ class DOMUtils implements Utils<Node> {
       return node;
     }
   }
-  /*
-  getIfDrawFunc(node: Draws<Node>) {
-  	if (node instanceof Node) {
-  		return;
-  	}
-  	if (typeof node === "string") {
-  		return;
-  	}
-
-  	return node;
-  }
-  */
   removeNode(node: Node, parentNode: Node) {
     parentNode.removeChild(node);
   }
@@ -57,12 +45,10 @@ class DOMUtils implements Utils<Node> {
     let currNode = baseTier[address[0]];
     if (currNode === undefined) return;
 
-    let index = 1;
-    while (index < depth) {
-      currNode = currNode.childNodes[index];
+		for (const index = 1; index < depth; index++) {
+		  currNode = currNode.childNodes[index];
       if (currNode === undefined) return;
-      index += 1;
-    }
+		}
 
     return currNode;
   }

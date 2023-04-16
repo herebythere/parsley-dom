@@ -116,7 +116,6 @@ class Builder implements BuilderInterface {
       nodes: [],
       injections: [],
       descendants: [],
-      references: new Map<string, number[]>(),
     };
 
     for (const step of this.steps) {

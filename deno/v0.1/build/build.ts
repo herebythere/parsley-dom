@@ -47,7 +47,6 @@ class Build<N> implements BuildInterface<N> {
   nodes: N[];
   descendants: BuildInjection<N>[];
   injections: BuildInjection<N>[];
-  references: Map<string, N>;
 
   constructor(
     utils: Utils<N>,
@@ -56,8 +55,6 @@ class Build<N> implements BuildInterface<N> {
     this.nodes = cloneNodes(utils, data.nodes);
     this.injections = createInjections(utils, this.nodes, data.injections);
     this.descendants = createInjections(utils, this.nodes, data.descendants);
-
-    this.references = new Map<string, N>();
   }
 }
 

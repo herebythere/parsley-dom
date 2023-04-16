@@ -29,6 +29,31 @@ function getBuilderData<N>(
   return data;
 }
 
+/*
+	there are a couple cases
+	
+	there are some primative operations
+	
+		remove a node
+	
+		remove a string
+		
+		remove a build
+		
+		add a build
+		
+		add a string
+		
+		add a node
+	
+		
+	and there is a prev draw and curr draw
+	there is a prev render and a current render
+	prev renders have "builds"
+	compare draws to create a render a new render
+	
+*/
+
 // case #0 build Render Tree
 /*
 function buildSubtree<N, S>(
@@ -116,6 +141,124 @@ function buildSubtree<N, S>(
 // diffs are
 
 // perhaps make this a params object
+
+
+function addNode<N>(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function removeNode<N>(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function addString<N>(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function removeString<N>(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function addDraw(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function removeDraw(
+  utils: Utils<N>,
+  curDraw: Draws<N>[],
+  prvDraw?: Draws<N>[],
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+}
+
+function diffRender(
+  utils: Utils<N>,
+  curDraw: Draws<N>,
+  prvDraw?: Draws<N>,
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+		// does prev not exist?
+		//	create node or build with stack
+		//
+		// does prev
+		//
+		//
+		//
+		// descendant stack
+		
+		if (currDraw === undefined) {
+			// remove prevDraw
+		}
+		
+		if (prevDraw === undefined) {
+			// add new
+		}
+		
+	  if (prevDraw === currDraw) continue;
+  	
+  	if (prevDraw instanceof currDraw) {
+  		// compare
+  	}
+  	
+    if (prevDraw instanceof Draw && currDraw instanceof Draw) {
+    	
+    }
+
+
+    const node = utils.getIfNode(currDraw);
+    if (node !== undefined) {
+      render.builds.push(node);
+      render.renders.push({
+        id: render.builds.length - 1,
+        parentId: -1,
+        descendants: [],
+      });
+      utils.insertNode(node, parentNode, leftNode);
+      continue;
+    }
+}
+
+// iterate left to right with 
 function diff<N>(
   utils: Utils<N>,
   curDraw: Draws<N>[],
@@ -130,26 +273,13 @@ function diff<N>(
     renders: [],
   };
 
+	let parent = parentNode;
+	let left = leftNode;
+	
   let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
-  let index = 0;
-  while (index < drawLength) {
-    const prevDraw = prvDraw?.[index];
-    if (prevDraw !== undefined) {}
-
-    const currDraw = curDraw[index];
-
-    const node = utils.getIfNode(currDraw);
-    if (node !== undefined) {
-      render.builds.push(node);
-      render.renders.push({
-        id: render.builds.length - 1,
-        parentId: -1,
-        descendants: [],
-      });
-      utils.insertNode(node, parentNode, leftNode);
-    }
-
-    index += 1;
+  for(const index = 0; index < drawLength; index++) {
+  	const prevDraw = prvDraw?.[index];
+  	const currDraw = curDraw[index];
   }
   
   return render;

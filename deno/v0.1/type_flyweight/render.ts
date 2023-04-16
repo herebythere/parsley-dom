@@ -1,4 +1,4 @@
-import type { Draws } from "./hangar.ts";
+import type { DrawInterface } from "./draw.ts";
 
 interface RenderNode<N> {
   id: number;
@@ -6,9 +6,13 @@ interface RenderNode<N> {
   descendants: number[];
 }
 
+type RenderSource<N> = DrawInterface | N | string;
+
+type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
+
 interface Render<N> {
-  builds: Draws<N>[];
-  renders: RenderNode<N>[];
+  sources: RenderSource<N>[];
+  nodes: RenderNode<N>[];
 }
 
-export type { Render, RenderNode };
+export type { RenderNode, RenderSource, RenderFunc, Render };
