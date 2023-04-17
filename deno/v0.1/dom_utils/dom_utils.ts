@@ -1,10 +1,11 @@
-import type { Utils } from "../type_flyweight/utils.ts";
+import type { UtilsInterface } from "../type_flyweight/utils.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-import type { DrawFunc, Draws } from "../type_flyweight/hangar.ts";
+import type { Draws } from "../type_flyweight/hangar.ts";
+import type { RenderSource } from "../type_flyweight/render.ts";
 
 const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
 
-class DOMUtils implements Utils<Node> {
+class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
     if (tagname === ":fragment") {
       return document.createDocumentFragment();
@@ -24,7 +25,7 @@ class DOMUtils implements Utils<Node> {
 
     node.insertBefore(node, leftNode.nextSibling);
   }
-  getIfNode(node: Draws<Node>): Node | undefined {
+  getIfNode(node: RenderSource<Node>): Node | undefined {
     if (node instanceof Node) {
       return node;
     }

@@ -7,7 +7,7 @@ interface BuilderInjection {
   index: number;
 }
 
-interface BuilderDataInterface<N> {
+interface BuilderInterface<N> {
   nodes: N[];
   injections: BuilderInjection[];
   descendants: BuilderInjection[];
@@ -19,4 +19,4 @@ interface BuilderStack<N> {
   attribute?: string;
 }
 
-export type { BuilderDataInterface, BuilderInjection, BuilderStack };
+export type { BuilderInterface, BuilderInjection, BuilderStack };

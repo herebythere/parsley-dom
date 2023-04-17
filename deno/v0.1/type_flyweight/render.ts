@@ -10,8 +10,10 @@ type RenderSource<N> = DrawInterface | N | string;
 
 type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
 
+type RenderResult<N> = BuildInterface | N;
+
 interface Render<N> {
-  sources: RenderSource<N>[];
+  results: RenderResult<N>[];
   nodes: RenderNode<N>[];
 }
 

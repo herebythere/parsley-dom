@@ -11,12 +11,22 @@ import { Builder } from "../builder/builder.ts";
 
 import { parse } from "../deps.ts";
 
-function getBuilderData<N>(
+/*
+	getBuild
+	getRightNode
+	
+	buildTree
+	destroyTree
+*/
+
+function getBuild<N>(
   utils: Utils<N>,
   template: ReadonlyArray<string>,
 ): BuilderDataInterface<N> | undefined {
   const builderData = utils.getBuilder(template);
-  if (builderData !== undefined) return builderData;
+  if (builderData !== undefined) {
+    return new Build(utils, data);
+	}
 
   const builder = new Builder();
   parse(template, builder);
@@ -25,8 +35,16 @@ function getBuilderData<N>(
   if (data !== undefined) {
     utils.setBuilder(template, data);
   }
+  
+  return new Build(utils, data);
+}
 
-  return data;
+function getRightNode<N>(utils: Utils<N>, result: RenderResult<N>): N {
+	if (result instanceof Build) {
+		return result.nodes[result.nodes.length - 1];
+	}
+	
+	return result;
 }
 
 /*
@@ -280,6 +298,8 @@ function diff<N>(
   for(const index = 0; index < drawLength; index++) {
   	const prevDraw = prvDraw?.[index];
   	const currDraw = curDraw[index];
+  	
+  	
   }
   
   return render;
