@@ -1,15 +1,9 @@
 import type {
   HangarInterface,
 } from "../type_flyweight/hangar.ts";
-import type {
-  BuilderFunc,
-  Renders,
-} from "../type_flyweight/render.ts";
-import type { BuilderSources } from "../type_flyweight/draw.ts";
 import type { Render, RenderFunc, RenderSource } from "../type_flyweight/render.ts";
-import type { Utils } from "../type_flyweight/utils.ts";
+import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
-import { Draw } from "../draw/draw.ts";
 import { diff } from "../diff/diff.ts";
 
 class Hangar<N, S = unknown> implements HangarInterface<N, S> {
@@ -20,14 +14,14 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   renderSources?: RenderSource<N>[];
   render?: Render<N>;
 
-  constructor(drawFuncs: DrawFunc<N>[], parentNode?: N, leftNode?: N) {
+  constructor(renderFuncs: RenderFunc<N>[], parentNode?: N, leftNode?: N) {
     // remove all children
-    this.drawFuncs = drawFuncs;
+    this.renderFuncs = renderFuncs;
     this.parentNode = parentNode;
     this.leftNode = leftNode;
   }
 
-  update(utils: Utils<N>, state: S) {
+  update(utils: UtilsInterface<N>, state: S) {
     // create draws
     let renderSources: RenderSource<N>[] = [];
     for (const func of this.renderFuncs) {

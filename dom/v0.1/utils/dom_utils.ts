@@ -1,8 +1,8 @@
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-import type { RenderResult } from "../type_flyweight/render.ts";
+import type { BuilderInterface } from "../type_flyweight/builder.ts";
+import type { RenderSource } from "../type_flyweight/render.ts";
 
-const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
+const builderCache = new Map<Readonly<string[]>, BuilderInterface<Node>>();
 
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
@@ -24,7 +24,7 @@ class DOMUtils implements UtilsInterface<Node> {
 
     node.insertBefore(node, leftNode.nextSibling);
   }
-  getIfNode(node: RenderResult<Node>): Node | undefined {
+  getIfNode(node: RenderSource<Node>): Node | undefined {
     if (node instanceof Node) {
       return node;
     }
@@ -54,7 +54,7 @@ class DOMUtils implements UtilsInterface<Node> {
   }
   setBuilder(
     template: Readonly<string[]>,
-    builder: BuilderDataInterface<Node>,
+    builder: BuilderInterface<Node>,
   ) {
     builderCache.set(template, builder);
   }

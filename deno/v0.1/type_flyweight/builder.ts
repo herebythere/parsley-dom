@@ -1,13 +1,10 @@
-import type { Utils } from "./utils.ts";
-
-// other types of injections later
 interface BuilderInjection {
   address: number[];
   type: string;
   index: number;
 }
 
-interface BuilderInterface<N> {
+interface BuilderDataInterface<N> {
   nodes: N[];
   injections: BuilderInjection[];
   descendants: BuilderInjection[];
@@ -19,4 +16,4 @@ interface BuilderStack<N> {
   attribute?: string;
 }
 
-export type { BuilderInterface, BuilderInjection, BuilderStack };
+export type { BuilderDataInterface, BuilderInjection, BuilderStack };

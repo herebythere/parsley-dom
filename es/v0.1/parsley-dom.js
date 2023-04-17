@@ -2,6 +2,17 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+class Draw {
+    templateStrings;
+    injections;
+    constructor(templateStrings, injections){
+        this.templateStrings = templateStrings;
+        this.injections = injections;
+    }
+}
+function draw(templateStrings, ...injections) {
+    return new Draw(templateStrings, injections);
+}
 const builderCache = new Map();
 class DOMUtils {
     createNode(tagname) {
@@ -36,11 +47,9 @@ class DOMUtils {
         if (address.length === 0) return;
         let currNode = baseTier[address[0]];
         if (currNode === undefined) return;
-        let index = 1;
-        while(index < depth){
+        for(let index = 1; index < depth; index++){
             currNode = currNode.childNodes[index];
             if (currNode === undefined) return;
-            index += 1;
         }
         return currNode;
     }
@@ -496,8 +505,7 @@ class Builder {
         const data = {
             nodes: [],
             injections: [],
-            descendants: [],
-            references: new Map()
+            descendants: []
         };
         for (const step of this.steps){
             if (step.type === "BUILD") {
@@ -509,64 +517,6 @@ class Builder {
         }
         return data;
     }
-}
-function diff(utils, curDraw, prvDraw, prevRender, parentNode, leftNode) {
-    const render = {
-        builds: [],
-        renders: []
-    };
-    let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
-    let index = 0;
-    while(index < drawLength){
-        const prevDraw = prvDraw?.[index];
-        if (prevDraw !== undefined) {}
-        const currDraw = curDraw[index];
-        const node = utils.getIfNode(currDraw);
-        if (node !== undefined) {
-            render.builds.push(node);
-            render.renders.push({
-                id: render.builds.length - 1,
-                parentId: -1,
-                descendants: []
-            });
-            utils.insertNode(node, parentNode, leftNode);
-        }
-        index += 1;
-    }
-    return render;
-}
-class Hangar {
-    drawFuncs;
-    parentNode;
-    leftNode;
-    prevDraws;
-    prevRender;
-    constructor(drawFuncs, parentNode, leftNode){
-        this.drawFuncs = drawFuncs;
-        this.parentNode = parentNode;
-        this.leftNode = leftNode;
-    }
-    update(utils, state) {
-        let draws = [];
-        for (const func of this.drawFuncs){
-            draws.push(func(state));
-        }
-        const render = diff(utils, draws, this.prevDraws, this.prevRender, this.parentNode, this.leftNode);
-        this.prevDraws = draws;
-        this.prevRender = render;
-        console.log(this);
-    }
-}
-class Draw {
-    templateStrings;
-    injections;
-    constructor(templateStrings, injections){
-        this.templateStrings = templateStrings;
-        this.injections = injections;
-    }
-}
-function draw(templateStrings, ...injections) {
-    return new Draw(templateStrings, injections);
 }
 function cloneNodes(utils, nodes) {
     let clonedNodes = [];
@@ -595,16 +545,48 @@ class Build {
     nodes;
     descendants;
     injections;
-    references;
     constructor(utils, data){
         this.nodes = cloneNodes(utils, data.nodes);
         this.injections = createInjections(utils, this.nodes, data.injections);
         this.descendants = createInjections(utils, this.nodes, data.descendants);
-        this.references = new Map();
     }
 }
+function diff(utils, curDraw, prvDraw, prevRender, parentNode, leftNode) {
+    const render = {
+        results: [],
+        nodes: []
+    };
+    let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
+    for(let index = 0; index < drawLength; index++){
+        prvDraw?.[index];
+        curDraw[index];
+    }
+    return render;
+}
+class Hangar {
+    renderFuncs;
+    parentNode;
+    leftNode;
+    renderSources;
+    render;
+    constructor(renderFuncs, parentNode, leftNode){
+        this.renderFuncs = renderFuncs;
+        this.parentNode = parentNode;
+        this.leftNode = leftNode;
+    }
+    update(utils, state) {
+        let renderSources = [];
+        for (const func of this.renderFuncs){
+            renderSources.push(func(state));
+        }
+        const render = diff(utils, renderSources, this.renderSources, this.render, this.parentNode, this.leftNode);
+        this.renderSources = renderSources;
+        this.render = render;
+        console.log(this);
+    }
+}
+export { draw as draw };
 export { DOMUtils as DOMUtils };
-export { Hangar as Hangar };
-export { Draw as Draw, draw as draw };
 export { Builder as Builder };
 export { Build as Build };
+export { Hangar as Hangar };

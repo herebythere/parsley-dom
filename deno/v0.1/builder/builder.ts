@@ -4,7 +4,7 @@ import type {
   BuilderInjection,
   BuilderStack,
 } from "../type_flyweight/builder.ts";
-import type { Utils } from "../type_flyweight/utils.ts";
+import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
 import { getText } from "../deps.ts";
 
@@ -15,7 +15,7 @@ function attributeLogic<N>(data: BuilderDataInterface<N>, step: BuildStep) {
 */
 
 function insertNode<N>(
-  utils: Utils<N>,
+  utils: UtilsInterface<N>,
   stack: BuilderStack<N>,
   data: BuilderDataInterface<N>,
   node: N,
@@ -34,7 +34,7 @@ function insertNode<N>(
 }
 
 function stackLogic<N>(
-  utils: Utils<N>,
+  utils: UtilsInterface<N>,
   template: Readonly<string[]>,
   stack: BuilderStack<N>,
   step: BuildStep,
@@ -98,7 +98,7 @@ class Builder implements BuilderInterface {
   }
 
   build<N>(
-    utils: Utils<N>,
+    utils: UtilsInterface<N>,
     template: Readonly<string[]>,
   ): BuilderDataInterface<N> | undefined {
     const error = this.steps[this.steps.length - 1];

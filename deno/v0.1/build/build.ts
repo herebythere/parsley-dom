@@ -6,9 +6,9 @@ import type {
   BuildInjection,
   BuildInterface,
 } from "../type_flyweight/build.ts";
-import type { Utils } from "../type_flyweight/utils.ts";
+import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
-function cloneNodes<N>(utils: Utils<N>, nodes: N[]) {
+function cloneNodes<N>(utils: UtilsInterface<N>, nodes: N[]) {
   let clonedNodes = [];
   for (const node of nodes) {
     clonedNodes.push(utils.cloneTree(node));
@@ -17,7 +17,7 @@ function cloneNodes<N>(utils: Utils<N>, nodes: N[]) {
 }
 
 function createInjections<N>(
-  utils: Utils<N>,
+  utils: UtilsInterface<N>,
   nodes: N[],
   builderInjections: BuilderInjection[],
 ) {
@@ -49,7 +49,7 @@ class Build<N> implements BuildInterface<N> {
   injections: BuildInjection<N>[];
 
   constructor(
-    utils: Utils<N>,
+    utils: UtilsInterface<N>,
     data: BuilderDataInterface<N>,
   ) {
     this.nodes = cloneNodes(utils, data.nodes);

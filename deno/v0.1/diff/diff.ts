@@ -1,9 +1,8 @@
-import type { Utils } from "../type_flyweight/utils.ts";
+import type { UtilsInterface } from "../type_flyweight/utils.ts";
 import type { DrawInterface } from "../type_flyweight/draw.ts";
 import type { BuildInterface } from "../type_flyweight/build.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-import type { Render, RenderNode } from "../type_flyweight/render.ts";
-import type { Draws } from "../type_flyweight/hangar.ts";
+import type { Render, RenderResult, RenderSource } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
@@ -20,12 +19,12 @@ import { parse } from "../deps.ts";
 */
 
 function getBuild<N>(
-  utils: Utils<N>,
-  template: ReadonlyArray<string>,
-): BuilderDataInterface<N> | undefined {
+  utils: UtilsInterface<N>,
+  template: ReadonlyArray<string[]>,
+): BuildInterface<N> | undefined {
   const builderData = utils.getBuilder(template);
   if (builderData !== undefined) {
-    return new Build(utils, data);
+    return new Build(utils, builderData);
 	}
 
   const builder = new Builder();
@@ -34,17 +33,19 @@ function getBuild<N>(
   const data = builder.build(utils, template);
   if (data !== undefined) {
     utils.setBuilder(template, data);
+    return new Build(utils, data);
   }
-  
-  return new Build(utils, data);
 }
 
-function getRightNode<N>(utils: Utils<N>, result: RenderResult<N>): N {
+function getRightNode<N>(utils: UtilsInterface<N>, result: RenderResult<N>): N | undefined {
 	if (result instanceof Build) {
 		return result.nodes[result.nodes.length - 1];
 	}
 	
-	return result;
+	const node = utils.getIfNode(result);
+	if (node !== undefined) {
+		return node;
+	}
 }
 
 /*
@@ -160,142 +161,26 @@ function buildSubtree<N, S>(
 
 // perhaps make this a params object
 
-
-function addNode<N>(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function removeNode<N>(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function addString<N>(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function removeString<N>(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function addDraw(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function removeDraw(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-
-}
-
-function diffRender(
-  utils: Utils<N>,
-  curDraw: Draws<N>,
-  prvDraw?: Draws<N>,
-  prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
-) {
-		// does prev not exist?
-		//	create node or build with stack
-		//
-		// does prev
-		//
-		//
-		//
-		// descendant stack
-		
-		if (currDraw === undefined) {
-			// remove prevDraw
-		}
-		
-		if (prevDraw === undefined) {
-			// add new
-		}
-		
-	  if (prevDraw === currDraw) continue;
-  	
-  	if (prevDraw instanceof currDraw) {
-  		// compare
-  	}
-  	
-    if (prevDraw instanceof Draw && currDraw instanceof Draw) {
-    	
-    }
-
-
-    const node = utils.getIfNode(currDraw);
-    if (node !== undefined) {
-      render.builds.push(node);
-      render.renders.push({
-        id: render.builds.length - 1,
-        parentId: -1,
-        descendants: [],
-      });
-      utils.insertNode(node, parentNode, leftNode);
-      continue;
-    }
-}
-
 // iterate left to right with 
 function diff<N>(
-  utils: Utils<N>,
-  curDraw: Draws<N>[],
-  prvDraw?: Draws<N>[],
+  utils: UtilsInterface<N>,
+  curDraw: RenderSource<N>[],
+  prvDraw?: RenderSource<N>[],
   prevRender?: Render<N>,
   parentNode?: N,
   leftNode?: N,
 ): Render<N> {
   // this function renders new builds
   const render: Render<N> = {
-    builds: [],
-    renders: [],
+    results: [],
+    nodes: [],
   };
 
 	let parent = parentNode;
 	let left = leftNode;
 	
   let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
-  for(const index = 0; index < drawLength; index++) {
+  for(let index = 0; index < drawLength; index++) {
   	const prevDraw = prvDraw?.[index];
   	const currDraw = curDraw[index];
   	
