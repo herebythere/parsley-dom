@@ -7,20 +7,12 @@ import type { Render, RenderResult, RenderSource } from "../type_flyweight/rende
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
-
 import { parse } from "../deps.ts";
 
-/*
-	getBuild
-	getRightNode
-	
-	buildTree
-	destroyTree
-*/
 
 function getBuild<N>(
   utils: UtilsInterface<N>,
-  template: ReadonlyArray<string[]>,
+  template: Readonly<string[]>,
 ): BuildInterface<N> | undefined {
   const builderData = utils.getBuilder(template);
   if (builderData !== undefined) {
@@ -48,124 +40,74 @@ function getRightNode<N>(utils: UtilsInterface<N>, result: RenderResult<N>): N |
 	}
 }
 
-/*
-	there are a couple cases
+function compareSources<N>(source: RenderSource<N>, prevSource: RenderSource<N>) {
+	if (source instanceof Draw && prevSource instanceof Draw) {
+		return source.templateStrings === prevSource.templateStrings;
+	}
 	
-	there are some primative operations
-	
-		remove a node
-	
-		remove a string
-		
-		remove a build
-		
-		add a build
-		
-		add a string
-		
-		add a node
-	
-		
-	and there is a prev draw and curr draw
-	there is a prev render and a current render
-	prev renders have "builds"
-	compare draws to create a render a new render
-	
-*/
-
-// case #0 build Render Tree
-/*
-function buildSubtree<N, S>(
-  utils: Utils<N>,
-  render: Render<N>,
-  parentID: number,
-  draw: Draws<N, S>,
-) {
-  const builderData = getBuilderData(utils, draw.templateStrings);
-  if (builderData === undefined) return;
-
-  const build = new Build(utils, builderData);
-  render.builds.push(build);
-
-  const buildID = render.builds.length - 1;
-  const parentRender = render.renders[parentID];
-  parentRender.descendants.push(buildID);
-
-  const rend = {
-  	id: buildID,
-  	parentId: parentID,
-  	descendants: [],
-  };
-  render.renders.push(rend);
-
-  // mount render to parent and left node
-
-  // create stack
-  const drawStack = [draw];
-  const buildIDStack = [buildID];
-  const descIndexStack = [0];
-
-  while (drawStack.length > 0) {
-  	const stackIndex = drawStack.length - 1;
-  	const draw = drawStack[stackIndex];
-  	const builderData = getBuilderData(utils, draw.templateStrings);
-  	if (builderData === undefined) break;
-
-		const descIndex = descIndexStack[stackIndex];
-		if (descIndex >= builderData.descendants.length ) {
-		  drawStack.pop();
-		  buildIDStack.pop();
-		  descIndexStack.pop();
-		  continue;
-		}
-
-		// increase descendant index
-		descIndexStack[stackIndex] += 1;
-
-		const { index } = builderData.descendants[descIndex];
-		const descendant = draw.injections[index];
-		if (descendant instanceof Draw) {
-	  	const builderData = getBuilderData(utils, descendant.templateStrings);
-  		if (builderData === undefined) break;
-
-			const build = new Build(utils, builderData);
-			render.builds.push(build);
-
-			const parentBuildID = buildIDStack[stackIndex];
-			const parentRender = render.renders[parentBuildID];
-			const parentBuild = render.builds[parentBuildID];
-
-			const buildID = render.builds.length - 1;
-			parentRender.descendants.push(buildID);
-			const rend = {
-				id: buildID,
-				parentId: parentBuildID,
-				descendants: [],
-			};
-			render.renders.push(rend);
-
-			// mount build to Parent Build
-
-			drawStack.push(descendant);
-			descIndexStack.push(0);
-			buildIDStack.push(buildID);
-		}
-
-		// if descendant instance of Build
-
-		// if descendant instanceof N
-  }
+	return source === prevSource;
 }
-*/
-// diffs are
 
-// perhaps make this a params object
+function removeRenderResults<N>(
+	utils: UtilsInterface<N>,
+	render: Render<N>,
+  index: number,
+) {
+	const indexStack = [index];
+	
+	// hello
+}
+
+function addRenderResults<N>(
+	utils: UtilsInterface<N>,
+	render: Render<N>,
+	source: RenderSource<N>,
+  index: number,
+) {
+	const indexStack = [index];
+	
+	// hello
+}
+
+function diffSources<N>(
+  utils: UtilsInterface<N>,
+  source: RenderSource<N>,
+  prevSource: RenderSource<N>,
+  prevRender?: Render<N>,
+  parentNode?: N,
+  leftNode?: N,
+) {
+
+		// create stack
+		//
+		//
+
+  	if (prevSource === undefined) {
+  		// add source
+  	}
+  	
+  	if (source === undefined) {
+  		// remove source
+  	}
+  	
+  	// diffSource
+  	
+		// if same source
+		if (compareSources(source, prevSource)) {
+			// migrate source
+		}
+		
+		// otherwise
+		// remove source
+		// add source
+	
+}
 
 // iterate left to right with 
 function diff<N>(
   utils: UtilsInterface<N>,
-  curDraw: RenderSource<N>[],
-  prvDraw?: RenderSource<N>[],
+  sources: RenderSource<N>[],
+  prevSources?: RenderSource<N>[],
   prevRender?: Render<N>,
   parentNode?: N,
   leftNode?: N,
@@ -179,12 +121,22 @@ function diff<N>(
 	let parent = parentNode;
 	let left = leftNode;
 	
-  let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
-  for(let index = 0; index < drawLength; index++) {
-  	const prevDraw = prvDraw?.[index];
-  	const currDraw = curDraw[index];
+  let sourceLength = Math.max(prevSources?.length ?? 0, sources.length);
+  for(let index = 0; index < sourceLength; index++) {
+  	const prevSource = prevSources?.[index];
+  	const source = sources[index];
+		
+		if (source === undefined) {
+  		// remove prev source
+  		continue
+  	}
   	
-  	
+		if (prevSource === undefined) {
+  		// add source
+  		continue;
+  	}
+
+  	// compare sources
   }
   
   return render;

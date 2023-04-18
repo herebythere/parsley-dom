@@ -551,15 +551,21 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function diff(utils, curDraw, prvDraw, prevRender, parentNode, leftNode) {
+function diff(utils, sources, prevSources, prevRender, parentNode, leftNode) {
     const render = {
         results: [],
         nodes: []
     };
-    let drawLength = Math.max(prvDraw?.length ?? 0, curDraw.length);
-    for(let index = 0; index < drawLength; index++){
-        prvDraw?.[index];
-        curDraw[index];
+    let sourceLength = Math.max(prevSources?.length ?? 0, sources.length);
+    for(let index = 0; index < sourceLength; index++){
+        const prevSource = prevSources?.[index];
+        const source = sources[index];
+        if (source === undefined) {
+            continue;
+        }
+        if (prevSource === undefined) {
+            continue;
+        }
     }
     return render;
 }
