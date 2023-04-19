@@ -23,7 +23,7 @@ const nodeArray = [textNodeComponent];
 
 // actual elements
 class TestComponent extends HTMLElement {
-  hangar?: Hangar<Node, State>;
+  hangar!: Hangar<Node, State>;
 
   // observedAttributes
   static get observedAttributes() {
@@ -40,19 +40,27 @@ class TestComponent extends HTMLElement {
         this.shadowRoot,
       );
 
-      this.hangar?.update(domutils, this);
+      this.hangar.update(domutils, this);
       console.log(this.hangar);
     }
   }
 
   attributeChangedCallback() {
     // this is where microtask should be called
-    this.hangar?.update(domutils, this);
+    this.hangar.update(domutils, this);
     // this.hangar.updateAsync(this);
   }
 
   update() {
-    this.hangar?.update(domutils, this);
+    this.hangar.update(domutils, this);
+  }
+  
+  updateAsync() {
+  	queueMicrotask(this.microTaskSentinel);
+  }
+  
+  microTaskSentinel = () => {
+  	this.hangar.update(domutils, this);
   }
 }
 
