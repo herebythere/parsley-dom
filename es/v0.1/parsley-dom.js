@@ -22,7 +22,7 @@ class DOMUtils {
         return document.createElement(tagname);
     }
     createTextNode(text) {
-        return document.createTextNode(text);
+        return document.createTextNode(text?.toString() ?? "error: unable to render to string");
     }
     insertNode(node, parentNode, leftNode) {
         if (parentNode === undefined) return;
@@ -554,6 +554,7 @@ class Build {
 function diff(utils, sources, prevSources, prevRender, parentNode, leftNode) {
     const render = {
         results: [],
+        sources: [],
         nodes: []
     };
     let sourceLength = Math.max(prevSources?.length ?? 0, sources.length);
@@ -588,7 +589,6 @@ class Hangar {
         const render = diff(utils, renderSources, this.renderSources, this.render, this.parentNode, this.leftNode);
         this.renderSources = renderSources;
         this.render = render;
-        console.log(this);
     }
 }
 export { draw as draw };

@@ -58,15 +58,12 @@ class TestComponent extends HTMLElement {
 
 customElements.define("test-component", TestComponent);
 
-
-
 const testComponent = document.querySelector("test-component");
 
 function onButtonClick() {
-	if (testComponent instanceof TestComponent) {
-		testComponent.update();
-	}
+  if (testComponent instanceof TestComponent) {
+    testComponent.update();
+  }
 }
 const button = document.querySelector("button");
 button?.addEventListener("click", onButtonClick);
-

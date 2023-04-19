@@ -1,7 +1,11 @@
 import type { DrawInterface } from "./draw.ts";
 import type { BuildInterface } from "./build.ts";
 
-type RenderSource<N> = DrawInterface | N | string;
+interface StringInterface {
+  toString(): string;
+}
+
+type RenderSource<N> = DrawInterface | N | StringInterface;
 
 type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
 
@@ -14,8 +18,9 @@ interface RenderNode<N> {
 }
 
 interface Render<N> {
+  sources: unknown[];
   results: RenderResult<N>[];
   nodes: RenderNode<N>[];
 }
 
-export type { RenderNode, RenderResult, RenderSource, RenderFunc, Render };
+export type { Render, RenderFunc, RenderNode, RenderResult, RenderSource };

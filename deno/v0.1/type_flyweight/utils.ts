@@ -4,9 +4,9 @@ import type { RenderResult } from "./render.ts";
 
 interface UtilsInterface<N> {
   createNode(tagname: string): N;
-  createTextNode(text: string): N;
+  createTextNode(text: unknown): N;
   insertNode(node: N, parentNode?: N, leftNode?: N): void;
-  getIfNode(node: RenderResult<N>): N | undefined;
+  getIfNode(node: unknown): N | undefined;
   //  getIfDrawFunc(node: Draws<N>): DrawFunc | undefined;
   cloneTree(node: N): N;
   getDescendant(

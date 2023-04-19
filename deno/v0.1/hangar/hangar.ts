@@ -1,21 +1,22 @@
+import type { HangarInterface } from "../type_flyweight/hangar.ts";
 import type {
-  HangarInterface,
-} from "../type_flyweight/hangar.ts";
-import type { Render, RenderFunc, RenderSource } from "../type_flyweight/render.ts";
+  Render,
+  RenderFunc,
+  RenderSource,
+} from "../type_flyweight/render.ts";
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
 import { diff } from "../diff/diff.ts";
 
 class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   renderFuncs: RenderFunc<N>[];
-  parentNode?: N;
+  parentNode: N;
   leftNode?: N;
 
   renderSources?: RenderSource<N>[];
   render?: Render<N>;
 
-  constructor(renderFuncs: RenderFunc<N>[], parentNode?: N, leftNode?: N) {
-    // remove all children
+  constructor(renderFuncs: RenderFunc<N>[], parentNode: N, leftNode?: N) {
     this.renderFuncs = renderFuncs;
     this.parentNode = parentNode;
     this.leftNode = leftNode;
@@ -28,7 +29,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       renderSources.push(func(state));
     }
 
-		// update render
+    // update render
     const render = diff(
       utils,
       renderSources,
@@ -38,11 +39,9 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       this.leftNode,
     );
 
-		// swap renders and draws
+    // swap renders and draws
     this.renderSources = renderSources;
     this.render = render;
-    
-    console.log(this);
   }
 }
 

@@ -45,10 +45,10 @@ class DOMUtils implements UtilsInterface<Node> {
     let currNode = baseTier[address[0]];
     if (currNode === undefined) return;
 
-		for (let index = 1; index < depth; index++) {
-		  currNode = currNode.childNodes[index];
+    for (let index = 1; index < depth; index++) {
+      currNode = currNode.childNodes[index];
       if (currNode === undefined) return;
-		}
+    }
 
     return currNode;
   }

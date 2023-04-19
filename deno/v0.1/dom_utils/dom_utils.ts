@@ -11,8 +11,10 @@ class DOMUtils implements UtilsInterface<Node> {
     }
     return document.createElement(tagname);
   }
-  createTextNode(text: string) {
-    return document.createTextNode(text);
+  createTextNode(text: unknown) {
+    return document.createTextNode(
+      text?.toString() ?? "error: unable to render to string",
+    );
   }
   // update for node[], node, string
   insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
@@ -24,7 +26,7 @@ class DOMUtils implements UtilsInterface<Node> {
 
     node.insertBefore(node, leftNode.nextSibling);
   }
-  getIfNode(node: RenderResult<Node>): Node | undefined {
+  getIfNode(node: unknown): Node | undefined {
     if (node instanceof Node) {
       return node;
     }
@@ -45,10 +47,10 @@ class DOMUtils implements UtilsInterface<Node> {
     let currNode = baseTier[address[0]];
     if (currNode === undefined) return;
 
-		for (let index = 1; index < depth; index++) {
-		  currNode = currNode.childNodes[index];
+    for (let index = 1; index < depth; index++) {
+      currNode = currNode.childNodes[index];
       if (currNode === undefined) return;
-		}
+    }
 
     return currNode;
   }
