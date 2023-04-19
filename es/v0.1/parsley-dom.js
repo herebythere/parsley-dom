@@ -551,7 +551,7 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function diff(utils, sources, prevSources, prevRender, parentNode, leftNode) {
+function diff(utils, sources, parentNode, leftNode, prevSources, prevRender) {
     const render = {
         results: [],
         sources: [],
@@ -586,7 +586,7 @@ class Hangar {
         for (const func of this.renderFuncs){
             renderSources.push(func(state));
         }
-        const render = diff(utils, renderSources, this.renderSources, this.render, this.parentNode, this.leftNode);
+        const render = diff(utils, renderSources, this.parentNode, this.leftNode, this.renderSources, this.render);
         this.renderSources = renderSources;
         this.render = render;
     }

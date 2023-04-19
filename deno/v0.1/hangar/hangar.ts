@@ -33,10 +33,10 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
     const render = diff(
       utils,
       renderSources,
-      this.renderSources,
-      this.render,
       this.parentNode,
       this.leftNode,
+      this.renderSources,
+      this.render,
     );
 
     // swap renders and draws

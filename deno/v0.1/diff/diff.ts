@@ -87,11 +87,10 @@ function addRenderResults<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
   source: unknown,
+  parentNode: N,
 ): number {
   render.sources.push(source);
   render.results.push(createRenderResult(utils, source));
-
-  // to connect
   const receipt = render.sources.length - 1;
   render.nodes.push({
     id: receipt,
@@ -115,7 +114,8 @@ function addRenderResults<N>(
         const { index } = descendant;
         const descSource = source.injections[index];
         render.sources.push(descSource);
-        render.results.push(createRenderResult(utils, descSource));
+        const descResult = createRenderResult(utils, descSource)
+        render.results.push(descResult);
 
         // add descendant to parent
         const receipt = render.sources.length - 1;
@@ -130,18 +130,22 @@ function addRenderResults<N>(
 
         // mount renders
         // then add properties
-        if (result instanceof Build) {
-          // mount
-          // need parent and left
+        //
+        // get left node
+        const parent = descendant.parentNode ?? parentNode;
+				let left = descendant.node;
+        if (descResult instanceof Build) {
+          for (const descNode of descResult.nodes) {
+          	utils.insertNode(descNode, parent, left);
+          	left = descNode;
+          }
+          
+          // add properties here
         }
 
         const descNode = utils.getIfNode(descSource);
         if (descNode !== undefined) {
-          // mount
-          //connect renders
-          // add properties
-          //
-          // get left
+        	utils.insertNode(descNode, parent, left);
         }
       }
     }
@@ -152,14 +156,15 @@ function addRenderResults<N>(
   return receipt;
 }
 
-// iterate left to right with
+
+// first node should be the root node
 function diff<N>(
   utils: UtilsInterface<N>,
   sources: RenderSource<N>[],
+  parentNode: N,
+  leftNode?: N,
   prevSources?: RenderSource<N>[],
   prevRender?: Render<N>,
-  parentNode?: N,
-  leftNode?: N,
 ): Render<N> {
   // this function renders new builds
   const render: Render<N> = {
