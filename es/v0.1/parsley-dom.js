@@ -32,13 +32,13 @@ class DOMUtils {
         }
         node.insertBefore(node, leftNode.nextSibling);
     }
+    removeNode(node, parentNode, leftNode) {
+        parentNode.removeChild(node);
+    }
     getIfNode(node) {
         if (node instanceof Node) {
             return node;
         }
-    }
-    removeNode(node, parentNode) {
-        parentNode.removeChild(node);
     }
     cloneTree(node) {
         return node.cloneNode(true);
@@ -59,6 +59,38 @@ class DOMUtils {
     getBuilder(template) {
         return builderCache.get(template);
     }
+}
+const DEFAULT_POSITION = {
+    x: 0,
+    y: 0
+};
+function increment(template, position) {
+    const templateLength = template.length - 1;
+    const chunk = template[position.x];
+    const chunkLength = chunk.length - 1;
+    if (position.x >= templateLength && position.y >= chunkLength) return;
+    position.y += 1;
+    if (position.y > chunkLength) {
+        position.x += 1;
+        position.y = 0;
+    }
+    return position;
+}
+function getChar(template, position) {
+    const str = template[position.x];
+    if (str === undefined) return;
+    if (str.length === 0) return "";
+    return str[position.y];
+}
+function create(origin = DEFAULT_POSITION, target = origin) {
+    return {
+        origin: {
+            ...origin
+        },
+        target: {
+            ...target
+        }
+    };
 }
 function getText(template, vector) {
     const origin = vector.origin;
@@ -88,6 +120,8 @@ const ATTRIBUTE_INJECTION = "ATTRIBUTE_INJECTION";
 const DESCENDANT_INJECTION = "DESCENDANT_INJECTION";
 const ATTRIBUTE_MAP_INJECTION = "ATTRIBUTE_MAP_INJECTION";
 const INITIAL = "INITIAL";
+const BUILD = "BUILD";
+const INJECT = "INJECT";
 const DEFAULT = "DEFAULT";
 const LB = "<";
 const RB = ">";
@@ -323,7 +357,7 @@ const ATTRIBUTE_DECLARATION_CLOSE_MAP = new Map([
         NODE_SPACE
     ]
 ]);
-new Map([
+const routes = new Map([
     [
         INITIAL,
         INIITAL_MAP
@@ -393,7 +427,7 @@ new Map([
         ATTRIBUTE_DECLARATION_CLOSE_MAP
     ]
 ]);
-new Map([
+const injectionMap = new Map([
     [
         ATTRIBUTE_DECLARATION,
         ATTRIBUTE_INJECTION
@@ -435,6 +469,58 @@ new Map([
         DESCENDANT_INJECTION
     ]
 ]);
+function parse(template, builder, prev = INITIAL) {
+    let prevState = prev;
+    let currState = prev;
+    const origin = {
+        x: 0,
+        y: 0
+    };
+    const prevOrigin = {
+        x: 0,
+        y: 0
+    };
+    const prevTarget = {
+        x: 0,
+        y: 0
+    };
+    do {
+        const __char = getChar(template, origin);
+        if (__char !== undefined) {
+            prevState = currState;
+            let route = routes.get(prevState);
+            if (route) {
+                currState = route.get(__char) ?? route.get(DEFAULT) ?? ERROR;
+            }
+        }
+        if (prevState !== currState || prevTarget.x < origin.x) {
+            builder.push({
+                type: BUILD,
+                state: prevState,
+                vector: create(prevOrigin, prevTarget)
+            });
+            prevOrigin.x = origin.x;
+            prevOrigin.y = origin.y;
+        }
+        if (prevTarget.x < origin.x) {
+            const state = injectionMap.get(prevState);
+            if (state !== undefined) {
+                builder.push({
+                    type: INJECT,
+                    index: prevTarget.x,
+                    state
+                });
+            }
+        }
+        prevTarget.x = origin.x;
+        prevTarget.y = origin.y;
+    }while (increment(template, origin) && currState !== ERROR)
+    builder.push({
+        type: BUILD,
+        state: currState,
+        vector: create(origin, origin)
+    });
+}
 function insertNode(utils, stack, data, node) {
     const parentIndex = stack.nodes.length - 2;
     let parentNode = stack.nodes[parentIndex];
@@ -551,30 +637,63 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function diff(utils, sources, parentNode, leftNode, prevSources, prevRender) {
-    const render = {
-        results: [],
-        sources: [],
-        nodes: []
-    };
-    let sourceLength = Math.max(prevSources?.length ?? 0, sources.length);
-    for(let index = 0; index < sourceLength; index++){
-        const prevSource = prevSources?.[index];
-        const source = sources[index];
-        if (source === undefined) {
-            continue;
-        }
-        if (prevSource === undefined) {
-            continue;
-        }
+function getBuild(utils, draw) {
+    const { templateStrings  } = draw;
+    const builderData = utils.getBuilder(templateStrings);
+    if (builderData !== undefined) {
+        return new Build(utils, builderData);
     }
+    const builder = new Builder();
+    parse(templateStrings, builder);
+    const data = builder.build(utils, templateStrings);
+    if (data !== undefined) {
+        utils.setBuilder(templateStrings, data);
+        return new Build(utils, data);
+    }
+}
+function createRenderResult(utils, source) {
+    if (source instanceof Draw) {
+        const build = getBuild(utils, source);
+        if (build !== undefined) return build;
+    }
+    return utils.getIfNode(source) ?? utils.createTextNode(source);
+}
+function diff(utils, sources, parentNode, leftNode, prevRender) {
+    const rootNode = {
+        id: 0,
+        parentId: -1,
+        descendants: []
+    };
+    const render = {
+        results: [
+            parentNode
+        ],
+        sources: [
+            parentNode
+        ],
+        nodes: [
+            rootNode
+        ]
+    };
+    for (const source of sources){
+        render.sources.push(source);
+        const id = render.sources.length - 1;
+        rootNode.descendants.push(id);
+        render.nodes.push({
+            id,
+            parentId: 0,
+            descendants: []
+        });
+        const result = createRenderResult(utils, source);
+        render.results.push(result);
+    }
+    for(let index = 1; index < render.sources.length - 1; index++){}
     return render;
 }
 class Hangar {
     renderFuncs;
     parentNode;
     leftNode;
-    renderSources;
     render;
     constructor(renderFuncs, parentNode, leftNode){
         this.renderFuncs = renderFuncs;
@@ -586,8 +705,7 @@ class Hangar {
         for (const func of this.renderFuncs){
             renderSources.push(func(state));
         }
-        const render = diff(utils, renderSources, this.parentNode, this.leftNode, this.renderSources, this.render);
-        this.renderSources = renderSources;
+        const render = diff(utils, renderSources, this.parentNode, this.leftNode, this.render);
         this.render = render;
     }
 }

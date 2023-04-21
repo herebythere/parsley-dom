@@ -5,12 +5,19 @@ import type {
   Render,
   RenderResult,
   RenderSource,
+  RenderNode,
 } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
+
+interface DeltaTargets {
+	survivedIndexes: number[];
+	survivedRenderIndexes: number[];
+	removedIndexes: number[];
+}
 
 function getBuild<N>(
   utils: UtilsInterface<N>,
@@ -70,16 +77,25 @@ function createRenderResult<N>(
   return utils.getIfNode(source) ?? utils.createTextNode(source);
 }
 
-function getRenderSource<N>(
+function findRemovalTargets<N>(
   utils: UtilsInterface<N>,
-  source: unknown,
-): RenderResult<N> {
-  if (source instanceof Draw) {
-    const build = getBuild(utils, source);
-    if (build !== undefined) return build;
-  }
+  render: Render<N>,
+  delta: DeltaTargets,
+  sourceId: number,
+) {
+	delta.removedIndexes.push(sourceId);
+	let index = delta.removedIndexes.length - 1;
 
-  return utils.getIfNode(source) ?? utils.createTextNode(source);
+	while (index < delta.removedIndexes.length) {
+		const nodeId = delta.removedIndexes[index];
+		
+		const node = render.nodes[nodeId]
+		for (const descendantId of node.descendants) {
+			delta.removedIndexes.push(descendantId);
+		}
+	
+		index += 1;
+	}
 }
 
 // return source id for left sibling addition
@@ -114,7 +130,7 @@ function addRenderResults<N>(
         const { index } = descendant;
         const descSource = source.injections[index];
         render.sources.push(descSource);
-        const descResult = createRenderResult(utils, descSource)
+        const descResult = createRenderResult(utils, descSource);
         render.results.push(descResult);
 
         // add descendant to parent
@@ -127,26 +143,6 @@ function addRenderResults<N>(
           parentId: node.id,
           descendants: [],
         });
-
-        // mount renders
-        // then add properties
-        //
-        // get left node
-        const parent = descendant.parentNode ?? parentNode;
-				let left = descendant.node;
-        if (descResult instanceof Build) {
-          for (const descNode of descResult.nodes) {
-          	utils.insertNode(descNode, parent, left);
-          	left = descNode;
-          }
-          
-          // add properties here
-        }
-
-        const descNode = utils.getIfNode(descSource);
-        if (descNode !== undefined) {
-        	utils.insertNode(descNode, parent, left);
-        }
       }
     }
 
@@ -163,38 +159,55 @@ function diff<N>(
   sources: RenderSource<N>[],
   parentNode: N,
   leftNode?: N,
-  prevSources?: RenderSource<N>[],
   prevRender?: Render<N>,
 ): Render<N> {
-  // this function renders new builds
+	// set parent as root node
+	// create render
+  const rootNode: RenderNode = { id: 0, parentId: -1, descendants: [] };
   const render: Render<N> = {
-    results: [],
-    sources: [],
-    nodes: [],
+    results: [parentNode],
+    sources: [parentNode],
+    nodes: [rootNode],
   };
+  
+  const targets: DeltaTargets = {
+    survivedIndexes: [],
+  	survivedRenderIndexes: [],
+  	removedIndexes: [],
+  };
+  
+  // only need to mark changed nodes?
+  // later can remove descendants
+  // add sources to render
+	for (const source of sources) {
+		render.sources.push(source);
+		
+		const id = render.sources.length - 1;
+		rootNode.descendants.push(id);
+		render.nodes.push({ id, parentId: 0, descendants: [] });
+		
+		const result = createRenderResult(utils, source);
+		render.results.push(result);
+	}
+	
+	
+	// see if theyre different
+	for (let index = 1; index < render.sources.length - 1; index++) {
+		// if different add index to removal queue
+	}
+	
+	// get differences for properties, remove properties that change
+	
+	// remove all marked for removal in removal queue
+	
+	// mount all nodes
+	
 
-  let parent = parentNode;
-  let left = leftNode;
+	
+	// add all properties to nodes
+	
 
-  let sourceLength = Math.max(prevSources?.length ?? 0, sources.length);
-  for (let index = 0; index < sourceLength; index++) {
-    const prevSource = prevSources?.[index];
-    const source = sources[index];
-
-    if (source === undefined) {
-      // remove prev source
-      continue;
-    }
-
-    if (prevSource === undefined) {
-      // add source
-      continue;
-    }
-
-    // compare sources
-  }
-
-  return render;
+	return render;
 }
 
 export { diff };

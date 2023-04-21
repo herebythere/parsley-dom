@@ -13,7 +13,6 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   parentNode: N;
   leftNode?: N;
 
-  renderSources?: RenderSource<N>[];
   render?: Render<N>;
 
   constructor(renderFuncs: RenderFunc<N>[], parentNode: N, leftNode?: N) {
@@ -35,12 +34,10 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       renderSources,
       this.parentNode,
       this.leftNode,
-      this.renderSources,
       this.render,
     );
 
-    // swap renders and draws
-    this.renderSources = renderSources;
+    // swap renders
     this.render = render;
   }
 }

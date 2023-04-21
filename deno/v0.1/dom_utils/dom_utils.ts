@@ -26,13 +26,13 @@ class DOMUtils implements UtilsInterface<Node> {
 
     node.insertBefore(node, leftNode.nextSibling);
   }
+  removeNode(node: Node, parentNode: Node, leftNode?: Node) {
+    parentNode.removeChild(node);
+  }
   getIfNode(node: unknown): Node | undefined {
     if (node instanceof Node) {
       return node;
     }
-  }
-  removeNode(node: Node, parentNode: Node) {
-    parentNode.removeChild(node);
   }
   cloneTree(node: Node) {
     return node.cloneNode(true);
