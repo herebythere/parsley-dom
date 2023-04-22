@@ -18,6 +18,7 @@ interface RenderNode {
 }
 
 interface Render<N> {
+	rootLength: number;
   sources: unknown[];
   results: RenderResult<N>[];
   nodes: RenderNode[];

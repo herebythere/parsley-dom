@@ -14,6 +14,7 @@ import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
 interface DeltaTargets {
+	addedIndexes: number[];
 	survivedIndexes: number[];
 	survivedRenderIndexes: number[];
 	removedIndexes: number[];
@@ -77,6 +78,9 @@ function createRenderResult<N>(
   return utils.getIfNode(source) ?? utils.createTextNode(source);
 }
 
+// mark prev render for removal
+// really only need to mark top nodes
+// remove through node iteration
 function findRemovalTargets<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
@@ -84,8 +88,8 @@ function findRemovalTargets<N>(
   sourceId: number,
 ) {
 	delta.removedIndexes.push(sourceId);
+	
 	let index = delta.removedIndexes.length - 1;
-
 	while (index < delta.removedIndexes.length) {
 		const nodeId = delta.removedIndexes[index];
 		
@@ -98,24 +102,22 @@ function findRemovalTargets<N>(
 	}
 }
 
-// return source id for left sibling addition
-function addRenderResults<N>(
+// create renders and add
+function addRenderTargets<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
+  delta: DeltaTargets,
+  parentId: number,
   source: unknown,
-  parentNode: N,
 ): number {
   render.sources.push(source);
-  render.results.push(createRenderResult(utils, source));
   const receipt = render.sources.length - 1;
   render.nodes.push({
     id: receipt,
-    parentId: -1,
     descendants: [],
+    parentId,
   });
-
-  let parentId = receipt;
-  let leftId = -1;
+  render.results.push(createRenderResult(utils, source));
 
   let index = receipt;
   while (index < render.sources.length - 1) {
@@ -123,7 +125,7 @@ function addRenderResults<N>(
     const result = render.results[index];
     const source = render.sources[index];
 
-    // if draw and build
+    // if draw and build, create and add descendant nodes
     if (source instanceof Draw && result instanceof Build) {
       for (const descendant of result.descendants) {
         // add source and descendant to render
@@ -152,6 +154,17 @@ function addRenderResults<N>(
   return receipt;
 }
 
+function compareRenderSources<N>(
+	source: RenderSource<N>,
+	prevSource?: RenderSource<N>,
+) {
+	if (source instanceof Draw && prevSource instanceof Draw) {
+		return source.templateStrings === prevSource.templateStrings;
+	}
+	
+	return source === prevSource;
+}
+
 
 // first node should be the root node
 function diff<N>(
@@ -163,50 +176,62 @@ function diff<N>(
 ): Render<N> {
 	// set parent as root node
 	// create render
-  const rootNode: RenderNode = { id: 0, parentId: -1, descendants: [] };
   const render: Render<N> = {
-    results: [parentNode],
-    sources: [parentNode],
-    nodes: [rootNode],
+  	rootLength: sources.length - 1,
+    results: [],
+    sources: [],
+    nodes: [],
   };
   
   const targets: DeltaTargets = {
+  	addedIndexes: [],
+  	removedIndexes: [],
     survivedIndexes: [],
   	survivedRenderIndexes: [],
-  	removedIndexes: [],
   };
   
-  // only need to mark changed nodes?
-  // later can remove descendants
-  // add sources to render
-	for (const source of sources) {
-		render.sources.push(source);
-		
-		const id = render.sources.length - 1;
-		rootNode.descendants.push(id);
-		render.nodes.push({ id, parentId: 0, descendants: [] });
-		
-		const result = createRenderResult(utils, source);
-		render.results.push(result);
-	}
-	
-	
-	// see if theyre different
-	for (let index = 1; index < render.sources.length - 1; index++) {
-		// if different add index to removal queue
-	}
+
+	// diff, add, remove
+	// could be own function
+  const minLength = Math.min(sources.length, prevRender?.rootLength ?? 0);
+  for (let index = 0; index < minLength; index++) {
+  	// diff check
+  	const prev = prevRender?.sources[index];
+  	const curr = sources[index];
+  	if (compareRenderSources(prev, curr)) {
+  		// copy and update
+  		continue;
+  	}
+  	
+  	// mark for removal
+  	targets.removedIndexes.push(index);
+  	// 
+  	
+  }
+  
+  // if prevSources longer than curr, remove prevRenders
+  if (prevRender && minLength < prevRender.rootLength) {
+  	for (let removedIndex = minLength; removedIndex < minLength; removedIndex++) {
+			// remove stuff
+	  	targets.removedIndexes.push(removedIndex);
+  	}
+  }
+  
+  if (minLength < sources.length) {
+    for (let addedIndex = 0; addedIndex < sources.length; addedIndex++) {
+  		// add stuff
+		}
+  }
+
+  
+  // iterate through removal
+  // remove from previous render
+  // then remove properties from renderNode if applicable
 	
 	// get differences for properties, remove properties that change
 	
 	// remove all marked for removal in removal queue
 	
-	// mount all nodes
-	
-
-	
-	// add all properties to nodes
-	
-
 	return render;
 }
 
