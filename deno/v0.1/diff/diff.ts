@@ -106,17 +106,22 @@ function getSourcesAndNodes<N>(
   utils: UtilsInterface<N>,
   delta: DeltaTargets,
   render: Render<N>,
+  sources: unknown[],
   parentId: number,
-  source: unknown,
 ): number {
-  render.sources.push(source);
-  const receipt = render.sources.length - 1;
-  render.nodes.push({
-    id: receipt,
-    descendants: [],
-    parentId,
-  });
-  render.results.push(undefined);
+	const receipt = render.sources.length - 1;
+	
+	for (const source of sources) {
+	  render.sources.push(source);
+		const receipt = render.sources.length - 1;
+		render.nodes.push({
+		  id: receipt,
+		  descendants: [],
+		  parentId,
+		});
+		render.results.push(undefined);
+	}
+
 
   let index = receipt;
   while (index < render.sources.length - 1) {
