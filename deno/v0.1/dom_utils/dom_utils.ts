@@ -61,7 +61,12 @@ class DOMUtils implements UtilsInterface<Node> {
     builderCache.set(template, builder);
   }
   getBuilder(template: Readonly<string[]>) {
-    return builderCache.get(template);
+  	const builder = builderCache.get(template);
+  	if (builder !== undefined) {
+  		return builderCache.get(template);
+  	}
+
+		
   }
 }
 

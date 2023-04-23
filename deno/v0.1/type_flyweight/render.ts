@@ -9,7 +9,7 @@ type RenderSource<N> = DrawInterface | N | StringInterface;
 
 type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
 
-type RenderResult<N> = BuildInterface<N> | N;
+type RenderResult<N> = BuildInterface<N> | N | undefined;
 
 interface RenderNode {
   id: number;

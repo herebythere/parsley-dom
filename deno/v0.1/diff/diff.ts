@@ -102,7 +102,7 @@ function findRemovalTargets<N>(
 }
 
 // create renders and add
-function addRenderTargets<N>(
+function getSourcesAndNodes<N>(
   utils: UtilsInterface<N>,
   delta: DeltaTargets,
   render: Render<N>,
@@ -116,23 +116,26 @@ function addRenderTargets<N>(
     descendants: [],
     parentId,
   });
-  render.results.push(createRenderResult(utils, source));
+  render.results.push(undefined);
 
   let index = receipt;
   while (index < render.sources.length - 1) {
     const node = render.nodes[index];
-    const result = render.results[index];
     const source = render.sources[index];
 
     // if draw and build, create and add descendant nodes
-    if (source instanceof Draw && result instanceof Build) {
-      for (const descendant of result.descendants) {
+    let builder;
+    if (source instanceof Draw) {
+    	builder = utils.getBuilder(source.templateStrings);
+    }
+
+    if (source instanceof Draw && builder !== undefined) {
+      for (const descendant of builder.descendants) {
         // add source and descendant to render
         const { index } = descendant;
         const descSource = source.injections[index];
         render.sources.push(descSource);
-        const descResult = createRenderResult(utils, descSource);
-        render.results.push(descResult);
+        render.results.push(undefined);
 
         // add descendant to parent
         const receipt = render.sources.length - 1;
@@ -153,7 +156,7 @@ function addRenderTargets<N>(
   return receipt;
 }
 
-
+/*
 function diffRootNodes<N>(
 	utils: UtilsInterface<N>,
 	targets: DeltaTargets,
@@ -170,6 +173,13 @@ function diffRootNodes<N>(
   	const curr = sources[index];
   	if (compareSources(prev, curr)) {
   		// copy and update
+  		render.sources.push(curr);
+  		render.results.push(prevRender.results[index]);
+  		render.nodes.push({
+  			id: index,
+  			parentId: -1,
+  			descendants: [],
+  		});
   		targets.survivedIndexes.push(index);
   		targets.survivedRenderIndexes.push(index);
   		continue;
@@ -188,7 +198,6 @@ function diffRootNodes<N>(
   		-1,
   		curr,
   	);
-  	
   }
   
   // if prevSources longer than curr, remove prevRenders
@@ -208,11 +217,13 @@ function diffRootNodes<N>(
 				targets,
 				render,
 				-1,
-				curr,
+				sources[addedIndex],
 			);
 		}
   }
 }
+
+*/
 
 
 // first node should be the root node
@@ -223,6 +234,26 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
+  // sources are the template or the node, those will always change
+  
+  // compare a previous render to a current render
+  
+  // either way a sketch of what must be build should be created
+  //
+  // iterate through sources regardless, the render result will be 'undefined'
+  // but a space in the array will be preserved
+  //
+  // then there is a space to mark for addition and deletion
+  // deletion has to do with the previous renders, clean up, removal of properties
+  //
+  // addition involves the current drawn sources
+  // no previous id
+  //
+  // this becomes about moving cursors through an iteration
+  // that's it
+  // that's what i want.
+  //
+  // i need to build a new source to comapre the old one to the new one.
   const render: Render<N> = {
   	rootLength: sources.length - 1,
     results: [],
@@ -237,11 +268,21 @@ function diff<N>(
   	survivedRenderIndexes: [],
   };
   
+
+	// get sources
+	// getSourcesAndNodes(render, sources);
+
+
+  
+  // can build through template or node once
+  
+  // then diffing can happen and renders can be either built or copied
+  
   // big diff
   //
   
   // diff sources and prevRender sources
-  diffRootNodes(utils, targets, sources, render, prevRender);
+  //diffRootNodes(utils, targets, sources, render, prevRender);
   
   // add more diff-ed nodes
   //
