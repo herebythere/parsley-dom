@@ -84,22 +84,46 @@ function createRenderResult<N>(
 function findRemovalTargets<N>(
   delta: DeltaTargets,
   render: Render<N>,
-  sourceId: number,
+  sourceIndex: number,
 ) {
-	delta.removedIndexes.push(sourceId);
+	delta.removedIndexes.push(sourceIndex);
 	
 	let index = delta.removedIndexes.length - 1;
 	while (index < delta.removedIndexes.length) {
-		const nodeId = delta.removedIndexes[index];
+		const nodeIndex = delta.removedIndexes[index];
 		
-		const node = render.nodes[nodeId]
-		for (const descendantId of node.descendants) {
-			delta.removedIndexes.push(descendantId);
+		const node = render.nodes[nodeIndex]
+		for (const descIndex of node.descendants) {
+			delta.removedIndexes.push(descIndex);
 		}
 	
 		index += 1;
 	}
 }
+
+// mark prev render for removal
+// really only need to mark top nodes
+// remove through node iteration
+function findAdditionTargets<N>(
+  delta: DeltaTargets,
+  render: Render<N>,
+  sourceIndex: number,
+) {
+	delta.addedIndexes.push(sourceIndex);
+	
+	let index = delta.addedIndexes.length - 1;
+	while (index < delta.addedIndexes.length) {
+		const nodeIndex = delta.addedIndexes[index];
+		
+		const node = render.nodes[nodeIndex]
+		for (const descIndex of node.descendants) {
+			delta.addedIndexes.push(descIndex);
+		}
+	
+		index += 1;
+	}
+}
+
 
 function adoptPrevNodes<N>(
   delta: DeltaTargets,
@@ -119,7 +143,9 @@ function adoptPrevNodes<N>(
 		}
 		
 		// findRemovalTargets
+		findRemovalTargets(delta, render, index);
 		// addCreationTargets
+		findAdditionTargets(delta, render, index);
 	}
 	
 	if (prevRender.rootLength > minLength) {
@@ -168,7 +194,9 @@ function adoptPrevNodes<N>(
 				}
 				
 				// add for removal from prev
+				findRemovalTargets(delta, render, prevDescIndex);
 				// add new nodes to curr
+				findAdditionTargets(delta, render, currDescIndex);
 			}
 		}
 		
@@ -236,6 +264,7 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
+  // create required structures
   const render: Render<N> = {
   	rootLength: sources.length - 1,
     results: [],
@@ -243,7 +272,7 @@ function diff<N>(
     nodes: [],
   };
   
-  const targets: DeltaTargets = {
+  const delta: DeltaTargets = {
   	addedIndexes: [],
   	removedIndexes: [],
     survivedIndexes: [],
@@ -251,20 +280,27 @@ function diff<N>(
   };
   
 
-	// get sources
-	// getSourcesAndNodes(render, sources);
-
-	if (prevRender !== undefined) {
-		// borrowAndCreateBuilds
-	} else {
-		// createBuilds
+	// build sources
+	createNodesFromSources(utils, render, sources);
+	
+	if (prevRender === undefined) {
+		for (let index = 0; index < render.rootLength; index++) {
+			findAdditionTargets(delta, render, index);
+		}
 	}
 	
+	// diff check top down subsequent renders
+	if (prevRender) {
+		adoptPrevNodes(delta, render, prevRender);
+	}
+	
+	
 	// remove properties from prev render
+	// iterate through removed nodes and remove properties
 	
 	// unmount builds top down
 	
-	// mount renders, top down
+	// mount renders, top down (event directions go up, on "connected")
 	
 	// add or update properties
 

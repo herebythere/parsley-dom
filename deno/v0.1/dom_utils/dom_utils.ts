@@ -65,8 +65,6 @@ class DOMUtils implements UtilsInterface<Node> {
   	if (builder !== undefined) {
   		return builder;
   	}
-
-		
   }
 }
 
