@@ -59,7 +59,7 @@ class DOMUtils {
     getBuilder(template) {
         const builder = builderCache.get(template);
         if (builder !== undefined) {
-            return builderCache.get(template);
+            return builder;
         }
     }
 }
@@ -561,6 +561,7 @@ function diff(utils, sources, parentNode, leftNode, prevRender) {
         sources: [],
         nodes: []
     };
+    if (prevRender !== undefined) {} else {}
     return render;
 }
 class Hangar {

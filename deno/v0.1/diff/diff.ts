@@ -101,135 +101,132 @@ function findRemovalTargets<N>(
 	}
 }
 
-// create renders and add
-function getSourcesAndNodes<N>(
-  utils: UtilsInterface<N>,
+function adoptPrevNodes<N>(
   delta: DeltaTargets,
   render: Render<N>,
-  sources: unknown[],
-  parentId: number,
-): number {
-	const receipt = render.sources.length - 1;
+  prevRender: Render<N>,
+) {
+	// do the root nodes
+	//
+	const minLength = Math.min(render.rootLength, prevRender.rootLength);
+	for (let index = 0; index < minLength; index++) {
+		const prev = prevRender.sources[index];
+		const curr = render.sources[index];
+		if (compareSources(prev, curr)) {
+			delta.survivedIndexes.push(index)
+			delta.survivedRenderIndexes.push(index)
+			continue;
+		}
+		
+		// findRemovalTargets
+		// addCreationTargets
+	}
 	
+	if (prevRender.rootLength > minLength) {
+		for (let index = prevRender.rootLength; index < prevRender.rootLength; index++) {
+			// remove targets
+		}
+	}
+	
+	if (render.rootLength > minLength) {
+		for (let index = render.rootLength; index < render.rootLength; index++) {
+			// add targets
+		}
+	}
+	
+	// explore adopted nodes
+	let index = 0;
+	while (index < delta.survivedIndexes.length) {
+		// if adopted, the sources and renders are already equal
+		// if adopted, the source is only builds
+		//
+		// below is wrong
+		const prevIndex = delta.survivedIndexes[index];
+		const currIndex = delta.survivedRenderIndexes[index];
+		
+		const prevSource = prevRender.sources[prevIndex];
+		const currSource = render.sources[currIndex];
+		
+		// ts needs check for draws
+		if (prevSource instanceof Draw && currSource instanceof Draw) {
+			// get min
+			const prevNode = prevRender.nodes[prevIndex];
+			const currNode = render.nodes[currIndex];
+			
+			// if adopted, the sources and renders are already equal
+			for (let index = 0; index < prevNode.descendants.length; index++) {
+				const prevDescIndex = prevNode.descendants[index];
+				const currDescIndex = currNode.descendants[index];
+				
+				const prevDescSource = prevRender.sources[prevDescIndex];
+				const currDescSource = render.sources[currDescIndex];
+				
+				if (compareSources(prevDescSource, currDescSource)) {
+					delta.survivedRenderIndexes.push(prevDescIndex);
+					delta.survivedIndexes.push(currDescIndex);
+					continue;
+				}
+				
+				// add for removal from prev
+				// add new nodes to curr
+			}
+		}
+		
+		index += 1;
+	}
+}
+
+// create renders and add
+function createNodesFromSources<N>(
+  utils: UtilsInterface<N>,
+  render: Render<N>,
+  sources: unknown[],
+) {
 	for (const source of sources) {
 	  render.sources.push(source);
 		const receipt = render.sources.length - 1;
 		render.nodes.push({
 		  id: receipt,
 		  descendants: [],
-		  parentId,
+		  parentId: -1,
 		});
 		render.results.push(undefined);
 	}
 
-
-  let index = receipt;
-  while (index < render.sources.length - 1) {
+  let index = 0;
+  while (index < render.sources.length) {
     const node = render.nodes[index];
     const source = render.sources[index];
 
-    // if draw and build, create and add descendant nodes
-    let builder;
     if (source instanceof Draw) {
-    	builder = utils.getBuilder(source.templateStrings);
-    }
+      const builder = utils.getBuilder(source.templateStrings);
+      if (builder !== undefined) {
+		    for (const descendant of builder.descendants) {
 
-    if (source instanceof Draw && builder !== undefined) {
-      for (const descendant of builder.descendants) {
-        // add source and descendant to render
-        const { index } = descendant;
-        const descSource = source.injections[index];
-        render.sources.push(descSource);
-        render.results.push(undefined);
+		      const { index } = descendant;
+		      const descSource = source.injections[index];
+		      
+		      // add source and descendant to render
+		      render.sources.push(descSource);
+		      render.results.push(undefined);
 
-        // add descendant to parent
-        const receipt = render.sources.length - 1;
-        node.descendants.push(receipt);
+		      // add descendant index to parent
+		      const receipt = render.sources.length - 1;
+		      node.descendants.push(receipt);
 
-        // add node to stack
-        render.nodes.push({
-          id: receipt,
-          parentId: node.id,
-          descendants: [],
-        });
+		      // add node to stack
+		      render.nodes.push({
+		        id: receipt,
+		        parentId: node.id,
+		        descendants: [],
+		      });
+		    }
       }
     }
 
     index += 1;
   }
-
-  return receipt;
 }
-
-/*
-function diffRootNodes<N>(
-	utils: UtilsInterface<N>,
-	targets: DeltaTargets,
-  sources: RenderSource<N>[],
-  render: Render<N>,
-  prevRender?: Render<N>,
-) {
-	// diff, add, remove
-	// could be own function
-  const minLength = Math.min(sources.length, prevRender?.rootLength ?? 0);
-  for (let index = 0; index < minLength; index++) {
-  	// diff check
-  	const prev = prevRender?.sources[index];
-  	const curr = sources[index];
-  	if (compareSources(prev, curr)) {
-  		// copy and update
-  		render.sources.push(curr);
-  		render.results.push(prevRender.results[index]);
-  		render.nodes.push({
-  			id: index,
-  			parentId: -1,
-  			descendants: [],
-  		});
-  		targets.survivedIndexes.push(index);
-  		targets.survivedRenderIndexes.push(index);
-  		continue;
-  	}
-  	
-  	// mark for removal
-  	if (prevRender) {
-  	  findRemovalTargets(targets, prevRender, index);
-  	}
-
-  	// add nodes
-  	addRenderTargets(
-  		utils,
-  		targets,
-  		render,
-  		-1,
-  		curr,
-  	);
-  }
-  
-  // if prevSources longer than curr, remove prevRenders
-  if (prevRender && minLength < prevRender.rootLength) {
-  	for (let removedIndex = minLength; removedIndex < minLength; removedIndex++) {
-			// remove stuff
-  		findRemovalTargets(targets, prevRender, removedIndex);
-  	}
-  }
-  
-  if (minLength < sources.length) {
-    for (let addedIndex = minLength; addedIndex < sources.length; addedIndex++) {
-  		// add nodes
-  		//
-  		addRenderTargets(
-				utils,
-				targets,
-				render,
-				-1,
-				sources[addedIndex],
-			);
-		}
-  }
-}
-
-*/
-
 
 // first node should be the root node
 function diff<N>(
@@ -239,26 +236,6 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
-  // sources are the template or the node, those will always change
-  
-  // compare a previous render to a current render
-  
-  // either way a sketch of what must be build should be created
-  //
-  // iterate through sources regardless, the render result will be 'undefined'
-  // but a space in the array will be preserved
-  //
-  // then there is a space to mark for addition and deletion
-  // deletion has to do with the previous renders, clean up, removal of properties
-  //
-  // addition involves the current drawn sources
-  // no previous id
-  //
-  // this becomes about moving cursors through an iteration
-  // that's it
-  // that's what i want.
-  //
-  // i need to build a new source to comapre the old one to the new one.
   const render: Render<N> = {
   	rootLength: sources.length - 1,
     results: [],
@@ -277,33 +254,20 @@ function diff<N>(
 	// get sources
 	// getSourcesAndNodes(render, sources);
 
-
-  
-  // can build through template or node once
-  
-  // then diffing can happen and renders can be either built or copied
-  
-  // big diff
-  //
-  
-  // diff sources and prevRender sources
-  //diffRootNodes(utils, targets, sources, render, prevRender);
-  
-  // add more diff-ed nodes
-  //
-  
-	// remove nodes
-  //
-  
-  // add nodes
-  //
-  
-  // remove injected properties from nodes
-  //
-  
-	// add properties to new nodes
-	//
+	if (prevRender !== undefined) {
+		// borrowAndCreateBuilds
+	} else {
+		// createBuilds
+	}
 	
+	// remove properties from prev render
+	
+	// unmount builds top down
+	
+	// mount renders, top down
+	
+	// add or update properties
+
 	return render;
 }
 
