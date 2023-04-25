@@ -290,6 +290,24 @@ function mountNewNodes<N>(
 	leftNode?: N,
 ) {
 	// insert roots
+	// while addedIndexes < delta.rootLength
+	//   get left node
+	// 
+	
+	let index = 0;
+	let addedIndex = delta.addedIndexes[index];
+	let left = leftNode;
+	while (addedIndex < render.root) {
+		const node = render.results[addedIndex];
+		const leftResult = render.results[addedIndex - 1]);
+		left = getRightNode(leftResult);
+		
+		// insert node or nodes
+		utils.insertNode(node, parentNode, left);
+		
+		index += 1;
+		addedIndex = delta.addedIndexes[index]
+	}
 	
 	// mount descendants
 	for (let index = 0; index < delta.addedIndexes.length; index++) {
@@ -353,10 +371,6 @@ function diff<N>(
 	//
 	//
 	
-	// remove properties from prev render (no need, no attributes added just yet)
-	// iterate through removed nodes and remove properties
-	//
-	
 	// iterate through removedIndexes
 	// get parent, remove parent and left
 	// 
@@ -369,6 +383,10 @@ function diff<N>(
 			leftNode,
 		);
 	}
+	
+	// remove properties from prev render (no need, no attributes added just yet)
+	// iterate through removed nodes and remove properties
+	//
 	
 	
 	// build
@@ -394,14 +412,13 @@ function diff<N>(
 		leftNode,
 	)
 	
-	// mount renders, top down (event directions go up, on "connected")
-	// start with sources and the left parent nodes
+	// diff old properties
 	//
-	// then do descendants
-	// grab parent node
-	// grab descendant
+	//
 	
-	// add or update properties
+	// add properties
+	//
+	//
 
 	return render;
 }
