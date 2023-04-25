@@ -19,8 +19,6 @@ const textNode = document.createTextNode("hello!");
 
 const textNodeComponent = () => textNode;
 
-const nodeArray = [textNodeComponent];
-
 // actual elements
 class TestComponent extends HTMLElement {
   hangar!: Hangar<Node, State>;
@@ -36,7 +34,7 @@ class TestComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
       this.hangar = new Hangar<Node, State>(
-        nodeArray,
+        textNodeComponent,
         this.shadowRoot,
       );
 

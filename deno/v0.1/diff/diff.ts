@@ -16,7 +16,7 @@ import { parse } from "../deps.ts";
 interface DeltaTargets {
 	addedIndexes: number[];
 	survivedIndexes: number[];
-	survivedRenderIndexes: number[];
+	prevSurvivedIndexes: number[];
 	removedIndexes: number[];
 }
 
@@ -81,7 +81,7 @@ function createRenderResult<N>(
 // mark prev render for removal
 // really only need to mark top nodes
 // remove through node iteration
-function findRemovalTargets<N>(
+function findRemovedTargets<N>(
   delta: DeltaTargets,
   render: Render<N>,
   sourceIndex: number,
@@ -104,7 +104,7 @@ function findRemovalTargets<N>(
 // mark prev render for removal
 // really only need to mark top nodes
 // remove through node iteration
-function findAdditionTargets<N>(
+function findAddedTargets<N>(
   delta: DeltaTargets,
   render: Render<N>,
   sourceIndex: number,
@@ -138,25 +138,27 @@ function adoptPrevNodes<N>(
 		const curr = render.sources[index];
 		if (compareSources(prev, curr)) {
 			delta.survivedIndexes.push(index)
-			delta.survivedRenderIndexes.push(index)
+			delta.prevSurvivedIndexes.push(index)
 			continue;
 		}
 		
-		// findRemovalTargets
-		findRemovalTargets(delta, render, index);
+		// findRemovedTargets
+		findRemovedTargets(delta, render, index);
 		// addCreationTargets
-		findAdditionTargets(delta, render, index);
+		findAddedTargets(delta, render, index);
 	}
 	
 	if (prevRender.rootLength > minLength) {
 		for (let index = prevRender.rootLength; index < prevRender.rootLength; index++) {
 			// remove targets
+			findRemovedTargets(delta, render, index);
 		}
 	}
 	
 	if (render.rootLength > minLength) {
 		for (let index = render.rootLength; index < render.rootLength; index++) {
 			// add targets
+			findAddedTargets(delta, render, index);
 		}
 	}
 	
@@ -166,38 +168,30 @@ function adoptPrevNodes<N>(
 		// if adopted, the sources and renders are already equal
 		// if adopted, the source is only builds
 		//
-		// below is wrong
-		const prevIndex = delta.survivedIndexes[index];
-		const currIndex = delta.survivedRenderIndexes[index];
+		const prevIndex = delta.prevSurvivedIndexes[index];
+		const currIndex = delta.survivedIndexes[index];
 		
-		const prevSource = prevRender.sources[prevIndex];
-		const currSource = render.sources[currIndex];
+		const prevNode = prevRender.nodes[prevIndex];
+		const currNode = render.nodes[currIndex];
 		
-		// ts needs check for draws
-		if (prevSource instanceof Draw && currSource instanceof Draw) {
-			// get min
-			const prevNode = prevRender.nodes[prevIndex];
-			const currNode = render.nodes[currIndex];
+		// if adopted, the sources and renders are already equal
+		for (let index = 0; index < prevNode.descendants.length; index++) {
+			const prevDescIndex = prevNode.descendants[index];
+			const currDescIndex = currNode.descendants[index];
 			
-			// if adopted, the sources and renders are already equal
-			for (let index = 0; index < prevNode.descendants.length; index++) {
-				const prevDescIndex = prevNode.descendants[index];
-				const currDescIndex = currNode.descendants[index];
-				
-				const prevDescSource = prevRender.sources[prevDescIndex];
-				const currDescSource = render.sources[currDescIndex];
-				
-				if (compareSources(prevDescSource, currDescSource)) {
-					delta.survivedRenderIndexes.push(prevDescIndex);
-					delta.survivedIndexes.push(currDescIndex);
-					continue;
-				}
-				
-				// add for removal from prev
-				findRemovalTargets(delta, render, prevDescIndex);
-				// add new nodes to curr
-				findAdditionTargets(delta, render, currDescIndex);
+			const prevDescSource = prevRender.sources[prevDescIndex];
+			const currDescSource = render.sources[currDescIndex];
+			
+			if (compareSources(prevDescSource, currDescSource)) {
+				delta.prevSurvivedIndexes.push(prevDescIndex);
+				delta.survivedIndexes.push(currDescIndex);
+				continue;
 			}
+			
+			// add for removal from prev
+			findRemovedTargets(delta, render, prevDescIndex);
+			// add new nodes to curr
+			findAddedTargets(delta, render, currDescIndex);
 		}
 		
 		index += 1;
@@ -230,24 +224,20 @@ function createNodesFromSources<N>(
       const builder = utils.getBuilder(source.templateStrings);
       if (builder !== undefined) {
 		    for (const descendant of builder.descendants) {
-
 		      const { index } = descendant;
 		      const descSource = source.injections[index];
 		      
 		      // add source and descendant to render
 		      render.sources.push(descSource);
-		      render.results.push(undefined);
-
-		      // add descendant index to parent
 		      const receipt = render.sources.length - 1;
-		      node.descendants.push(receipt);
-
-		      // add node to stack
+		      // add descendant index to parent
 		      render.nodes.push({
 		        id: receipt,
 		        parentId: node.id,
 		        descendants: [],
 		      });
+		      render.results.push(undefined);
+		      node.descendants.push(receipt);
 		    }
       }
     }
@@ -255,6 +245,63 @@ function createNodesFromSources<N>(
     index += 1;
   }
 }
+
+function adoptBuilds<N>(
+	delta: DeltaTargets,
+	render: Render<N>,
+	prevRender: Render<N>,
+) {
+	for (let index = 0; index < delta.survivedIndexes.length; index++) {
+		const prevIndex = delta.prevSurvivedIndexes[index];
+		const currIndex = delta.survivedIndexes[index];
+		
+		const result = prevRender.results[prevIndex];
+		render.results[currIndex] = result;
+	}
+}
+
+function createNewBuilds<N>(
+	utils: UtilsInterface<N>,
+	delta: DeltaTargets,
+	render: Render<N>,
+) {
+	for (const index of delta.addedIndexes) {
+		const source = render.sources[index];
+		const result = createRenderResult(utils, source);
+		render.results[index] = result;
+	}
+}
+
+function unmountPrevNodes<N>(
+	utils: UtilsInterface<N>,
+	delta: DeltaTargets,
+	prevRender: Render<N>,
+	parentNode: N,
+	leftNode?: N,
+) {
+
+}
+
+function mountNewNodes<N>(
+	utils: UtilsInterface<N>,
+	delta: DeltaTargets,
+	render: Render<N>,
+	parentNode: N,
+	leftNode?: N,
+) {
+	// insert roots
+	
+	// mount descendants
+	for (let index = 0; index < delta.addedIndexes.length; index++) {
+		const node = render.nodes[index];
+		const result = render.results[index];
+		
+		for (const descIndex of node.descendants) {
+			
+		}
+	}
+}
+
 
 // first node should be the root node
 function diff<N>(
@@ -265,6 +312,9 @@ function diff<N>(
   prevRender?: Render<N>,
 ): Render<N> {
   // create required structures
+  //
+  //
+  
   const render: Render<N> = {
   	rootLength: sources.length - 1,
     results: [],
@@ -276,31 +326,80 @@ function diff<N>(
   	addedIndexes: [],
   	removedIndexes: [],
     survivedIndexes: [],
-  	survivedRenderIndexes: [],
+  	prevSurvivedIndexes: [],
   };
   
 
-	// build sources
+	// create sources
+	//
+	//
 	createNodesFromSources(utils, render, sources);
 	
-	if (prevRender === undefined) {
-		for (let index = 0; index < render.rootLength; index++) {
-			findAdditionTargets(delta, render, index);
-		}
-	}
 	
-	// diff check top down subsequent renders
-	if (prevRender) {
+	// diff check
+	//
+	if (prevRender !== undefined) {
 		adoptPrevNodes(delta, render, prevRender);
 	}
 	
+	if (prevRender === undefined) {
+		for (let index = 0; index < render.rootLength; index++) {
+			findAddedTargets(delta, render, index);
+		}
+	}
 	
-	// remove properties from prev render
+	
+	// clean up
+	//
+	//
+	
+	// remove properties from prev render (no need, no attributes added just yet)
 	// iterate through removed nodes and remove properties
+	//
 	
-	// unmount builds top down
+	// iterate through removedIndexes
+	// get parent, remove parent and left
+	// 
+	if (prevRender !== undefined) {
+		unmountPrevNodes(
+			utils,
+			delta,
+			prevRender,
+			parentNode,
+			leftNode,
+		);
+	}
+	
+	
+	// build
+	//	
+	if (prevRender === undefined) {
+		createNewBuilds(utils, delta, render);
+	}
+	
+	if (prevRender !== undefined) {
+		adoptBuilds(delta, render, prevRender);
+	}
+
+	
+	// mount
+	//	survived nodes exist top down, only need to mount
+	//
+
+	mountNewNodes(
+		utils,
+		delta,
+		render,
+		parentNode,
+		leftNode,
+	)
 	
 	// mount renders, top down (event directions go up, on "connected")
+	// start with sources and the left parent nodes
+	//
+	// then do descendants
+	// grab parent node
+	// grab descendant
 	
 	// add or update properties
 
