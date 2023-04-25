@@ -81,43 +81,20 @@ function createRenderResult<N>(
 // mark prev render for removal
 // really only need to mark top nodes
 // remove through node iteration
-function findRemovedTargets<N>(
-  delta: DeltaTargets,
+function findTargets<N>(
+  targets: number[],
   render: Render<N>,
   sourceIndex: number,
 ) {
-	delta.removedIndexes.push(sourceIndex);
+	targets.push(sourceIndex);
 	
-	let index = delta.removedIndexes.length - 1;
-	while (index < delta.removedIndexes.length) {
-		const nodeIndex = delta.removedIndexes[index];
+	let index = targets.length - 1;
+	while (index < targets.length) {
+		const nodeIndex = targets[index];
 		
 		const node = render.nodes[nodeIndex]
 		for (const descIndex of node.descendants) {
-			delta.removedIndexes.push(descIndex);
-		}
-	
-		index += 1;
-	}
-}
-
-// mark prev render for removal
-// really only need to mark top nodes
-// remove through node iteration
-function findAddedTargets<N>(
-  delta: DeltaTargets,
-  render: Render<N>,
-  sourceIndex: number,
-) {
-	delta.addedIndexes.push(sourceIndex);
-	
-	let index = delta.addedIndexes.length - 1;
-	while (index < delta.addedIndexes.length) {
-		const nodeIndex = delta.addedIndexes[index];
-		
-		const node = render.nodes[nodeIndex]
-		for (const descIndex of node.descendants) {
-			delta.addedIndexes.push(descIndex);
+			targets.push(descIndex);
 		}
 	
 		index += 1;
@@ -130,40 +107,23 @@ function adoptPrevNodes<N>(
   render: Render<N>,
   prevRender: Render<N>,
 ) {
-	// do the root nodes
-	//
-	const minLength = Math.min(render.rootLength, prevRender.rootLength);
-	for (let index = 0; index < minLength; index++) {
-		const prev = prevRender.sources[index];
-		const curr = render.sources[index];
-		if (compareSources(prev, curr)) {
-			delta.survivedIndexes.push(index)
-			delta.prevSurvivedIndexes.push(index)
-			continue;
-		}
-		
+	// compare root nodes
+	let index = 0;
+
+	const prev = prevRender.sources[index];
+	const curr = render.sources[index];
+	if (!compareSources(prev, curr)) {
 		// findRemovedTargets
-		findRemovedTargets(delta, render, index);
+		findTargets(delta.removedIndexes, render, index);
 		// addCreationTargets
-		findAddedTargets(delta, render, index);
-	}
-	
-	if (prevRender.rootLength > minLength) {
-		for (let index = prevRender.rootLength; index < prevRender.rootLength; index++) {
-			// remove targets
-			findRemovedTargets(delta, render, index);
-		}
-	}
-	
-	if (render.rootLength > minLength) {
-		for (let index = render.rootLength; index < render.rootLength; index++) {
-			// add targets
-			findAddedTargets(delta, render, index);
-		}
+		findTargets(delta.addedIndexes, render, index);
+		return;
 	}
 	
 	// explore adopted nodes
-	let index = 0;
+	delta.survivedIndexes.push(index);
+	delta.prevSurvivedIndexes.push(index);
+	
 	while (index < delta.survivedIndexes.length) {
 		// if adopted, the sources and renders are already equal
 		// if adopted, the source is only builds
@@ -188,10 +148,8 @@ function adoptPrevNodes<N>(
 				continue;
 			}
 			
-			// add for removal from prev
-			findRemovedTargets(delta, render, prevDescIndex);
-			// add new nodes to curr
-			findAddedTargets(delta, render, currDescIndex);
+			findTargets(delta.removedIndexes, render, prevDescIndex);
+			findTargets(delta.addedIndexes, render, currDescIndex);
 		}
 		
 		index += 1;
@@ -199,22 +157,10 @@ function adoptPrevNodes<N>(
 }
 
 // create renders and add
-function createNodesFromSources<N>(
+function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
-  sources: unknown[],
 ) {
-	for (const source of sources) {
-	  render.sources.push(source);
-		const receipt = render.sources.length - 1;
-		render.nodes.push({
-		  id: receipt,
-		  descendants: [],
-		  parentId: -1,
-		});
-		render.results.push(undefined);
-	}
-
   let index = 0;
   while (index < render.sources.length) {
     const node = render.nodes[index];
@@ -230,14 +176,13 @@ function createNodesFromSources<N>(
 		      // add source and descendant to render
 		      render.sources.push(descSource);
 		      const receipt = render.sources.length - 1;
-		      // add descendant index to parent
+		      node.descendants.push(receipt);
 		      render.nodes.push({
 		        id: receipt,
 		        parentId: node.id,
 		        descendants: [],
 		      });
 		      render.results.push(undefined);
-		      node.descendants.push(receipt);
 		    }
       }
     }
@@ -289,26 +234,6 @@ function mountNewNodes<N>(
 	parentNode: N,
 	leftNode?: N,
 ) {
-	// insert roots
-	// while addedIndexes < delta.rootLength
-	//   get left node
-	// 
-	
-	let index = 0;
-	let addedIndex = delta.addedIndexes[index];
-	let left = leftNode;
-	while (addedIndex < render.root) {
-		const node = render.results[addedIndex];
-		const leftResult = render.results[addedIndex - 1]);
-		left = getRightNode(leftResult);
-		
-		// insert node or nodes
-		utils.insertNode(node, parentNode, left);
-		
-		index += 1;
-		addedIndex = delta.addedIndexes[index]
-	}
-	
 	// mount descendants
 	for (let index = 0; index < delta.addedIndexes.length; index++) {
 		const node = render.nodes[index];
@@ -324,20 +249,19 @@ function mountNewNodes<N>(
 // first node should be the root node
 function diff<N>(
   utils: UtilsInterface<N>,
-  sources: RenderSource<N>[],
+  source: RenderSource<N>,
   parentNode: N,
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
-  // create required structures
-  //
-  //
-  
   const render: Render<N> = {
-  	rootLength: sources.length - 1,
-    results: [],
-    sources: [],
-    nodes: [],
+    results: [undefined],
+    sources: [source],
+    nodes: [{
+			id: 0,
+			descendants: [],
+			parentId: -1,
+		}],
   };
   
   const delta: DeltaTargets = {
@@ -346,12 +270,11 @@ function diff<N>(
     survivedIndexes: [],
   	prevSurvivedIndexes: [],
   };
-  
 
 	// create sources
 	//
 	//
-	createNodesFromSources(utils, render, sources);
+	createNodesFromSource(utils, render);
 	
 	
 	// diff check
@@ -361,9 +284,7 @@ function diff<N>(
 	}
 	
 	if (prevRender === undefined) {
-		for (let index = 0; index < render.rootLength; index++) {
-			findAddedTargets(delta, render, index);
-		}
+		findTargets(delta.addedIndexes, render, 0);
 	}
 	
 	

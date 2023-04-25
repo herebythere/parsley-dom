@@ -667,62 +667,37 @@ function createRenderResult(utils, source) {
     }
     return utils.getIfNode(source) ?? utils.createTextNode(source);
 }
-function findRemovedTargets(delta, render, sourceIndex) {
-    delta.removedIndexes.push(sourceIndex);
-    let index = delta.removedIndexes.length - 1;
-    while(index < delta.removedIndexes.length){
-        const nodeIndex = delta.removedIndexes[index];
+function findTargets(targets, render, sourceIndex) {
+    targets.push(sourceIndex);
+    let index = targets.length - 1;
+    while(index < targets.length){
+        const nodeIndex = targets[index];
         const node = render.nodes[nodeIndex];
         for (const descIndex of node.descendants){
-            delta.removedIndexes.push(descIndex);
-        }
-        index += 1;
-    }
-}
-function findAddedTargets(delta, render, sourceIndex) {
-    delta.addedIndexes.push(sourceIndex);
-    let index = delta.addedIndexes.length - 1;
-    while(index < delta.addedIndexes.length){
-        const nodeIndex = delta.addedIndexes[index];
-        const node = render.nodes[nodeIndex];
-        for (const descIndex of node.descendants){
-            delta.addedIndexes.push(descIndex);
+            targets.push(descIndex);
         }
         index += 1;
     }
 }
 function adoptPrevNodes(delta, render, prevRender) {
-    const minLength = Math.min(render.rootLength, prevRender.rootLength);
-    for(let index = 0; index < minLength; index++){
-        const prev = prevRender.sources[index];
-        const curr = render.sources[index];
-        if (compareSources(prev, curr)) {
-            delta.survivedIndexes.push(index);
-            delta.prevSurvivedIndexes.push(index);
-            continue;
-        }
-        findRemovedTargets(delta, render, index);
-        findAddedTargets(delta, render, index);
+    let index = 0;
+    const prev = prevRender.sources[index];
+    const curr = render.sources[index];
+    if (!compareSources(prev, curr)) {
+        findTargets(delta.removedIndexes, render, index);
+        findTargets(delta.addedIndexes, render, index);
+        return;
     }
-    if (prevRender.rootLength > minLength) {
-        for(let index1 = prevRender.rootLength; index1 < prevRender.rootLength; index1++){
-            findRemovedTargets(delta, render, index1);
-        }
-    }
-    if (render.rootLength > minLength) {
-        for(let index2 = render.rootLength; index2 < render.rootLength; index2++){
-            findAddedTargets(delta, render, index2);
-        }
-    }
-    let index3 = 0;
-    while(index3 < delta.survivedIndexes.length){
-        const prevIndex = delta.prevSurvivedIndexes[index3];
-        const currIndex = delta.survivedIndexes[index3];
+    delta.survivedIndexes.push(index);
+    delta.prevSurvivedIndexes.push(index);
+    while(index < delta.survivedIndexes.length){
+        const prevIndex = delta.prevSurvivedIndexes[index];
+        const currIndex = delta.survivedIndexes[index];
         const prevNode = prevRender.nodes[prevIndex];
         const currNode = render.nodes[currIndex];
-        for(let index4 = 0; index4 < prevNode.descendants.length; index4++){
-            const prevDescIndex = prevNode.descendants[index4];
-            const currDescIndex = currNode.descendants[index4];
+        for(let index1 = 0; index1 < prevNode.descendants.length; index1++){
+            const prevDescIndex = prevNode.descendants[index1];
+            const currDescIndex = currNode.descendants[index1];
             const prevDescSource = prevRender.sources[prevDescIndex];
             const currDescSource = render.sources[currDescIndex];
             if (compareSources(prevDescSource, currDescSource)) {
@@ -730,42 +705,32 @@ function adoptPrevNodes(delta, render, prevRender) {
                 delta.survivedIndexes.push(currDescIndex);
                 continue;
             }
-            findRemovedTargets(delta, render, prevDescIndex);
-            findAddedTargets(delta, render, currDescIndex);
+            findTargets(delta.removedIndexes, render, prevDescIndex);
+            findTargets(delta.addedIndexes, render, currDescIndex);
         }
-        index3 += 1;
+        index += 1;
     }
 }
-function createNodesFromSources(utils, render, sources) {
-    for (const source of sources){
-        render.sources.push(source);
-        const receipt = render.sources.length - 1;
-        render.nodes.push({
-            id: receipt,
-            descendants: [],
-            parentId: -1
-        });
-        render.results.push(undefined);
-    }
+function createNodesFromSource(utils, render) {
     let index = 0;
     while(index < render.sources.length){
         const node = render.nodes[index];
-        const source1 = render.sources[index];
-        if (source1 instanceof Draw) {
-            const builder = utils.getBuilder(source1.templateStrings);
+        const source = render.sources[index];
+        if (source instanceof Draw) {
+            const builder = utils.getBuilder(source.templateStrings);
             if (builder !== undefined) {
                 for (const descendant of builder.descendants){
                     const { index: index1  } = descendant;
-                    const descSource = source1.injections[index1];
+                    const descSource = source.injections[index1];
                     render.sources.push(descSource);
-                    const receipt1 = render.sources.length - 1;
+                    const receipt = render.sources.length - 1;
+                    node.descendants.push(receipt);
                     render.nodes.push({
-                        id: receipt1,
+                        id: receipt,
                         parentId: node.id,
                         descendants: []
                     });
                     render.results.push(undefined);
-                    node.descendants.push(receipt1);
                 }
             }
         }
@@ -795,12 +760,21 @@ function mountNewNodes(utils, delta, render, parentNode, leftNode) {
         for (const descIndex of node.descendants){}
     }
 }
-function diff(utils, sources, parentNode, leftNode, prevRender) {
+function diff(utils, source, parentNode, leftNode, prevRender) {
     const render = {
-        rootLength: sources.length - 1,
-        results: [],
-        sources: [],
-        nodes: []
+        results: [
+            undefined
+        ],
+        sources: [
+            source
+        ],
+        nodes: [
+            {
+                id: 0,
+                descendants: [],
+                parentId: -1
+            }
+        ]
     };
     const delta = {
         addedIndexes: [],
@@ -808,14 +782,12 @@ function diff(utils, sources, parentNode, leftNode, prevRender) {
         survivedIndexes: [],
         prevSurvivedIndexes: []
     };
-    createNodesFromSources(utils, render, sources);
+    createNodesFromSource(utils, render);
     if (prevRender !== undefined) {
         adoptPrevNodes(delta, render, prevRender);
     }
     if (prevRender === undefined) {
-        for(let index = 0; index < render.rootLength; index++){
-            findAddedTargets(delta, render, index);
-        }
+        findTargets(delta.addedIndexes, render, 0);
     }
     if (prevRender !== undefined) {
         unmountPrevNodes(utils, delta, prevRender, parentNode, leftNode);
@@ -830,22 +802,18 @@ function diff(utils, sources, parentNode, leftNode, prevRender) {
     return render;
 }
 class Hangar {
-    renderFuncs;
+    renderFunc;
     parentNode;
     leftNode;
     render;
-    constructor(renderFuncs, parentNode, leftNode){
-        this.renderFuncs = renderFuncs;
+    constructor(renderFunc, parentNode, leftNode){
+        this.renderFunc = renderFunc;
         this.parentNode = parentNode;
         this.leftNode = leftNode;
     }
     update(utils, state) {
-        let renderSources = [];
-        for (const func of this.renderFuncs){
-            renderSources.push(func(state));
-        }
-        const render = diff(utils, renderSources, this.parentNode, this.leftNode, this.render);
-        this.render = render;
+        const source = this.renderFunc(state);
+        this.render = diff(utils, source, this.parentNode, this.leftNode, this.render);
     }
 }
 export { draw as draw };
