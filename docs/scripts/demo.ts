@@ -52,14 +52,14 @@ class TestComponent extends HTMLElement {
   update() {
     this.hangar.update(domutils, this);
   }
-  
+
   updateAsync() {
-  	queueMicrotask(this.microTaskSentinel);
+    queueMicrotask(this.microTaskSentinel);
   }
-  
+
   microTaskSentinel = () => {
-  	this.hangar.update(domutils, this);
-  }
+    this.hangar.update(domutils, this);
+  };
 }
 
 customElements.define("test-component", TestComponent);

@@ -22,7 +22,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   }
 
   update(utils: UtilsInterface<N>, state: S) {
-		const source = this.renderFunc(state)
+    const source = this.renderFunc(state);
     this.render = diff(
       utils,
       source,
