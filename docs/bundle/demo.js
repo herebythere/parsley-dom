@@ -850,12 +850,19 @@ function createNodesFromSource(utils, render, source) {
         index += 1;
     }
 }
-function createRender(source, parentNode) {
-    const node = {
-        id: 0,
-        parentId: -1,
+function addSourceToRender(render, source, parentId) {
+    render.sources.push(source);
+    const id = render.sources.length - 1;
+    render.nodes.push({
+        id,
+        parentId,
         descendants: []
-    };
+    });
+    const node = render.nodes[parentId];
+    node.descendants.push(id);
+    render.results.push(undefined);
+}
+function createRender(source, parentNode) {
     const render = {
         results: [
             undefined
@@ -864,30 +871,20 @@ function createRender(source, parentNode) {
             parentNode
         ],
         nodes: [
-            node
+            {
+                id: 0,
+                parentId: -1,
+                descendants: []
+            }
         ]
     };
     if (Array.isArray(source)) {
         for (const chunk of source){
-            render.sources.push(chunk);
-            const id = render.sources.length - 1;
-            render.nodes.push({
-                id,
-                parentId: node.id,
-                descendants: []
-            });
-            render.results.push(undefined);
+            addSourceToRender(render, chunk, 0);
         }
         return render;
     }
-    render.sources.push(source);
-    const id1 = render.sources.length - 1;
-    render.nodes.push({
-        id: id1,
-        parentId: node.id,
-        descendants: []
-    });
-    render.results.push(undefined);
+    addSourceToRender(render, source, 0);
     return render;
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {

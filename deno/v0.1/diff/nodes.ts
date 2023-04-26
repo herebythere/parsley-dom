@@ -227,10 +227,48 @@ function createNodesFromSource<N>(
   }
 }
 
+function addSourceToRender<N>(
+  render: Render<N>,
+  source: RenderSource<N>,
+  parentId: number,
+) {
+  render.sources.push(source);
+  const id = render.sources.length - 1;
+  render.nodes.push({ id, parentId, descendants: [] });
+
+  const node = render.nodes[parentId];
+  node.descendants.push(id);
+  render.results.push(undefined);
+}
+
+function createRender<N>(
+  source: RenderSource<N>,
+  parentNode: N,
+) {
+  const render: Render<N> = {
+    results: [undefined],
+    sources: [parentNode],
+    nodes: [{ id: 0, parentId: -1, descendants: [] }],
+  };
+
+  if (Array.isArray(source)) {
+    for (const chunk of source) {
+      addSourceToRender(render, chunk, 0);
+    }
+
+    return render;
+  }
+
+  addSourceToRender(render, source, 0);
+
+  return render;
+}
+
 export {
   adoptBuilds,
   adoptNodes,
   createAddedBuilds,
   createNodesFromSource,
+  createRender,
   findTargets,
 };

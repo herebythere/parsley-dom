@@ -29,6 +29,7 @@ import {
   adoptNodes,
   createAddedBuilds,
   createNodesFromSource,
+  createRender,
   findTargets,
 } from "./nodes.ts";
 
@@ -44,36 +45,6 @@ import {
 // create added builds
 // adopt builds
 //
-
-function createRender<N>(
-  source: RenderSource<N>,
-  parentNode: N,
-) {
-  const node = { id: 0, parentId: -1, descendants: [] };
-  const render: Render<N> = {
-    results: [undefined],
-    sources: [parentNode],
-    nodes: [node],
-  };
-
-  if (Array.isArray(source)) {
-    for (const chunk of source) {
-      render.sources.push(chunk);
-      const id = render.sources.length - 1;
-      render.nodes.push({ id, parentId: node.id, descendants: [] });
-      render.results.push(undefined);
-    }
-
-    return render;
-  }
-
-  render.sources.push(source);
-  const id = render.sources.length - 1;
-  render.nodes.push({ id, parentId: node.id, descendants: [] });
-  render.results.push(undefined);
-
-  return render;
-}
 
 function diff<N>(
   utils: UtilsInterface<N>,
