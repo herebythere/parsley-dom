@@ -14,7 +14,7 @@ import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
-function mountResult<N>(
+function mountResultChunk<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,
   parent: N,
@@ -23,6 +23,7 @@ function mountResult<N>(
   const node = utils.getIfNode(result);
   if (node !== undefined) {
     utils.insertNode(node, parent, left);
+    return node;
   }
 
   if (result instanceof Build) {
@@ -31,7 +32,24 @@ function mountResult<N>(
       utils.insertNode(node, parent, leftNode);
       leftNode = node;
     }
+    return leftNode;
   }
+}
+
+function mountResult<N>(
+  utils: UtilsInterface<N>,
+  result: RenderResult<N>,
+  parent: N,
+  left?: N,
+) {
+  if (Array.isArray(result)) {
+    let leftNode = left;
+    for (const chunk of result) {
+      leftNode = mountResultChunk(utils, chunk, parent, leftNode);
+    }
+  }
+
+  mountResultChunk(utils, result, parent, left);
 }
 
 // we are adding all descendants to parent

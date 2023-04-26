@@ -30,6 +30,8 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       this.leftNode,
       this.render,
     );
+
+    console.log(this.render);
   }
 }
 

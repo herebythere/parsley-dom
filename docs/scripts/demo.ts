@@ -10,13 +10,13 @@ interface State {
 
 const textNode = document.createTextNode("hello!");
 
-const testNestedNode = () => {
-  return draw`<span>world</span>`;
+const testArray = () => {
+  return ["world", "what's", "good"];
 };
 
-const testNode = () => {
+const testNodeNested = () => {
   return draw`
-		<p>hello ${testNestedNode()}!</p>
+		<p>hello ${testArray()}!</p>
 	`;
 };
 
@@ -35,7 +35,7 @@ class TestComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
       this.hangar = new Hangar<Node, State>(
-        testNode,
+        testArray,
         this.shadowRoot,
       );
 

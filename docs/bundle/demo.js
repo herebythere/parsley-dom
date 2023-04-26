@@ -10,9 +10,6 @@ class Draw {
         this.injections = injections;
     }
 }
-function draw(templateStrings, ...injections) {
-    return new Draw(templateStrings, injections);
-}
 const builderCache = new Map();
 class DOMUtils {
     createNode(tagname) {
@@ -640,10 +637,11 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function mountResult(utils, result, parent, left) {
+function mountResultChunk(utils, result, parent, left) {
     const node = utils.getIfNode(result);
     if (node !== undefined) {
         utils.insertNode(node, parent, left);
+        return node;
     }
     if (result instanceof Build) {
         let leftNode = left;
@@ -651,7 +649,17 @@ function mountResult(utils, result, parent, left) {
             utils.insertNode(node1, parent, leftNode);
             leftNode = node1;
         }
+        return leftNode;
     }
+}
+function mountResult(utils, result, parent, left) {
+    if (Array.isArray(result)) {
+        let leftNode = left;
+        for (const chunk of result){
+            leftNode = mountResultChunk(utils, chunk, parent, leftNode);
+        }
+    }
+    mountResultChunk(utils, result, parent, left);
 }
 function mountResults(utils, delta, render, parent, left) {
     if (delta.addedIndexes.length === 0) return;
@@ -708,19 +716,6 @@ function unmountResults(utils, delta, render, parent, left) {
         }
     }
 }
-function createAddedBuilds(utils, delta, render) {
-    for (const index of delta.addedIndexes){
-        const source = render.sources[index];
-        let result = utils.getIfNode(source);
-        if (source instanceof Draw) {
-            result = getBuild(utils, source);
-        }
-        if (result === undefined && source !== undefined) {
-            result = utils.createTextNode(source);
-        }
-        render.results[index] = result;
-    }
-}
 function adoptBuilds(delta, render, prevRender) {
     for(let index = 0; index < delta.survivedIndexes.length; index++){
         const prevIndex = delta.prevSurvivedIndexes[index];
@@ -747,7 +742,26 @@ function getBuild(utils, draw) {
         return new Build(utils, builderData);
     }
 }
+function createAddedBuilds(utils, delta, render) {
+    for (const index of delta.addedIndexes){
+        const source = render.sources[index];
+        let result = utils.getIfNode(source);
+        if (source instanceof Draw) {
+            result = getBuild(utils, source);
+        }
+        if (result === undefined && source !== undefined) {
+            result = utils.createTextNode(source);
+        }
+    }
+}
 function compareSources(source, prevSource) {
+    if (Array.isArray(source) && Array.isArray(prevSource)) {
+        if (source.length !== prevSource.length) return false;
+        for(let index = 0; index < source.length; index++){
+            if (source[index] !== prevSource[index]) return false;
+        }
+        return true;
+    }
     if (source instanceof Draw && prevSource instanceof Draw) {
         return source.templateStrings === prevSource.templateStrings;
     }
@@ -797,24 +811,37 @@ function adoptNodes(delta, render, prevRender) {
         index += 1;
     }
 }
-function createNodesFromSource(utils, render) {
-    let index = 0;
+function createNodesFromSource(utils, render, source) {
+    let index = 1;
     while(index < render.sources.length){
+        const source1 = render.sources[index];
         const node = render.nodes[index];
-        const source = render.sources[index];
-        if (source instanceof Draw) {
-            let data = getBuilderData(utils, source.templateStrings);
+        if (Array.isArray(source1)) {
+            for (const chunk of source1){
+                render.sources.push(chunk);
+                const id = render.sources.length - 1;
+                node.descendants.push(id);
+                render.nodes.push({
+                    parentId: node.id,
+                    descendants: [],
+                    id
+                });
+                render.results.push(undefined);
+            }
+        }
+        if (source1 instanceof Draw) {
+            let data = getBuilderData(utils, source1.templateStrings);
             if (data !== undefined) {
                 for (const descendant of data.descendants){
                     const { index: index1  } = descendant;
-                    const descSource = source.injections[index1];
+                    const descSource = source1.injections[index1];
                     render.sources.push(descSource);
-                    const id = render.sources.length - 1;
-                    node.descendants.push(id);
+                    const id1 = render.sources.length - 1;
+                    node.descendants.push(id1);
                     render.nodes.push({
                         parentId: node.id,
                         descendants: [],
-                        id
+                        id: id1
                     });
                     render.results.push(undefined);
                 }
@@ -823,29 +850,55 @@ function createNodesFromSource(utils, render) {
         index += 1;
     }
 }
-function diff(utils, source, parentNode, leftNode, prevRender) {
+function createRender(source, parentNode) {
+    const node = {
+        id: 0,
+        parentId: -1,
+        descendants: []
+    };
     const render = {
         results: [
             undefined
         ],
         sources: [
-            source
+            parentNode
         ],
         nodes: [
-            {
-                id: 0,
-                descendants: [],
-                parentId: -1
-            }
+            node
         ]
     };
+    if (Array.isArray(source)) {
+        for (const chunk of source){
+            render.sources.push(chunk);
+            const id = render.sources.length - 1;
+            render.nodes.push({
+                id,
+                parentId: node.id,
+                descendants: []
+            });
+            render.results.push(undefined);
+        }
+        return render;
+    }
+    render.sources.push(source);
+    const id1 = render.sources.length - 1;
+    render.nodes.push({
+        id: id1,
+        parentId: node.id,
+        descendants: []
+    });
+    render.results.push(undefined);
+    return render;
+}
+function diff(utils, source, parentNode, leftNode, prevRender) {
+    const render = createRender(source, parentNode);
     const delta = {
         addedIndexes: [],
-        removedIndexes: [],
         survivedIndexes: [],
-        prevSurvivedIndexes: []
+        prevSurvivedIndexes: [],
+        removedIndexes: []
     };
-    createNodesFromSource(utils, render);
+    createNodesFromSource(utils, render, source);
     if (prevRender === undefined) {
         findTargets(delta.addedIndexes, render, 0);
     }
@@ -877,17 +930,17 @@ class Hangar {
     update(utils, state) {
         const source = this.renderFunc(state);
         this.render = diff(utils, source, this.parentNode, this.leftNode, this.render);
+        console.log(this.render);
     }
 }
 const domutils = new DOMUtils();
 document.createTextNode("hello!");
-const testNestedNode = ()=>{
-    return draw`<span>world</span>`;
-};
-const testNode = ()=>{
-    return draw`
-		<p>hello ${testNestedNode()}!</p>
-	`;
+const testArray = ()=>{
+    return [
+        "world",
+        "what's",
+        "good"
+    ];
 };
 class TestComponent extends HTMLElement {
     hangar;
@@ -902,7 +955,7 @@ class TestComponent extends HTMLElement {
             mode: "open"
         });
         if (this.shadowRoot) {
-            this.hangar = new Hangar(testNode, this.shadowRoot);
+            this.hangar = new Hangar(testArray, this.shadowRoot);
             this.hangar.update(domutils, this);
         }
     }

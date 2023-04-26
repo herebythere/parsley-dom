@@ -16,6 +16,14 @@ import { parse } from "../deps.ts";
 
 import { mountResults, unmountResults } from "./mounts.ts";
 
+// need to create * lists of things *
+// which means arrays need to be accounted for as arguments
+
+// add sources that are an array to nodes and results
+// if node add node with no descendants
+// if source add node with descendants
+// if another array, with descendants
+
 import {
   adoptBuilds,
   adoptNodes,
@@ -25,6 +33,48 @@ import {
 } from "./nodes.ts";
 
 // first node should be the root node
+
+// account for arrays
+//
+// create render
+// create nodes from source
+// find targets
+// adopt nodes
+// unmount results
+// create added builds
+// adopt builds
+//
+
+function createRender<N>(
+  source: RenderSource<N>,
+  parentNode: N,
+) {
+  const node = { id: 0, parentId: -1, descendants: [] };
+  const render: Render<N> = {
+    results: [undefined],
+    sources: [parentNode],
+    nodes: [node],
+  };
+
+  if (Array.isArray(source)) {
+    for (const chunk of source) {
+      render.sources.push(chunk);
+      const id = render.sources.length - 1;
+      render.nodes.push({ id, parentId: node.id, descendants: [] });
+      render.results.push(undefined);
+    }
+
+    return render;
+  }
+
+  render.sources.push(source);
+  const id = render.sources.length - 1;
+  render.nodes.push({ id, parentId: node.id, descendants: [] });
+  render.results.push(undefined);
+
+  return render;
+}
+
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -34,26 +84,17 @@ function diff<N>(
 ): Render<N> {
   // create structures
   //
-  const render: Render<N> = {
-    results: [undefined],
-    sources: [source],
-    nodes: [{
-      id: 0,
-      descendants: [],
-      parentId: -1,
-    }],
-  };
-
+  const render: Render<N> = createRender<N>(source, parentNode);
   const delta: DeltaTargets = {
     addedIndexes: [],
-    removedIndexes: [],
     survivedIndexes: [],
     prevSurvivedIndexes: [],
+    removedIndexes: [],
   };
 
   // create sources
   //
-  createNodesFromSource(utils, render);
+  createNodesFromSource(utils, render, source);
 
   // diff check
   //
@@ -106,6 +147,7 @@ function diff<N>(
   }
   addProperties(utils, delta, render);
 	*/
+
   // mount
   //
   mountResults(

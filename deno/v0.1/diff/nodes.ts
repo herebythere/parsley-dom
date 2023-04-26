@@ -14,25 +14,6 @@ import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
-function createAddedBuilds<N>(
-  utils: UtilsInterface<N>,
-  delta: DeltaTargets,
-  render: Render<N>,
-) {
-  for (const index of delta.addedIndexes) {
-    const source = render.sources[index];
-
-    let result: RenderResult<N> = utils.getIfNode(source);
-    if (source instanceof Draw) {
-      result = getBuild(utils, source);
-    }
-    if (result === undefined && source !== undefined) {
-      result = utils.createTextNode(source);
-    }
-    render.results[index] = result;
-  }
-}
-
 function adoptBuilds<N>(
   delta: DeltaTargets,
   render: Render<N>,
@@ -79,10 +60,38 @@ function getBuild<N>(
   }
 }
 
+function createAddedBuilds<N>(
+  utils: UtilsInterface<N>,
+  delta: DeltaTargets,
+  render: Render<N>,
+) {
+  for (const index of delta.addedIndexes) {
+    const source = render.sources[index];
+
+    let result: RenderResult<N> = utils.getIfNode(source);
+    if (source instanceof Draw) {
+      result = getBuild(utils, source);
+    }
+    if (result === undefined && source !== undefined) {
+      result = utils.createTextNode(source);
+    }
+  }
+}
+
 function compareSources<N>(
   source: RenderSource<N>,
   prevSource: RenderSource<N>,
 ) {
+  // compare arrays
+  if (Array.isArray(source) && Array.isArray(prevSource)) {
+    if (source.length !== prevSource.length) return false;
+    for (let index = 0; index < source.length; index++) {
+      if (source[index] !== prevSource[index]) return false;
+    }
+
+    return true;
+  }
+
   if (source instanceof Draw && prevSource instanceof Draw) {
     return source.templateStrings === prevSource.templateStrings;
   }
@@ -171,11 +180,27 @@ function adoptNodes<N>(
 function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
+  source: RenderSource<N>,
 ) {
-  let index = 0;
+  let index = 1;
   while (index < render.sources.length) {
-    const node = render.nodes[index];
     const source = render.sources[index];
+    const node = render.nodes[index];
+
+    if (Array.isArray(source)) {
+      for (const chunk of source) {
+        // add source and descendant to render
+        render.sources.push(chunk);
+        const id = render.sources.length - 1;
+        node.descendants.push(id);
+        render.nodes.push({
+          parentId: node.id,
+          descendants: [],
+          id,
+        });
+        render.results.push(undefined);
+      }
+    }
 
     if (source instanceof Draw) {
       let data = getBuilderData(utils, source.templateStrings);
