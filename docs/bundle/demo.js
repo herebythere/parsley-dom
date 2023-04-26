@@ -882,13 +882,11 @@ class Hangar {
 const domutils = new DOMUtils();
 document.createTextNode("hello!");
 const testNestedNode = ()=>{
-    return draw`
-		<span>world!</span>
-	`;
+    return draw`<span>world</span>`;
 };
 const testNode = ()=>{
     return draw`
-		<p>hello ${testNestedNode()}</p>
+		<p>hello ${testNestedNode()}!</p>
 	`;
 };
 class TestComponent extends HTMLElement {

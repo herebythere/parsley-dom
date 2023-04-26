@@ -10,17 +10,13 @@ interface State {
 
 const textNode = document.createTextNode("hello!");
 
-const textNodeComponent = () => textNode;
-
 const testNestedNode = () => {
-  return draw`
-		<span>world!</span>
-	`;
+  return draw`<span>world</span>`;
 };
 
 const testNode = () => {
   return draw`
-		<p>hello ${testNestedNode()}</p>
+		<p>hello ${testNestedNode()}!</p>
 	`;
 };
 
