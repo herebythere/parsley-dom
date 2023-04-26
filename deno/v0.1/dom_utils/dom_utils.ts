@@ -17,14 +17,14 @@ class DOMUtils implements UtilsInterface<Node> {
     );
   }
   // update for node[], node, string
-  insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
+  insertNode(node: Node, parentNode: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
     if (leftNode?.nextSibling === undefined) {
       parentNode.appendChild(node);
       return;
     }
 
-    node.insertBefore(node, leftNode.nextSibling);
+    parentNode.insertBefore(node, leftNode.nextSibling);
   }
   removeNode(node: Node, parentNode: Node, leftNode?: Node) {
     parentNode.removeChild(node);

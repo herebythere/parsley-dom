@@ -30,7 +30,7 @@ class DOMUtils {
             parentNode.appendChild(node);
             return;
         }
-        node.insertBefore(node, leftNode.nextSibling);
+        parentNode.insertBefore(node, leftNode.nextSibling);
     }
     removeNode(node, parentNode, leftNode) {
         parentNode.removeChild(node);
@@ -640,18 +640,133 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
+function mountAddedNodes(utils, delta, render, parent1, left) {
+    const result = render.results[0];
+    const node = utils.getIfNode(result);
+    if (node !== undefined) {
+        utils.insertNode(node, parent1, left);
+    }
+    if (result instanceof Build) {
+        let leftNode = left;
+        for (const node1 of result.nodes){
+            utils.insertNode(node1, parent1, leftNode);
+            leftNode = node1;
+        }
+    }
+    for(let addedIndex = 0; addedIndex < delta.addedIndexes.length; addedIndex++){
+        const index = delta.addedIndexes[addedIndex];
+        const result1 = render.results[index];
+        if (!(result1 instanceof Build)) continue;
+        const node2 = render.nodes[index];
+        for(let descIndex = 0; descIndex < node2.descendants.length; descIndex++){
+            const descNodeIndex = node2.descendants[descIndex];
+            const descResult = render.results[descNodeIndex];
+            let { parentNode , node: leftNode1  } = result1.descendants[descIndex];
+            if (parentNode === undefined) {
+                parentNode = parent1;
+            }
+            const descNode = utils.getIfNode(descResult);
+            if (descNode !== undefined) {
+                utils.insertNode(descNode, parentNode, leftNode1);
+            }
+            if (descResult instanceof Build) {
+                for (const node3 of descResult.nodes){
+                    utils.insertNode(node3, parentNode, leftNode1);
+                    leftNode1 = node3;
+                }
+            }
+        }
+    }
+}
+function adoptProperties(utils, delta, render, prevRender) {
+    for(let index = 0; index < delta.survivedIndexes.length; index++){
+        const source = render.sources[index];
+        const prevSource = prevRender.sources[index];
+        const result = render.results[index];
+        if (source instanceof Draw && prevSource instanceof Draw && result instanceof Build) {
+            for (const descIndex of result.injections){}
+        }
+    }
+}
+function removeProperties(utils, delta, render) {
+    for(let index = 0; index < delta.addedIndexes.length; index++){
+        const source = render.sources[index];
+        const result = render.results[index];
+        if (source instanceof Draw && result instanceof Build) {
+            for (const descIndex of result.injections){}
+        }
+    }
+}
+function addProperties(utils, delta, render) {
+    for(let index = 0; index < delta.addedIndexes.length; index++){
+        const source = render.sources[index];
+        const result = render.results[index];
+        if (source instanceof Draw && result instanceof Build) {
+            for (const descIndex of result.injections){}
+        }
+    }
+}
+function unmountNodes(utils, delta, render, parentNode, leftNode) {
+    for(let index = 0; index < delta.removedIndexes.length; index++){
+        const result = render.results[index];
+        if (!(result instanceof Build)) continue;
+        const node = render.nodes[index];
+        for(let descIndex = 0; descIndex < node.descendants.length; descIndex++){
+            const descNodeIndex = node.descendants[descIndex];
+            const descResult = render.results[descNodeIndex];
+            let { parentNode: parentNode1 , node: leftNode1  } = result.descendants[descIndex];
+            if (parentNode1 === undefined) {
+                parentNode1 = parent;
+            }
+            const descNode = utils.getIfNode(descResult);
+            if (descNode !== undefined) {
+                utils.removeNode(descNode, parentNode1, leftNode1);
+            }
+            if (descResult instanceof Build) {
+                for (const node1 of descResult.nodes){
+                    utils.removeNode(node1, parentNode1, leftNode1);
+                }
+            }
+        }
+    }
+}
+function createAddedBuilds(utils, delta, render) {
+    for (const index of delta.addedIndexes){
+        const source = render.sources[index];
+        let result = utils.getIfNode(source);
+        if (source instanceof Draw) {
+            result = getBuild(utils, source);
+        }
+        if (result === undefined && source !== undefined) {
+            result = utils.createTextNode(source);
+        }
+        render.results[index] = result;
+    }
+}
+function adoptBuilds(delta, render, prevRender) {
+    for(let index = 0; index < delta.survivedIndexes.length; index++){
+        const prevIndex = delta.prevSurvivedIndexes[index];
+        const currIndex = delta.survivedIndexes[index];
+        const result = prevRender.results[prevIndex];
+        render.results[currIndex] = result;
+    }
+}
+function getBuilderData(utils, template) {
+    let builderData = utils.getBuilder(template);
+    if (builderData === undefined) {
+        const builder = new Builder();
+        parse(template, builder);
+        builderData = builder.build(utils, template);
+    }
+    if (builderData !== undefined) {
+        utils.setBuilder(template, builderData);
+    }
+    return builderData;
+}
 function getBuild(utils, draw) {
-    const { templateStrings  } = draw;
-    const builderData = utils.getBuilder(templateStrings);
+    const builderData = getBuilderData(utils, draw.templateStrings);
     if (builderData !== undefined) {
         return new Build(utils, builderData);
-    }
-    const builder = new Builder();
-    parse(templateStrings, builder);
-    const data = builder.build(utils, templateStrings);
-    if (data !== undefined) {
-        utils.setBuilder(templateStrings, data);
-        return new Build(utils, data);
     }
 }
 function compareSources(source, prevSource) {
@@ -660,19 +775,7 @@ function compareSources(source, prevSource) {
     }
     return source === prevSource;
 }
-function findTargets(targets, render, sourceIndex) {
-    targets.push(sourceIndex);
-    let index = targets.length - 1;
-    while(index < targets.length){
-        const nodeIndex = targets[index];
-        const node = render.nodes[nodeIndex];
-        for (const descIndex of node.descendants){
-            targets.push(descIndex);
-        }
-        index += 1;
-    }
-}
-function adoptPrevNodes(delta, prevRender, render) {
+function adoptNodes(delta, render, prevRender) {
     let index = 0;
     const prev = prevRender.sources[index];
     const curr = render.sources[index];
@@ -704,100 +807,42 @@ function adoptPrevNodes(delta, prevRender, render) {
         index += 1;
     }
 }
+function findTargets(targets, render, sourceIndex) {
+    targets.push(sourceIndex);
+    let index = targets.length - 1;
+    while(index < targets.length){
+        const nodeIndex = targets[index];
+        const node = render.nodes[nodeIndex];
+        for (const descIndex of node.descendants){
+            targets.push(descIndex);
+        }
+        index += 1;
+    }
+}
 function createNodesFromSource(utils, render) {
     let index = 0;
     while(index < render.sources.length){
         const node = render.nodes[index];
         const source = render.sources[index];
         if (source instanceof Draw) {
-            const builder = utils.getBuilder(source.templateStrings);
-            if (builder !== undefined) {
-                for (const descendant of builder.descendants){
+            let data = getBuilderData(utils, source.templateStrings);
+            if (data !== undefined) {
+                for (const descendant of data.descendants){
                     const { index: index1  } = descendant;
                     const descSource = source.injections[index1];
                     render.sources.push(descSource);
-                    const receipt = render.sources.length - 1;
-                    node.descendants.push(receipt);
+                    const id = render.sources.length - 1;
+                    node.descendants.push(id);
                     render.nodes.push({
-                        id: receipt,
                         parentId: node.id,
-                        descendants: []
+                        descendants: [],
+                        id
                     });
                     render.results.push(undefined);
                 }
             }
         }
         index += 1;
-    }
-}
-function adoptBuilds(delta, render, prevRender) {
-    for(let index = 0; index < delta.survivedIndexes.length; index++){
-        const prevIndex = delta.prevSurvivedIndexes[index];
-        const currIndex = delta.survivedIndexes[index];
-        const result = prevRender.results[prevIndex];
-        render.results[currIndex] = result;
-    }
-}
-function createNewBuilds(utils, delta, render) {
-    for (const index of delta.addedIndexes){
-        const source = render.sources[index];
-        let result = utils.getIfNode(source);
-        if (source instanceof Draw) {
-            result = getBuild(utils, source);
-        }
-        if (result === undefined && source !== undefined) {
-            result = utils.createTextNode(source);
-        }
-        render.results[index] = result;
-    }
-}
-function unmountPrevNodes(utils, delta, prevRender, parentNode, leftNode) {
-    for(let index = 0; index < delta.removedIndexes.length; index++){
-        const result = prevRender.results[index];
-        if (!(result instanceof Build)) continue;
-        const node = prevRender.nodes[index];
-        for(let descIndex = 0; descIndex < node.descendants.length; descIndex++){
-            const descNodeIndex = node.descendants[descIndex];
-            const descResult = prevRender.results[descNodeIndex];
-            let { parentNode: parentNode1 , node: leftNode1  } = result.descendants[descIndex];
-            if (parentNode1 === undefined) {
-                parentNode1 = parent;
-            }
-            const descNode = utils.getIfNode(descResult);
-            if (descNode !== undefined) {
-                utils.removeNode(descNode, parentNode1, leftNode1);
-            }
-            if (descResult instanceof Build) {
-                for (const node1 of descResult.nodes){
-                    utils.removeNode(node1, parentNode1, leftNode1);
-                }
-            }
-        }
-    }
-}
-function mountAddedNodes(utils, delta, render, parent1) {
-    for(let index = 0; index < delta.addedIndexes.length; index++){
-        const result = render.results[index];
-        if (!(result instanceof Build)) continue;
-        const node = render.nodes[index];
-        for(let descIndex = 0; descIndex < node.descendants.length; descIndex++){
-            const descNodeIndex = node.descendants[descIndex];
-            const descResult = render.results[descNodeIndex];
-            let { parentNode , node: leftNode  } = result.descendants[descIndex];
-            if (parentNode === undefined) {
-                parentNode = parent1;
-            }
-            const descNode = utils.getIfNode(descResult);
-            if (descNode !== undefined) {
-                utils.insertNode(descNode, parentNode, leftNode);
-            }
-            if (descResult instanceof Build) {
-                for (const node1 of descResult.nodes){
-                    utils.insertNode(node1, parentNode, leftNode);
-                    leftNode = node1;
-                }
-            }
-        }
     }
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
@@ -823,22 +868,27 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         prevSurvivedIndexes: []
     };
     createNodesFromSource(utils, render);
-    if (prevRender !== undefined) {
-        adoptPrevNodes(delta, prevRender, render);
-    }
     if (prevRender === undefined) {
         findTargets(delta.addedIndexes, render, 0);
     }
     if (prevRender !== undefined) {
-        unmountPrevNodes(utils, delta, prevRender, parentNode, leftNode);
+        adoptNodes(delta, render, prevRender);
+    }
+    if (prevRender !== undefined) {
+        unmountNodes(utils, delta, prevRender, parentNode, leftNode);
     }
     if (prevRender === undefined) {
-        createNewBuilds(utils, delta, render);
+        createAddedBuilds(utils, delta, render);
     }
     if (prevRender !== undefined) {
         adoptBuilds(delta, render, prevRender);
     }
-    mountAddedNodes(utils, delta, render, parentNode);
+    if (prevRender !== undefined) {
+        removeProperties(utils, delta, prevRender);
+        adoptProperties(utils, delta, render, prevRender);
+    }
+    addProperties(utils, delta, render);
+    mountAddedNodes(utils, delta, render, parentNode, leftNode);
     return render;
 }
 class Hangar {

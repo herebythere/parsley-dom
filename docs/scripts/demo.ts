@@ -19,6 +19,14 @@ const textNode = document.createTextNode("hello!");
 
 const textNodeComponent = () => textNode;
 
+const testNode = () => {
+  return draw`
+		<div>
+			<p>hello world!</p>
+		</div>
+	`;
+};
+
 // actual elements
 class TestComponent extends HTMLElement {
   hangar!: Hangar<Node, State>;
@@ -34,12 +42,11 @@ class TestComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
       this.hangar = new Hangar<Node, State>(
-        textNodeComponent,
+        testNode,
         this.shadowRoot,
       );
 
       this.hangar.update(domutils, this);
-      console.log(this.hangar);
     }
   }
 
