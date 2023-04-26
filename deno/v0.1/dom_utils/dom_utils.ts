@@ -23,7 +23,6 @@ class DOMUtils implements UtilsInterface<Node> {
       parentNode.appendChild(node);
       return;
     }
-
     parentNode.insertBefore(node, leftNode.nextSibling);
   }
   removeNode(node: Node, parentNode: Node, leftNode?: Node) {
@@ -48,8 +47,8 @@ class DOMUtils implements UtilsInterface<Node> {
     if (currNode === undefined) return;
 
     for (let index = 1; index < depth; index++) {
-      currNode = currNode.childNodes[index];
-      if (currNode === undefined) return;
+      const addressIndex = address[index];
+      currNode = currNode.childNodes[addressIndex];
     }
 
     return currNode;

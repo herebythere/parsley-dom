@@ -48,8 +48,8 @@ class DOMUtils {
         let currNode = baseTier[address[0]];
         if (currNode === undefined) return;
         for(let index = 1; index < depth; index++){
-            currNode = currNode.childNodes[index];
-            if (currNode === undefined) return;
+            const addressIndex = address[index];
+            currNode = currNode.childNodes[addressIndex];
         }
         return currNode;
     }
@@ -908,11 +908,14 @@ class Hangar {
 }
 const domutils = new DOMUtils();
 document.createTextNode("hello!");
+const testNestedNode = ()=>{
+    return draw`
+		<span>world!</span>
+	`;
+};
 const testNode = ()=>{
     return draw`
-		<div>
-			<p>hello world!</p>
-		</div>
+		<p>hello ${testNestedNode()}</p>
 	`;
 };
 class TestComponent extends HTMLElement {

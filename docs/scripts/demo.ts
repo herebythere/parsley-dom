@@ -8,22 +8,19 @@ interface State {
   getAttribute: Element["getAttribute"];
 }
 
-// reusable functions
-function messageComponent<S extends State>(state: S) {
-  const message = state.getAttribute("message");
-
-  return draw`<p>hello!</p>`;
-}
-
 const textNode = document.createTextNode("hello!");
 
 const textNodeComponent = () => textNode;
 
+const testNestedNode = () => {
+  return draw`
+		<span>world!</span>
+	`;
+};
+
 const testNode = () => {
   return draw`
-		<div>
-			<p>hello world!</p>
-		</div>
+		<p>hello ${testNestedNode()}</p>
 	`;
 };
 

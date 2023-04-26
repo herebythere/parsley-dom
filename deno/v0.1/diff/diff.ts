@@ -191,7 +191,6 @@ function createAddedBuilds<N>(
     if (result === undefined && source !== undefined) {
       result = utils.createTextNode(source);
     }
-
     render.results[index] = result;
   }
 }
