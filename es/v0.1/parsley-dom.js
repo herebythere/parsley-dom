@@ -660,13 +660,6 @@ function compareSources(source, prevSource) {
     }
     return source === prevSource;
 }
-function createRenderResult(utils, source) {
-    if (source instanceof Draw) {
-        const build = getBuild(utils, source);
-        if (build !== undefined) return build;
-    }
-    return utils.getIfNode(source) ?? utils.createTextNode(source);
-}
 function findTargets(targets, render, sourceIndex) {
     targets.push(sourceIndex);
     let index = targets.length - 1;
@@ -679,12 +672,12 @@ function findTargets(targets, render, sourceIndex) {
         index += 1;
     }
 }
-function adoptPrevNodes(delta, render, prevRender) {
+function adoptPrevNodes(delta, prevRender, render) {
     let index = 0;
     const prev = prevRender.sources[index];
     const curr = render.sources[index];
     if (!compareSources(prev, curr)) {
-        findTargets(delta.removedIndexes, render, index);
+        findTargets(delta.removedIndexes, prevRender, index);
         findTargets(delta.addedIndexes, render, index);
         return;
     }
@@ -695,9 +688,9 @@ function adoptPrevNodes(delta, render, prevRender) {
         const currIndex = delta.survivedIndexes[index];
         const prevNode = prevRender.nodes[prevIndex];
         const currNode = render.nodes[currIndex];
-        for(let index1 = 0; index1 < prevNode.descendants.length; index1++){
-            const prevDescIndex = prevNode.descendants[index1];
-            const currDescIndex = currNode.descendants[index1];
+        for(let descIndex = 0; descIndex < prevNode.descendants.length; descIndex++){
+            const prevDescIndex = prevNode.descendants[descIndex];
+            const currDescIndex = currNode.descendants[descIndex];
             const prevDescSource = prevRender.sources[prevDescIndex];
             const currDescSource = render.sources[currDescIndex];
             if (compareSources(prevDescSource, currDescSource)) {
@@ -705,7 +698,7 @@ function adoptPrevNodes(delta, render, prevRender) {
                 delta.survivedIndexes.push(currDescIndex);
                 continue;
             }
-            findTargets(delta.removedIndexes, render, prevDescIndex);
+            findTargets(delta.removedIndexes, prevRender, prevDescIndex);
             findTargets(delta.addedIndexes, render, currDescIndex);
         }
         index += 1;
@@ -748,16 +741,63 @@ function adoptBuilds(delta, render, prevRender) {
 function createNewBuilds(utils, delta, render) {
     for (const index of delta.addedIndexes){
         const source = render.sources[index];
-        const result = createRenderResult(utils, source);
+        let result = utils.getIfNode(source);
+        if (source instanceof Draw) {
+            result = getBuild(utils, source);
+        }
+        if (result === undefined && source !== undefined) {
+            result = utils.createTextNode(source);
+        }
         render.results[index] = result;
     }
 }
-function unmountPrevNodes(utils, delta, prevRender, parentNode, leftNode) {}
-function mountNewNodes(utils, delta, render, parentNode, leftNode) {
+function unmountPrevNodes(utils, delta, prevRender, parentNode, leftNode) {
+    for(let index = 0; index < delta.removedIndexes.length; index++){
+        const result = prevRender.results[index];
+        if (!(result instanceof Build)) continue;
+        const node = prevRender.nodes[index];
+        for(let descIndex = 0; descIndex < node.descendants.length; descIndex++){
+            const descNodeIndex = node.descendants[descIndex];
+            const descResult = prevRender.results[descNodeIndex];
+            let { parentNode: parentNode1 , node: leftNode1  } = result.descendants[descIndex];
+            if (parentNode1 === undefined) {
+                parentNode1 = parent;
+            }
+            const descNode = utils.getIfNode(descResult);
+            if (descNode !== undefined) {
+                utils.removeNode(descNode, parentNode1, leftNode1);
+            }
+            if (descResult instanceof Build) {
+                for (const node1 of descResult.nodes){
+                    utils.removeNode(node1, parentNode1, leftNode1);
+                }
+            }
+        }
+    }
+}
+function mountAddedNodes(utils, delta, render, parent1) {
     for(let index = 0; index < delta.addedIndexes.length; index++){
+        const result = render.results[index];
+        if (!(result instanceof Build)) continue;
         const node = render.nodes[index];
-        render.results[index];
-        for (const descIndex of node.descendants){}
+        for(let descIndex = 0; descIndex < node.descendants.length; descIndex++){
+            const descNodeIndex = node.descendants[descIndex];
+            const descResult = render.results[descNodeIndex];
+            let { parentNode , node: leftNode  } = result.descendants[descIndex];
+            if (parentNode === undefined) {
+                parentNode = parent1;
+            }
+            const descNode = utils.getIfNode(descResult);
+            if (descNode !== undefined) {
+                utils.insertNode(descNode, parentNode, leftNode);
+            }
+            if (descResult instanceof Build) {
+                for (const node1 of descResult.nodes){
+                    utils.insertNode(node1, parentNode, leftNode);
+                    leftNode = node1;
+                }
+            }
+        }
     }
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
@@ -784,7 +824,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     };
     createNodesFromSource(utils, render);
     if (prevRender !== undefined) {
-        adoptPrevNodes(delta, render, prevRender);
+        adoptPrevNodes(delta, prevRender, render);
     }
     if (prevRender === undefined) {
         findTargets(delta.addedIndexes, render, 0);
@@ -798,7 +838,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     if (prevRender !== undefined) {
         adoptBuilds(delta, render, prevRender);
     }
-    mountNewNodes(utils, delta, render, parentNode, leftNode);
+    mountAddedNodes(utils, delta, render, parentNode);
     return render;
 }
 class Hangar {
