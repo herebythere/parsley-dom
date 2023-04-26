@@ -23,4 +23,18 @@ interface Render<N> {
   nodes: RenderNode[];
 }
 
-export type { Render, RenderFunc, RenderNode, RenderResult, RenderSource };
+interface DeltaTargets {
+  addedIndexes: number[];
+  survivedIndexes: number[];
+  prevSurvivedIndexes: number[];
+  removedIndexes: number[];
+}
+
+export type {
+  DeltaTargets,
+  Render,
+  RenderFunc,
+  RenderNode,
+  RenderResult,
+  RenderSource,
+};
