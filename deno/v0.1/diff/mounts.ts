@@ -14,99 +14,6 @@ import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
-function mountResultChunk<N>(
-  utils: UtilsInterface<N>,
-  result: RenderResult<N>,
-  parent: N,
-  left?: N,
-) {
-  const node = utils.getIfNode(result);
-  if (node !== undefined) {
-    utils.insertNode(node, parent, left);
-    return node;
-  }
-
-  if (result instanceof Build) {
-    let leftNode = left;
-    for (const node of result.nodes) {
-      utils.insertNode(node, parent, leftNode);
-      leftNode = node;
-    }
-    return leftNode;
-  }
-}
-
-function mountResult<N>(
-  utils: UtilsInterface<N>,
-  result: RenderResult<N>,
-  parent: N,
-  left?: N,
-) {
-  if (Array.isArray(result)) {
-    let leftNode = left;
-    for (const chunk of result) {
-      leftNode = mountResultChunk(utils, chunk, parent, leftNode);
-    }
-  }
-
-  mountResultChunk(utils, result, parent, left);
-}
-
-// we are adding all descendants to parent
-function mountResults<N>(
-  utils: UtilsInterface<N>,
-  delta: DeltaTargets,
-  render: Render<N>,
-  parent: N,
-  left?: N,
-) {
-  if (delta.addedIndexes.length === 0) return;
-
-  // mount root
-  if (delta.addedIndexes[0] === 0) {
-    const result = render.results[0];
-    mountResult(
-      utils,
-      result,
-      parent,
-      left,
-    );
-  }
-
-  // mount descendants
-  for (
-    let addedIndex = 0;
-    addedIndex < delta.addedIndexes.length;
-    addedIndex++
-  ) {
-    const index = delta.addedIndexes[addedIndex];
-    const result = render.results[index];
-    if (!(result instanceof Build)) continue;
-
-    const renderNode = render.nodes[index];
-    for (
-      let descIndex = 0;
-      descIndex < renderNode.descendants.length;
-      descIndex++
-    ) {
-      const descNodeIndex = renderNode.descendants[descIndex];
-      const descResult = render.results[descNodeIndex];
-
-      let { parentNode, node } = result.descendants[descIndex];
-      if (parentNode === undefined) {
-        parentNode = parent;
-      }
-
-      mountResult(
-        utils,
-        descResult,
-        parentNode,
-        node,
-      );
-    }
-  }
-}
-
 function unmountResult<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,
@@ -163,6 +70,92 @@ function unmountResults<N>(
       }
 
       unmountResult(
+        utils,
+        descResult,
+        parentNode,
+        node,
+      );
+    }
+  }
+}
+
+function mountResultChunk<N>(
+  utils: UtilsInterface<N>,
+  result: RenderResult<N>,
+  parent: N,
+  left?: N,
+) {
+  const node = utils.getIfNode(result);
+  if (node !== undefined) {
+    utils.insertNode(node, parent, left);
+    return node;
+  }
+
+  if (result instanceof Build) {
+    let leftNode = left;
+    for (const node of result.nodes) {
+      utils.insertNode(node, parent, leftNode);
+      leftNode = node;
+    }
+    return leftNode;
+  }
+}
+
+// we are adding all descendants to parent
+function mountResults<N>(
+  utils: UtilsInterface<N>,
+  delta: DeltaTargets,
+  render: Render<N>,
+  left?: N,
+) {
+  if (delta.addedIndexes.length === 0) return;
+
+  console.log("mount results!");
+  // mount root
+  const firstIndex = delta.addedIndexes[0];
+  if (firstIndex === 0) {
+    // root is first added index
+    const result = utils.getIfNode(render.results[firstIndex]);
+    if (result !== undefined) {
+      const node = render.nodes[firstIndex];
+      let leftNode = left;
+      for (const descIndex of node.descendants) {
+        const descResult = render.results[descIndex];
+        leftNode = mountResultChunk(
+          utils,
+          descResult,
+          result,
+          left,
+        );
+      }
+    }
+  }
+
+  // mount descendants
+  for (
+    let addedIndex = 1;
+    addedIndex < delta.addedIndexes.length;
+    addedIndex++
+  ) {
+    const index = delta.addedIndexes[addedIndex];
+    const result = render.results[index];
+    if (!(result instanceof Build)) continue;
+
+    const renderNode = render.nodes[index];
+    for (
+      let descIndex = 0;
+      descIndex < renderNode.descendants.length;
+      descIndex++
+    ) {
+      const descNodeIndex = renderNode.descendants[descIndex];
+      const descResult = render.results[descNodeIndex];
+
+      let { parentNode, node } = result.descendants[descIndex];
+      if (parentNode === undefined) {
+        parentNode = parent;
+      }
+
+      mountResultChunk(
         utils,
         descResult,
         parentNode,

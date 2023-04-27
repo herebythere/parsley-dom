@@ -1,20 +1,18 @@
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { DrawInterface } from "../type_flyweight/draw.ts";
-import type { BuildInterface } from "../type_flyweight/build.ts";
 import type {
   DeltaTargets,
   Render,
   RenderNode,
-  RenderResult,
   RenderSource,
 } from "../type_flyweight/render.ts";
 
-import { Draw } from "../draw/draw.ts";
-import { Build } from "../build/build.ts";
-import { Builder } from "../builder/builder.ts";
-import { parse } from "../deps.ts";
+import {
+  createAddedBuilds,
+  createNodesFromSource,
+  createRender,
+} from "./build.ts";
 
-import { mountResults, unmountResults } from "./mounts.ts";
+import { mountResults } from "./mounts.ts";
 
 // need to create * lists of things *
 // which means arrays need to be accounted for as arguments
@@ -24,21 +22,14 @@ import { mountResults, unmountResults } from "./mounts.ts";
 // if source add node with descendants
 // if another array, with descendants
 
-import {
-  adoptBuilds,
-  adoptNodes,
-  createAddedBuilds,
-  createNodesFromSource,
-  createRender,
-  findTargets,
-} from "./nodes.ts";
+import { findTargets } from "./adopt.ts";
 
 // first node should be the root node
 
 // account for arrays
 //
-// create render
-// create nodes from source
+// create render +
+// create nodes from source +
 // find targets
 // adopt nodes
 // unmount results
@@ -63,21 +54,39 @@ function diff<N>(
     removedIndexes: [],
   };
 
-  // create sources
-  //
-  createNodesFromSource(utils, render, source);
-
   // diff check
   //
+  createNodesFromSource(utils, render, source);
   if (prevRender === undefined) {
     findTargets(delta.addedIndexes, render, 0);
   }
+
+  // build
+  //
+  if (prevRender === undefined) {
+    console.log("prevRender doesnt Exists!");
+    createAddedBuilds(utils, delta, render);
+  }
+
+  // mount
+  //
+  console.log(render);
+  mountResults(
+    utils,
+    delta,
+    render,
+    leftNode,
+  );
+
+  /*
   if (prevRender !== undefined) {
     adoptNodes(delta, render, prevRender);
   }
+  */
 
   // unmount
   //
+  /*
   if (prevRender !== undefined) {
     unmountResults(
       utils,
@@ -87,6 +96,7 @@ function diff<N>(
       leftNode,
     );
   }
+  */
 
   // remove properties from unmounted
   //
@@ -100,14 +110,11 @@ function diff<N>(
   }
   */
 
-  // build
-  //
-  if (prevRender === undefined) {
-    createAddedBuilds(utils, delta, render);
-  }
+  /*
   if (prevRender !== undefined) {
     adoptBuilds(delta, render, prevRender);
   }
+  */
 
   // properties
   //
@@ -118,16 +125,6 @@ function diff<N>(
   }
   addProperties(utils, delta, render);
 	*/
-
-  // mount
-  //
-  mountResults(
-    utils,
-    delta,
-    render,
-    parentNode,
-    leftNode,
-  );
 
   return render;
 }

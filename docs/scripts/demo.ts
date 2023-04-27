@@ -11,7 +11,7 @@ interface State {
 const textNode = document.createTextNode("hello!");
 
 const testArray = () => {
-  return ["world", "what's", "good"];
+  return ["world", ["what's", "really"], "good"];
 };
 
 const testNodeNested = () => {
@@ -50,10 +50,6 @@ class TestComponent extends HTMLElement {
   }
 
   update() {
-    this.hangar.update(domutils, this);
-  }
-
-  updateAsync() {
     queueMicrotask(this.microTaskSentinel);
   }
 
