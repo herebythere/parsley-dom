@@ -85,6 +85,7 @@ function mountResultChunk<N>(
   parent: N,
   left?: N,
 ) {
+  console.log("mount result chunk", result);
   const node = utils.getIfNode(result);
   if (node !== undefined) {
     utils.insertNode(node, parent, left);
@@ -101,45 +102,54 @@ function mountResultChunk<N>(
   }
 }
 
+function mountParentNode<N>(
+  utils: UtilsInterface<N>,
+  delta: DeltaTargets,
+  render: Render<N>,
+  parent: N,
+  left?: N,
+) {
+  if (delta.addedIndexes.length === 0) return;
+
+  const node = render.nodes[0];
+  console.log("root needs to be added", node);
+  if (node !== undefined) {
+    let leftNode = left;
+    console.log("add children");
+    for (const descIndex of node.descendants) {
+      console.log("descIndex", descIndex);
+      const descResult = render.results[descIndex];
+      leftNode = mountResultChunk(
+        utils,
+        descResult,
+        parent,
+        leftNode,
+      );
+    }
+  }
+}
+
 // we are adding all descendants to parent
 function mountResults<N>(
   utils: UtilsInterface<N>,
   delta: DeltaTargets,
   render: Render<N>,
-  left?: N,
 ) {
-  if (delta.addedIndexes.length === 0) return;
-
-  console.log("mount results!");
-  // mount root
-  const firstIndex = delta.addedIndexes[0];
-  if (firstIndex === 0) {
-    // root is first added index
-    const result = utils.getIfNode(render.results[firstIndex]);
-    if (result !== undefined) {
-      const node = render.nodes[firstIndex];
-      let leftNode = left;
-      for (const descIndex of node.descendants) {
-        const descResult = render.results[descIndex];
-        leftNode = mountResultChunk(
-          utils,
-          descResult,
-          result,
-          left,
-        );
-      }
-    }
-  }
-
   // mount descendants
+  console.log("mount result!");
   for (
     let addedIndex = 1;
     addedIndex < delta.addedIndexes.length;
     addedIndex++
   ) {
     const index = delta.addedIndexes[addedIndex];
+    const node = render.nodes[index];
     const result = render.results[index];
     if (!(result instanceof Build)) continue;
+    console.log("result:", node, result);
+    /*
+
+    console.log("we have a build!");
 
     const renderNode = render.nodes[index];
     for (
@@ -150,7 +160,7 @@ function mountResults<N>(
       const descNodeIndex = renderNode.descendants[descIndex];
       const descResult = render.results[descNodeIndex];
 
-      let { parentNode, node } = result.descendants[descIndex];
+      let { parentNode, node } = descResult.descendants[descIndex];
       if (parentNode === undefined) {
         parentNode = parent;
       }
@@ -161,8 +171,10 @@ function mountResults<N>(
         parentNode,
         node,
       );
+
     }
+          */
   }
 }
 
-export { mountResults, unmountResults };
+export { mountParentNode, mountResults, unmountResults };

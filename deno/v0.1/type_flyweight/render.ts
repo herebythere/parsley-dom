@@ -14,7 +14,7 @@ type RenderResult<N> = BuildInterface<N> | N | undefined;
 interface RenderNode {
   id: number;
   parentId: number;
-  descendants: number[];
+  descendants: number[][];
 }
 
 interface Render<N> {

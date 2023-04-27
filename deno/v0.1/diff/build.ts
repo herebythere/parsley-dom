@@ -53,7 +53,7 @@ function createAddedBuilds<N>(
   console.log("create added builds");
   for (const index of delta.addedIndexes) {
     const source = render.sources[index];
-    console.log(source);
+    console.log("source:", source);
     let result: RenderResult<N> = utils.getIfNode(source);
     if (source instanceof Draw) {
       result = getBuild(utils, source);
@@ -61,6 +61,7 @@ function createAddedBuilds<N>(
     if (result === undefined && source !== undefined) {
       result = utils.createTextNode(source);
     }
+    console.log("final result", result);
 
     render.results[index] = result;
   }
@@ -92,6 +93,7 @@ function createNodesFromSource<N>(
     const source = render.sources[index];
     if (source instanceof Draw) {
       let data = getBuilderData(utils, source.templateStrings);
+      console.log("builder data:", data);
       if (data !== undefined) {
         for (const descendant of data.descendants) {
           const { index: sourceIndex } = descendant;

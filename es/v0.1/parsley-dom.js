@@ -662,7 +662,7 @@ function createAddedBuilds(utils, delta, render) {
     console.log("create added builds");
     for (const index of delta.addedIndexes){
         const source = render.sources[index];
-        console.log(source);
+        console.log("source:", source);
         let result = utils.getIfNode(source);
         if (source instanceof Draw) {
             result = getBuild(utils, source);
@@ -670,6 +670,7 @@ function createAddedBuilds(utils, delta, render) {
         if (result === undefined && source !== undefined) {
             result = utils.createTextNode(source);
         }
+        console.log("final result", result);
         render.results[index] = result;
     }
 }
@@ -691,6 +692,7 @@ function createNodesFromSource(utils, render, source) {
         const source1 = render.sources[index];
         if (source1 instanceof Draw) {
             let data = getBuilderData(utils, source1.templateStrings);
+            console.log("builder data:", data);
             if (data !== undefined) {
                 for (const descendant of data.descendants){
                     const { index: sourceIndex  } = descendant;
@@ -735,50 +737,44 @@ function createRender(source, parentNode) {
     }
     return render;
 }
-function mountResultChunk(utils, result, parent1, left) {
+function mountResultChunk(utils, result, parent, left) {
+    console.log("mount result chunk", result);
     const node = utils.getIfNode(result);
     if (node !== undefined) {
-        utils.insertNode(node, parent1, left);
+        utils.insertNode(node, parent, left);
         return node;
     }
     if (result instanceof Build) {
         let leftNode = left;
         for (const node1 of result.nodes){
-            utils.insertNode(node1, parent1, leftNode);
+            utils.insertNode(node1, parent, leftNode);
             leftNode = node1;
         }
         return leftNode;
     }
 }
-function mountResults(utils, delta, render, left) {
+function mountParentNode(utils, delta, render, parent, left) {
     if (delta.addedIndexes.length === 0) return;
-    console.log("mount results!");
-    const firstIndex = delta.addedIndexes[0];
-    if (firstIndex === 0) {
-        const result = utils.getIfNode(render.results[firstIndex]);
-        if (result !== undefined) {
-            const node = render.nodes[firstIndex];
-            let leftNode = left;
-            for (const descIndex of node.descendants){
-                const descResult = render.results[descIndex];
-                leftNode = mountResultChunk(utils, descResult, result, left);
-            }
+    const node = render.nodes[0];
+    console.log("root needs to be added", node);
+    if (node !== undefined) {
+        let leftNode = left;
+        console.log("add children");
+        for (const descIndex of node.descendants){
+            console.log("descIndex", descIndex);
+            const descResult = render.results[descIndex];
+            leftNode = mountResultChunk(utils, descResult, parent, leftNode);
         }
     }
+}
+function mountResults(utils, delta, render) {
+    console.log("mount result!");
     for(let addedIndex = 1; addedIndex < delta.addedIndexes.length; addedIndex++){
         const index = delta.addedIndexes[addedIndex];
-        const result1 = render.results[index];
-        if (!(result1 instanceof Build)) continue;
-        const renderNode = render.nodes[index];
-        for(let descIndex1 = 0; descIndex1 < renderNode.descendants.length; descIndex1++){
-            const descNodeIndex = renderNode.descendants[descIndex1];
-            const descResult1 = render.results[descNodeIndex];
-            let { parentNode , node: node1  } = result1.descendants[descIndex1];
-            if (parentNode === undefined) {
-                parentNode = parent;
-            }
-            mountResultChunk(utils, descResult1, parentNode, node1);
-        }
+        const node = render.nodes[index];
+        const result = render.results[index];
+        if (!(result instanceof Build)) continue;
+        console.log("result:", node, result);
     }
 }
 function findTargets(targets, render, sourceIndex) {
@@ -802,15 +798,18 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         removedIndexes: []
     };
     createNodesFromSource(utils, render, source);
+    console.log(render);
     if (prevRender === undefined) {
         findTargets(delta.addedIndexes, render, 0);
     }
+    console.log(delta);
     if (prevRender === undefined) {
-        console.log("prevRender doesnt Exists!");
+        mountParentNode(utils, delta, render, leftNode);
+    }
+    if (prevRender === undefined) {
         createAddedBuilds(utils, delta, render);
     }
-    console.log(render);
-    mountResults(utils, delta, render, leftNode);
+    mountResults(utils, delta, render);
     return render;
 }
 class Hangar {

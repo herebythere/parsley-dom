@@ -35,7 +35,7 @@ class TestComponent extends HTMLElement {
     this.attachShadow({ mode: "open" });
     if (this.shadowRoot) {
       this.hangar = new Hangar<Node, State>(
-        testArray,
+        testNodeNested,
         this.shadowRoot,
       );
 
@@ -50,7 +50,8 @@ class TestComponent extends HTMLElement {
   }
 
   update() {
-    queueMicrotask(this.microTaskSentinel);
+    this.hangar.update(domutils, this);
+    // queueMicrotask(this.microTaskSentinel);
   }
 
   microTaskSentinel = () => {

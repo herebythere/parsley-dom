@@ -12,7 +12,7 @@ import {
   createRender,
 } from "./build.ts";
 
-import { mountResults } from "./mounts.ts";
+import { mountParentNode, mountResults } from "./mounts.ts";
 
 // need to create * lists of things *
 // which means arrays need to be accounted for as arguments
@@ -57,25 +57,27 @@ function diff<N>(
   // diff check
   //
   createNodesFromSource(utils, render, source);
+  console.log(render);
   if (prevRender === undefined) {
     findTargets(delta.addedIndexes, render, 0);
+  }
+  console.log(delta);
+  if (prevRender === undefined) {
+    mountParentNode(utils, delta, render, leftNode);
   }
 
   // build
   //
   if (prevRender === undefined) {
-    console.log("prevRender doesnt Exists!");
     createAddedBuilds(utils, delta, render);
   }
 
   // mount
   //
-  console.log(render);
   mountResults(
     utils,
     delta,
     render,
-    leftNode,
   );
 
   /*
