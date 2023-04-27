@@ -176,6 +176,21 @@ function adoptNodes<N>(
   }
 }
 
+function addSourceToRender<N>(
+  render: Render<N>,
+  source: RenderSource<N>,
+  parentId: number,
+) {
+  render.sources.push(source);
+  render.results.push(undefined);
+
+  const id = render.sources.length - 1;
+  render.nodes.push({ id, parentId, descendants: [] });
+
+  const node = render.nodes[parentId];
+  node.descendants.push(id);
+}
+
 // create renders and add
 function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
@@ -187,21 +202,6 @@ function createNodesFromSource<N>(
     const source = render.sources[index];
     const node = render.nodes[index];
 
-    if (Array.isArray(source)) {
-      for (const chunk of source) {
-        // add source and descendant to render
-        render.sources.push(chunk);
-        const id = render.sources.length - 1;
-        node.descendants.push(id);
-        render.nodes.push({
-          parentId: node.id,
-          descendants: [],
-          id,
-        });
-        render.results.push(undefined);
-      }
-    }
-
     if (source instanceof Draw) {
       let data = getBuilderData(utils, source.templateStrings);
       if (data !== undefined) {
@@ -209,36 +209,22 @@ function createNodesFromSource<N>(
           const { index } = descendant;
           const descSource = source.injections[index];
 
-          // add source and descendant to render
-          render.sources.push(descSource);
-          const id = render.sources.length - 1;
-          node.descendants.push(id);
-          render.nodes.push({
-            parentId: node.id,
-            descendants: [],
-            id,
-          });
-          render.results.push(undefined);
+          if (!Array.isArray(descSource)) {
+            addSourceToRender(render, descSource, index);
+          }
+
+          if (Array.isArray(descSource)) {
+            for (const chunk of descSource) {
+              // add source and descendant to render
+              addSourceToRender(render, chunk, index);
+            }
+          }
         }
       }
     }
 
     index += 1;
   }
-}
-
-function addSourceToRender<N>(
-  render: Render<N>,
-  source: RenderSource<N>,
-  parentId: number,
-) {
-  render.sources.push(source);
-  const id = render.sources.length - 1;
-  render.nodes.push({ id, parentId, descendants: [] });
-
-  const node = render.nodes[parentId];
-  node.descendants.push(id);
-  render.results.push(undefined);
 }
 
 function createRender<N>(
@@ -255,11 +241,11 @@ function createRender<N>(
     for (const chunk of source) {
       addSourceToRender(render, chunk, 0);
     }
-
-    return render;
   }
 
-  addSourceToRender(render, source, 0);
+  if (!Array.isArray(source)) {
+    addSourceToRender(render, source, 0);
+  }
 
   return render;
 }
