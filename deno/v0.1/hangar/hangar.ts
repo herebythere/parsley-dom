@@ -32,8 +32,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       this.render,
     );
     const end = performance.now();
-    console.log(end - start);
-    console.log(this.render);
+    console.log("time", end - start);
   }
 }
 

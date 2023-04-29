@@ -101,10 +101,6 @@ class Builder implements BuilderInterface {
     utils: UtilsInterface<N>,
     template: Readonly<string[]>,
   ): BuilderDataInterface<N> | undefined {
-    const error = this.steps[this.steps.length - 1];
-    if (error?.state === "ERROR") {
-      return;
-    }
 
     const stack: BuilderStack<N> = {
       nodes: [undefined],

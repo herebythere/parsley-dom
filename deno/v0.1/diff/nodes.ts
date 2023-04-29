@@ -14,6 +14,7 @@ import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
+/*
 function adoptBuilds<N>(
   delta: DeltaTargets,
   render: Render<N>,
@@ -48,6 +49,7 @@ function compareSources<N>(
 
   return source === prevSource;
 }
+*/
 
 function findTargets<N>(
   targets: number[],
@@ -60,14 +62,17 @@ function findTargets<N>(
   while (index < targets.length) {
     const nodeIndex = targets[index];
     const node = render.nodes[nodeIndex];
-    for (const descIndex of node.descendants) {
-      targets.push(descIndex);
+    for (const descIndexes of node.descendants) {
+    	for (const descIndex of descIndexes) {
+	      targets.push(descIndex);
+    	}
     }
 
     index += 1;
   }
 }
 
+/*
 function adoptNodes<N>(
   delta: DeltaTargets,
   render: Render<N>,
@@ -113,7 +118,7 @@ function adoptNodes<N>(
       const currDescSource = render.sources[currDescIndex];
 
       if (compareSources(prevDescSource, currDescSource)) {
-        delta.prevSurvivedIndexes.push(prevDescIndex);
+        delta.prevSurvivedInddexes.push(prevDescIndex);
         delta.survivedIndexes.push(currDescIndex);
         continue;
       }
@@ -125,5 +130,6 @@ function adoptNodes<N>(
     index += 1;
   }
 }
+*/
 
-export { adoptBuilds, adoptNodes, findTargets };
+export { findTargets };

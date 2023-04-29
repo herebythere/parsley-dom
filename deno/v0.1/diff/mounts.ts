@@ -109,6 +109,7 @@ function mountParentNode<N>(
   parent: N,
   left?: N,
 ) {
+	/*
   if (delta.addedIndexes.length === 0) return;
 
   const node = render.nodes[0];
@@ -127,6 +128,7 @@ function mountParentNode<N>(
       );
     }
   }
+  */
 }
 
 // we are adding all descendants to parent
@@ -136,6 +138,7 @@ function mountResults<N>(
   render: Render<N>,
 ) {
   // mount descendants
+  /*
   console.log("mount result!");
   for (
     let addedIndex = 1;
@@ -147,8 +150,6 @@ function mountResults<N>(
     const result = render.results[index];
     if (!(result instanceof Build)) continue;
     console.log("result:", node, result);
-    /*
-
     console.log("we have a build!");
 
     const renderNode = render.nodes[index];
@@ -173,8 +174,8 @@ function mountResults<N>(
       );
 
     }
-          */
   }
+  */
 }
 
 export { mountParentNode, mountResults, unmountResults };

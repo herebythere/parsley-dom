@@ -12,7 +12,11 @@ import {
   createRender,
 } from "./build.ts";
 
-import { mountParentNode, mountResults } from "./mounts.ts";
+import {
+	findTargets,
+} from "./nodes.ts";
+
+// import { mountParentNode, mountResults } from "./mounts.ts";
 
 // need to create * lists of things *
 // which means arrays need to be accounted for as arguments
@@ -22,7 +26,7 @@ import { mountParentNode, mountResults } from "./mounts.ts";
 // if source add node with descendants
 // if another array, with descendants
 
-import { findTargets } from "./adopt.ts";
+// import { findTargets } from "./adopt.ts";
 
 // first node should be the root node
 
@@ -46,7 +50,7 @@ function diff<N>(
 ): Render<N> {
   // create structures
   //
-  const render: Render<N> = createRender<N>(source, parentNode);
+  const render: Render<N> = createRender<N>(utils, source);
   const delta: DeltaTargets = {
     addedIndexes: [],
     survivedIndexes: [],
@@ -54,79 +58,15 @@ function diff<N>(
     removedIndexes: [],
   };
 
-  // diff check
-  //
-  createNodesFromSource(utils, render, source);
-  console.log(render);
-  if (prevRender === undefined) {
-    findTargets(delta.addedIndexes, render, 0);
-  }
-  console.log(delta);
-  if (prevRender === undefined) {
-    mountParentNode(utils, delta, render, leftNode);
-  }
+	if (prevRender === undefined) {
+		createNodesFromSource(utils, render, source);
+		findTargets(delta.addedIndexes, render, 0);
+	}
 
-  // build
-  //
-  if (prevRender === undefined) {
-    createAddedBuilds(utils, delta, render);
-  }
+	createAddedBuilds(utils, delta, render)
 
-  // mount
-  //
-  mountResults(
-    utils,
-    delta,
-    render,
-  );
-
-  /*
-  if (prevRender !== undefined) {
-    adoptNodes(delta, render, prevRender);
-  }
-  */
-
-  // unmount
-  //
-  /*
-  if (prevRender !== undefined) {
-    unmountResults(
-      utils,
-      delta,
-      prevRender,
-      parentNode,
-      leftNode,
-    );
-  }
-  */
-
-  // remove properties from unmounted
-  //
-  /*
-  if (prevRender !== undefined) {
-  	removeProperties(
-  		utils,
-  		delta,
-  		prevRender
-  	);
-  }
-  */
-
-  /*
-  if (prevRender !== undefined) {
-    adoptBuilds(delta, render, prevRender);
-  }
-  */
-
-  // properties
-  //
-  /*
-  if (prevRender !== undefined) {
-    removeProperties(utils, delta, prevRender);
-    adoptProperties(utils, delta, render, prevRender);
-  }
-  addProperties(utils, delta, render);
-	*/
+	console.log(render);
+	console.log(delta);
 
   return render;
 }

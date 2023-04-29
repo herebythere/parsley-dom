@@ -578,10 +578,6 @@ class Builder {
         this.steps.push(step);
     }
     build(utils, template) {
-        const error = this.steps[this.steps.length - 1];
-        if (error?.state === "ERROR") {
-            return;
-        }
         const stack = {
             nodes: [
                 undefined
@@ -674,35 +670,24 @@ function createAddedBuilds(utils, delta, render) {
         render.results[index] = result;
     }
 }
-function addSourceToRender(render, source, parentId) {
-    render.sources.push(source);
-    render.results.push(undefined);
-    const id = render.sources.length - 1;
-    render.nodes.push({
-        id,
-        parentId,
-        descendants: []
-    });
-    const node = render.nodes[parentId];
-    node.descendants.push(id);
-}
 function createNodesFromSource(utils, render, source) {
     let index = 1;
+    console.log("create nodes from sorce data:", source);
     while(index < render.sources.length){
         const source1 = render.sources[index];
         if (source1 instanceof Draw) {
             let data = getBuilderData(utils, source1.templateStrings);
-            console.log("builder data:", data);
+            console.log("build data:", data);
             if (data !== undefined) {
-                for (const descendant of data.descendants){
-                    const { index: sourceIndex  } = descendant;
-                    const descSource = source1.injections[sourceIndex];
+                for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
+                    const descendant = data.descendants[descIndex];
+                    const descSource = source1.injections[descendant.index];
                     if (!Array.isArray(descSource)) {
-                        addSourceToRender(render, descSource, index);
+                        addSourceToRender(utils, render, descSource, index, descIndex);
                     }
                     if (Array.isArray(descSource)) {
                         for (const chunk of descSource){
-                            addSourceToRender(render, chunk, index);
+                            addSourceToRender(utils, render, chunk, index, descIndex);
                         }
                     }
                 }
@@ -711,71 +696,59 @@ function createNodesFromSource(utils, render, source) {
         index += 1;
     }
 }
-function createRender(source, parentNode) {
+function addSourceToRender(utils, render, source, parentId, parentDescId) {
+    render.sources.push(source);
+    render.results.push(undefined);
+    const id = render.sources.length - 1;
+    const parentNode = render.nodes[parentId];
+    parentNode.descendants[parentDescId].push(id);
+    const node = {
+        id,
+        parentId,
+        descendants: []
+    };
+    if (!(source instanceof Draw)) {
+        node.descendants.push([]);
+    }
+    if (source instanceof Draw) {
+        let data = getBuilderData(utils, source.templateStrings);
+        if (data !== undefined) {
+            for (const desc of data.descendants){
+                node.descendants.push([]);
+            }
+        }
+    }
+    render.nodes.push(node);
+}
+function createRender(utils, source) {
+    const node = {
+        id: 0,
+        parentId: -1,
+        descendants: [
+            []
+        ]
+    };
     const render = {
         results: [
             undefined
         ],
         sources: [
-            parentNode
+            undefined
         ],
         nodes: [
-            {
-                id: 0,
-                parentId: -1,
-                descendants: []
-            }
+            node
         ]
     };
-    if (Array.isArray(source)) {
-        for (const chunk of source){
-            addSourceToRender(render, chunk, 0);
-        }
-    }
     if (!Array.isArray(source)) {
-        addSourceToRender(render, source, 0);
+        addSourceToRender(utils, render, source, 0, 0);
+    }
+    if (Array.isArray(source)) {
+        for(let index = 0; index < source.length; index++){
+            const chunk = source[index];
+            addSourceToRender(utils, render, chunk, 0, 0);
+        }
     }
     return render;
-}
-function mountResultChunk(utils, result, parent, left) {
-    console.log("mount result chunk", result);
-    const node = utils.getIfNode(result);
-    if (node !== undefined) {
-        utils.insertNode(node, parent, left);
-        return node;
-    }
-    if (result instanceof Build) {
-        let leftNode = left;
-        for (const node1 of result.nodes){
-            utils.insertNode(node1, parent, leftNode);
-            leftNode = node1;
-        }
-        return leftNode;
-    }
-}
-function mountParentNode(utils, delta, render, parent, left) {
-    if (delta.addedIndexes.length === 0) return;
-    const node = render.nodes[0];
-    console.log("root needs to be added", node);
-    if (node !== undefined) {
-        let leftNode = left;
-        console.log("add children");
-        for (const descIndex of node.descendants){
-            console.log("descIndex", descIndex);
-            const descResult = render.results[descIndex];
-            leftNode = mountResultChunk(utils, descResult, parent, leftNode);
-        }
-    }
-}
-function mountResults(utils, delta, render) {
-    console.log("mount result!");
-    for(let addedIndex = 1; addedIndex < delta.addedIndexes.length; addedIndex++){
-        const index = delta.addedIndexes[addedIndex];
-        const node = render.nodes[index];
-        const result = render.results[index];
-        if (!(result instanceof Build)) continue;
-        console.log("result:", node, result);
-    }
 }
 function findTargets(targets, render, sourceIndex) {
     targets.push(sourceIndex);
@@ -783,33 +756,29 @@ function findTargets(targets, render, sourceIndex) {
     while(index < targets.length){
         const nodeIndex = targets[index];
         const node = render.nodes[nodeIndex];
-        for (const descIndex of node.descendants){
-            targets.push(descIndex);
+        for (const descIndexes of node.descendants){
+            for (const descIndex of descIndexes){
+                targets.push(descIndex);
+            }
         }
         index += 1;
     }
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
-    const render = createRender(source, parentNode);
+    const render = createRender(utils, source);
     const delta = {
         addedIndexes: [],
         survivedIndexes: [],
         prevSurvivedIndexes: [],
         removedIndexes: []
     };
-    createNodesFromSource(utils, render, source);
-    console.log(render);
     if (prevRender === undefined) {
+        createNodesFromSource(utils, render, source);
         findTargets(delta.addedIndexes, render, 0);
     }
+    createAddedBuilds(utils, delta, render);
+    console.log(render);
     console.log(delta);
-    if (prevRender === undefined) {
-        mountParentNode(utils, delta, render, leftNode);
-    }
-    if (prevRender === undefined) {
-        createAddedBuilds(utils, delta, render);
-    }
-    mountResults(utils, delta, render);
     return render;
 }
 class Hangar {
@@ -827,8 +796,7 @@ class Hangar {
         const source = this.renderFunc(state);
         this.render = diff(utils, source, this.parentNode, this.leftNode, this.render);
         const end = performance.now();
-        console.log(end - start);
-        console.log(this.render);
+        console.log("time", end - start);
     }
 }
 export { draw as draw };

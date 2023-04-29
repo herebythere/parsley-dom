@@ -44,19 +44,12 @@ class TestComponent extends HTMLElement {
   }
 
   attributeChangedCallback() {
-    // this is where microtask should be called
     this.hangar.update(domutils, this);
-    // this.hangar.updateAsync(this);
   }
 
   update() {
     this.hangar.update(domutils, this);
-    // queueMicrotask(this.microTaskSentinel);
   }
-
-  microTaskSentinel = () => {
-    this.hangar.update(domutils, this);
-  };
 }
 
 customElements.define("test-component", TestComponent);

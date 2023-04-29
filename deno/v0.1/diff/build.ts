@@ -6,6 +6,7 @@ import type {
   Render,
   RenderResult,
   RenderSource,
+  RenderNode,
 } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
@@ -67,20 +68,8 @@ function createAddedBuilds<N>(
   }
 }
 
-function addSourceToRender<N>(
-  render: Render<N>,
-  source: RenderSource<N>,
-  parentId: number,
-) {
-  render.sources.push(source);
-  render.results.push(undefined);
 
-  const id = render.sources.length - 1;
-  render.nodes.push({ id, parentId, descendants: [] });
 
-  const node = render.nodes[parentId];
-  node.descendants.push(id);
-}
 
 // create renders and add
 function createNodesFromSource<N>(
@@ -89,27 +78,28 @@ function createNodesFromSource<N>(
   source: RenderSource<N>,
 ) {
   let index = 1;
+  console.log("create nodes from sorce data:", source);
   while (index < render.sources.length) {
     const source = render.sources[index];
     if (source instanceof Draw) {
       let data = getBuilderData(utils, source.templateStrings);
-      console.log("builder data:", data);
+      console.log("build data:", data);
       if (data !== undefined) {
-        for (const descendant of data.descendants) {
-          const { index: sourceIndex } = descendant;
-          const descSource = source.injections[sourceIndex];
-
+      	for (let descIndex = 0; descIndex < data.descendants.length; descIndex++) {
+      		const descendant = data.descendants[descIndex];
+      		const descSource = source.injections[descendant.index];
+      		
           if (!Array.isArray(descSource)) {
-            addSourceToRender(render, descSource, index);
+            addSourceToRender(utils, render, descSource, index, descIndex);
           }
-
+          
           if (Array.isArray(descSource)) {
             for (const chunk of descSource) {
               // add source and descendant to render
-              addSourceToRender(render, chunk, index);
+              addSourceToRender(utils, render, chunk, index, descIndex);
             }
           }
-        }
+      	}
       }
     }
 
@@ -117,24 +107,59 @@ function createNodesFromSource<N>(
   }
 }
 
-function createRender<N>(
+function addSourceToRender<N>(
+	utils: UtilsInterface<N>,
+  render: Render<N>,
   source: RenderSource<N>,
-  parentNode: N,
+  parentId: number,
+  parentDescId: number,
 ) {
-  const render: Render<N> = {
-    results: [undefined],
-    sources: [parentNode],
-    nodes: [{ id: 0, parentId: -1, descendants: [] }],
-  };
+  render.sources.push(source);
+  render.results.push(undefined);
 
-  if (Array.isArray(source)) {
-    for (const chunk of source) {
-      addSourceToRender(render, chunk, 0);
+  const id = render.sources.length - 1;
+  const parentNode = render.nodes[parentId];
+  parentNode.descendants[parentDescId].push(id);
+
+  // add descendant index arrays
+  const node: RenderNode = { id, parentId, descendants: [] };
+  if (!(source instanceof Draw)) {
+		node.descendants.push([]);
+  }
+  if (source instanceof Draw) {
+    let data = getBuilderData(utils, source.templateStrings);
+    if (data !== undefined) {
+    	for (const desc of data.descendants) {
+    		node.descendants.push([]);
+    	}
     }
   }
+  
+  render.nodes.push(node);
+}
 
+function createRender<N>(
+	utils: UtilsInterface<N>,
+  source: RenderSource<N>,
+) {
+	// create root node
+	const node: RenderNode = { id: 0, parentId: -1, descendants: [[]] };
+  const render: Render<N> = {
+    results: [undefined],
+    sources: [undefined],
+    nodes: [node],
+  };
+  
+  // add sources
   if (!Array.isArray(source)) {
-    addSourceToRender(render, source, 0);
+    addSourceToRender(utils, render, source, 0, 0);
+  }
+  
+  if (Array.isArray(source)) {
+  	for (let index = 0; index < source.length; index++) {
+  		const chunk = source[index];
+	    addSourceToRender(utils, render, chunk, 0, 0);
+  	}
   }
 
   return render;
