@@ -16,6 +16,7 @@ const testArray = () => {
 
 const testNodeNested = () => {
   return draw`
+  	<p>howdy!</p>
 		<p>hello ${testArray()}!</p>
 	`;
 };

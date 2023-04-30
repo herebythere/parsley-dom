@@ -655,10 +655,8 @@ function getBuild(utils, draw) {
     }
 }
 function createAddedBuilds(utils, delta, render) {
-    console.log("create added builds");
     for (const index of delta.addedIndexes){
         const source = render.sources[index];
-        console.log("source:", source);
         let result = utils.getIfNode(source);
         if (source instanceof Draw) {
             result = getBuild(utils, source);
@@ -666,18 +664,15 @@ function createAddedBuilds(utils, delta, render) {
         if (result === undefined && source !== undefined) {
             result = utils.createTextNode(source);
         }
-        console.log("final result", result);
         render.results[index] = result;
     }
 }
 function createNodesFromSource(utils, render, source) {
     let index = 1;
-    console.log("create nodes from sorce data:", source);
     while(index < render.sources.length){
         const source1 = render.sources[index];
         if (source1 instanceof Draw) {
             let data = getBuilderData(utils, source1.templateStrings);
-            console.log("build data:", data);
             if (data !== undefined) {
                 for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
                     const descendant = data.descendants[descIndex];
@@ -764,6 +759,45 @@ function findTargets(targets, render, sourceIndex) {
         index += 1;
     }
 }
+function mountResultChunk(utils, result, parent, left) {
+    const node = utils.getIfNode(result);
+    if (node !== undefined) {
+        utils.insertNode(node, parent, left);
+        return node;
+    }
+    if (result instanceof Build) {
+        let leftNode = left;
+        for (const node1 of result.nodes){
+            utils.insertNode(node1, parent, leftNode);
+            leftNode = node1;
+        }
+        return leftNode;
+    }
+}
+function mountResults(utils, delta, render, parent) {
+    for (const addedIndex of delta.addedIndexes){
+        const result = render.results[addedIndex];
+        if (!(result instanceof Build)) continue;
+        const renderNode = render.nodes[addedIndex];
+        for(let index = 0; index < result.descendants.length; index++){
+            const descIndexes = renderNode.descendants[index];
+            const { parentNode , node  } = result.descendants[index];
+            let leftNode = node;
+            for (const descIndex of descIndexes){
+                const descResult = render.results[descIndex];
+                leftNode = mountResultChunk(utils, descResult, parentNode ?? parent, leftNode);
+            }
+        }
+    }
+}
+function mountRootToResults(utils, delta, render, parent, left) {
+    const rootNode = render.nodes[0];
+    let leftNode = left;
+    for (const index of rootNode.descendants[0]){
+        const result = render.results[index];
+        leftNode = mountResultChunk(utils, result, parent, leftNode);
+    }
+}
 function diff(utils, source, parentNode, leftNode, prevRender) {
     const render = createRender(utils, source);
     const delta = {
@@ -779,6 +813,8 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     createAddedBuilds(utils, delta, render);
     console.log(render);
     console.log(delta);
+    mountResults(utils, delta, render, parentNode);
+    mountRootToResults(utils, delta, render, parentNode, leftNode);
     return render;
 }
 class Hangar {
@@ -813,6 +849,7 @@ const testArray = ()=>{
 };
 const testNodeNested = ()=>{
     return draw`
+  	<p>howdy!</p>
 		<p>hello ${testArray()}!</p>
 	`;
 };

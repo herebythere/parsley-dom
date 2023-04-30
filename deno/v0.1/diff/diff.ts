@@ -12,11 +12,9 @@ import {
   createRender,
 } from "./build.ts";
 
-import {
-	findTargets,
-} from "./nodes.ts";
+import { findTargets } from "./nodes.ts";
 
-// import { mountParentNode, mountResults } from "./mounts.ts";
+import { mountResults, mountRootToResults } from "./mounts.ts";
 
 // need to create * lists of things *
 // which means arrays need to be accounted for as arguments
@@ -48,6 +46,7 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
+  // render needs a reference to parent node?
   // create structures
   //
   const render: Render<N> = createRender<N>(utils, source);
@@ -58,15 +57,20 @@ function diff<N>(
     removedIndexes: [],
   };
 
-	if (prevRender === undefined) {
-		createNodesFromSource(utils, render, source);
-		findTargets(delta.addedIndexes, render, 0);
-	}
+  if (prevRender === undefined) {
+    createNodesFromSource(utils, render, source);
+    findTargets(delta.addedIndexes, render, 0);
+  }
 
-	createAddedBuilds(utils, delta, render)
+  createAddedBuilds(utils, delta, render);
 
-	console.log(render);
-	console.log(delta);
+  console.log(render);
+  console.log(delta);
+
+  mountResults(utils, delta, render, parentNode);
+
+  // if parent roots changed
+  mountRootToResults(utils, delta, render, parentNode, leftNode);
 
   return render;
 }

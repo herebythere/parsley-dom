@@ -14,6 +14,7 @@ import { Build } from "../build/build.ts";
 import { Builder } from "../builder/builder.ts";
 import { parse } from "../deps.ts";
 
+/*
 function unmountResult<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,
@@ -79,6 +80,7 @@ function unmountResults<N>(
   }
 }
 
+
 function mountResultChunk<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,
@@ -128,7 +130,30 @@ function mountParentNode<N>(
       );
     }
   }
-  */
+
+}
+*/
+
+function mountResultChunk<N>(
+  utils: UtilsInterface<N>,
+  result: RenderResult<N>,
+  parent: N,
+  left?: N,
+) {
+  const node = utils.getIfNode(result);
+  if (node !== undefined) {
+    utils.insertNode(node, parent, left);
+    return node;
+  }
+
+  if (result instanceof Build) {
+    let leftNode = left;
+    for (const node of result.nodes) {
+      utils.insertNode(node, parent, leftNode);
+      leftNode = node;
+    }
+    return leftNode;
+  }
 }
 
 // we are adding all descendants to parent
@@ -136,46 +161,48 @@ function mountResults<N>(
   utils: UtilsInterface<N>,
   delta: DeltaTargets,
   render: Render<N>,
+  parent: N,
 ) {
   // mount descendants
-  /*
-  console.log("mount result!");
-  for (
-    let addedIndex = 1;
-    addedIndex < delta.addedIndexes.length;
-    addedIndex++
-  ) {
-    const index = delta.addedIndexes[addedIndex];
-    const node = render.nodes[index];
-    const result = render.results[index];
+  for (const addedIndex of delta.addedIndexes) {
+    const result = render.results[addedIndex];
+    // avoids "undefined" as well, including root result
     if (!(result instanceof Build)) continue;
-    console.log("result:", node, result);
-    console.log("we have a build!");
 
-    const renderNode = render.nodes[index];
-    for (
-      let descIndex = 0;
-      descIndex < renderNode.descendants.length;
-      descIndex++
-    ) {
-      const descNodeIndex = renderNode.descendants[descIndex];
-      const descResult = render.results[descNodeIndex];
+    const renderNode = render.nodes[addedIndex];
+    // for each descendant
+    for (let index = 0; index < result.descendants.length; index++) {
+      const descIndexes = renderNode.descendants[index];
 
-      let { parentNode, node } = descResult.descendants[descIndex];
-      if (parentNode === undefined) {
-        parentNode = parent;
+      const { parentNode, node } = result.descendants[index];
+      let leftNode = node;
+      for (const descIndex of descIndexes) {
+        const descResult = render.results[descIndex];
+        leftNode = mountResultChunk(
+          utils,
+          descResult,
+          parentNode ?? parent,
+          leftNode,
+        );
       }
-
-      mountResultChunk(
-        utils,
-        descResult,
-        parentNode,
-        node,
-      );
-
     }
   }
-  */
 }
 
-export { mountParentNode, mountResults, unmountResults };
+function mountRootToResults<N>(
+  utils: UtilsInterface<N>,
+  delta: DeltaTargets,
+  render: Render<N>,
+  parent: N,
+  left?: N,
+) {
+  // root node is always a node
+  const rootNode = render.nodes[0];
+  let leftNode = left;
+  for (const index of rootNode.descendants[0]) {
+    const result = render.results[index];
+    leftNode = mountResultChunk(utils, result, parent, leftNode);
+  }
+}
+
+export { mountResults, mountRootToResults };

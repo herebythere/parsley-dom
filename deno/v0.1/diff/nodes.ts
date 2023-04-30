@@ -63,9 +63,9 @@ function findTargets<N>(
     const nodeIndex = targets[index];
     const node = render.nodes[nodeIndex];
     for (const descIndexes of node.descendants) {
-    	for (const descIndex of descIndexes) {
-	      targets.push(descIndex);
-    	}
+      for (const descIndex of descIndexes) {
+        targets.push(descIndex);
+      }
     }
 
     index += 1;

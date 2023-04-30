@@ -101,7 +101,6 @@ class Builder implements BuilderInterface {
     utils: UtilsInterface<N>,
     template: Readonly<string[]>,
   ): BuilderDataInterface<N> | undefined {
-
     const stack: BuilderStack<N> = {
       nodes: [undefined],
       address: [-1],
