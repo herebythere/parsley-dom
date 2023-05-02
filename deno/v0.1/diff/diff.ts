@@ -28,9 +28,13 @@ function diff<N>(
   const render: Render<N> = createRender<N>(utils, source);
   const delta: DeltaTargets = {
     addedIndexes: [],
+  	addedDescIndexes: [],
     survivedIndexes: [],
+  	survivedDescIndexes: [],
     prevSurvivedIndexes: [],
+  	prevSurvivedDescIndexes: [],
     removedIndexes: [],
+  	removedDescIndexes: [],
   };
 
 	// create source build
@@ -46,14 +50,10 @@ function diff<N>(
   	// find added, survived, and removed nodes
   	adoptNodes(prevRender, render, delta);
   }
-
-	// build from targets
-	//
+  
+  // unmount previous renders
+  //
 	
-	
-	// unmount previous render
-	//
-
 	// create new builds 
 	//
   // adopt survivedNodes
@@ -63,9 +63,12 @@ function diff<N>(
   console.log(render);
   console.log(delta);
 
+	// mount new renders
   mountResults(utils, delta, render, parentNode);
   // if parent roots changed
+  
   mountRootToResults(utils, delta, render, parentNode, leftNode);
+
 
   return render;
 }

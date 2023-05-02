@@ -2,6 +2,40 @@ import type { UtilsInterface } from "../type_flyweight/utils.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
 import type { RenderResult } from "../type_flyweight/render.ts";
 
+
+function getBuilderData<N>(
+  utils: UtilsInterface<N>,
+  template: Readonly<string[]>,
+) {
+  let builderData = utils.getBuilder(template);
+  if (builderData === undefined) {
+    const builder = new Builder();
+    parse(template, builder);
+    builderData = builder.build(utils, template);
+  }
+
+  if (builderData !== undefined) {
+    utils.setBuilder(template, builderData);
+  }
+
+  return builderData;
+}
+
+function getBuild<N>(
+  utils: UtilsInterface<N>,
+  draw: DrawInterface,
+): BuildInterface<N> | undefined {
+  const builderData = getBuilderData(
+    utils,
+    draw.templateStrings,
+  );
+
+  if (builderData !== undefined) {
+    return new Build(utils, builderData);
+  }
+}
+
+
 const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
 
 class DOMUtils implements UtilsInterface<Node> {
@@ -51,12 +85,6 @@ class DOMUtils implements UtilsInterface<Node> {
     }
 
     return currNode;
-  }
-  setBuilder(
-    template: Readonly<string[]>,
-    builder: BuilderDataInterface<Node>,
-  ) {
-    builderCache.set(template, builder);
   }
   getBuilder(template: Readonly<string[]>) {
     const builder = builderCache.get(template);

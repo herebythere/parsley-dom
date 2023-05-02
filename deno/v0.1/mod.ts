@@ -9,7 +9,5 @@ export { draw } from "./draw/draw.ts";
 
 // build exports
 // not meant for user interaction
-export { DOMUtils } from "./dom_utils/dom_utils.ts";
-export { Builder } from "./builder/builder.ts";
 export { Build } from "./build/build.ts";
 export { Hangar } from "./hangar/hangar.ts";
