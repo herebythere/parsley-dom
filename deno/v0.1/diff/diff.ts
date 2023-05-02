@@ -60,7 +60,7 @@ function diff<N>(
   // find targets
   //
   if (prevRender === undefined) {
-    findTargets(delta.addedIndexes, delta.addedDescIndexes, render, 0, 0);
+    findTargets(render, delta.addedIndexes, delta.addedDescIndexes, 0, 0);
   }
   if (prevRender !== undefined) {
     // find added, survived, and removed nodes

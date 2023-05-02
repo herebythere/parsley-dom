@@ -8,9 +8,9 @@ import { Draw } from "../draw/draw.ts";
 
 // possibly need to add descendant index 
 function findTargets<N>(
+  render: Render<N>,
   targets: number[],
   descTargets: number[],
-  render: Render<N>,
   nodeIndex: number,
   nodeDescIndex: number,
 ) {

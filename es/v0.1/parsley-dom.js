@@ -139,7 +139,7 @@ function createRender(utils, source, parent) {
     }
     return render;
 }
-function findTargets(targets, descTargets, render, nodeIndex, nodeDescIndex) {
+function findTargets(render, targets, descTargets, nodeIndex, nodeDescIndex) {
     targets.push(nodeIndex);
     descTargets.push(nodeDescIndex);
     let index = targets.length - 1;
@@ -211,7 +211,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     };
     createNodesFromSource(utils, render, source);
     if (prevRender === undefined) {
-        findTargets(delta.addedIndexes, delta.addedDescIndexes, render, 0, 0);
+        findTargets(render, delta.addedIndexes, delta.addedDescIndexes, 0, 0);
     }
     if (prevRender !== undefined) {}
     createAddedBuilds(utils, delta, render);
