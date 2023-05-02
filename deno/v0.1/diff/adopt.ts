@@ -6,23 +6,33 @@ import type {
 
 import { Draw } from "../draw/draw.ts";
 
+// possibly need to add descendant index 
 function findTargets<N>(
   targets: number[],
+  descTargets: number[],
   render: Render<N>,
-  sourceIndex: number,
+  nodeIndex: number,
+  nodeDescIndex: number,
 ) {
-  targets.push(sourceIndex);
-
+  targets.push(nodeIndex);
+  descTargets.push(nodeDescIndex);
+  
   let index = targets.length - 1;
   while (index < targets.length) {
-    const nodeIndex = targets[index];
-    const node = render.nodes[nodeIndex];
-    for (const descIndexes of node.descendants) {
-      for (const descIndex of descIndexes) {
-        targets.push(descIndex);
-      }
-    }
-
+    const targetIndex = targets[index];
+    const targetDescIndex = descTargets[index];
+    
+  	const node = render.nodes[targetIndex];
+		const nodeDescIndexes = node.descendants[targetDescIndex];
+		for (const nodeIndex of nodeDescIndexes) {
+			const descNode = render.nodes[nodeIndex];
+			
+		  for (let descIndex = 0; index < descNode.descendants.length; index++) {
+		  	targets.push(nodeIndex);
+		  	descTargets.push(descIndex);
+		  }
+		}
+   	
     index += 1;
   }
 }
@@ -88,6 +98,7 @@ function adoptNodes<N>(
       // compare array
 
       // compare sources, iterate across array
+      
       // if same add all to adopted arrays and survived indexes
 
       // if not, add all prev to removed arrays

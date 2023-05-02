@@ -11,9 +11,7 @@ import {
   createNodesFromSource,
   createRender,
 } from "./build.ts";
-
 import { adoptNodes, findTargets } from "./adopt.ts";
-
 import { mountResults, mountRootToResults } from "./mounts.ts";
 
 function diff<N>(
@@ -23,6 +21,22 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
+	// create structures
+	// create new nodes from sources
+	// if prevRender does not exist
+	//		find all added nodes
+	//		create nodes
+	// if prevRender exists
+	//		find survived nodes
+	//		find added and removed nodes
+	//
+	// if parent node has changed
+	//		unmount all top level nodes
+	//		
+	// unmount removed nodes
+	// mount added nodes
+
+
   // create structures
   //
   const render: Render<N> = createRender<N>(utils, source, parentNode);
@@ -37,6 +51,8 @@ function diff<N>(
     removedDescIndexes: [],
   };
 
+	// if parent node	
+
   // create source build
   //
   createNodesFromSource(utils, render, source);
@@ -44,7 +60,7 @@ function diff<N>(
   // find targets
   //
   if (prevRender === undefined) {
-    findTargets(delta.addedIndexes, render, 0);
+    findTargets(delta.addedIndexes, delta.addedDescIndexes, render, 0, 0);
   }
   if (prevRender !== undefined) {
     // find added, survived, and removed nodes

@@ -13,17 +13,6 @@ import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { parse } from "../deps.ts";
 
-function getBuild<N>(
-  utils: UtilsInterface<N>,
-  draw: DrawInterface,
-): BuildInterface<N> | undefined {
-  const builderData = utils.getBuilder(draw.templateStrings);
-
-  if (builderData !== undefined) {
-    return new Build(utils, builderData);
-  }
-}
-
 function createAddedBuilds<N>(
   utils: UtilsInterface<N>,
   delta: DeltaTargets,
@@ -33,7 +22,10 @@ function createAddedBuilds<N>(
     const source = render.sources[index];
     let result: RenderResult<N> = utils.getIfNode(source);
     if (source instanceof Draw) {
-      result = getBuild(utils, source);
+  	  const builderData = utils.getBuilder(source.templateStrings);
+			if (builderData !== undefined) {
+				result = new Build(utils, builderData);
+			}
     }
     if (result === undefined && source !== undefined) {
       result = utils.createTextNode(source);

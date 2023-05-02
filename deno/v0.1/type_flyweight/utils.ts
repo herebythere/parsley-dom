@@ -16,10 +16,6 @@ interface UtilsInterface<N> {
     depth?: number,
   ): N | undefined;
   getBuilder(template: Readonly<string[]>): BuilderDataInterface<N> | undefined;
-  setBuilder(
-    template: Readonly<string[]>,
-    builder: BuilderDataInterface<N>,
-  ): void;
   // setAttribute(node: N, name: string, value: unknown)
 }
 

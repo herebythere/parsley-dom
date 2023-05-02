@@ -2,17 +2,6 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-class Draw {
-    templateStrings;
-    injections;
-    constructor(templateStrings, injections){
-        this.templateStrings = templateStrings;
-        this.injections = injections;
-    }
-}
-function draw(templateStrings, ...injections) {
-    return new Draw(templateStrings, injections);
-}
 function cloneNodes(utils, nodes) {
     let clonedNodes = [];
     for (const node of nodes){
@@ -46,18 +35,26 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function getBuild(utils, draw) {
-    const builderData = utils.getBuilder(draw.templateStrings);
-    if (builderData !== undefined) {
-        return new Build(utils, builderData);
+class Draw {
+    templateStrings;
+    injections;
+    constructor(templateStrings, injections){
+        this.templateStrings = templateStrings;
+        this.injections = injections;
     }
+}
+function draw(templateStrings, ...injections) {
+    return new Draw(templateStrings, injections);
 }
 function createAddedBuilds(utils, delta, render) {
     for (const index of delta.addedIndexes){
         const source = render.sources[index];
         let result = utils.getIfNode(source);
         if (source instanceof Draw) {
-            result = getBuild(utils, source);
+            const builderData = utils.getBuilder(source.templateStrings);
+            if (builderData !== undefined) {
+                result = new Build(utils, builderData);
+            }
         }
         if (result === undefined && source !== undefined) {
             result = utils.createTextNode(source);
@@ -142,15 +139,20 @@ function createRender(utils, source, parent) {
     }
     return render;
 }
-function findTargets(targets, render, sourceIndex) {
-    targets.push(sourceIndex);
+function findTargets(targets, descTargets, render, nodeIndex, nodeDescIndex) {
+    targets.push(nodeIndex);
+    descTargets.push(nodeDescIndex);
     let index = targets.length - 1;
     while(index < targets.length){
-        const nodeIndex = targets[index];
-        const node = render.nodes[nodeIndex];
-        for (const descIndexes of node.descendants){
-            for (const descIndex of descIndexes){
-                targets.push(descIndex);
+        const targetIndex = targets[index];
+        const targetDescIndex = descTargets[index];
+        const node = render.nodes[targetIndex];
+        const nodeDescIndexes = node.descendants[targetDescIndex];
+        for (const nodeIndex1 of nodeDescIndexes){
+            const descNode = render.nodes[nodeIndex1];
+            for(let descIndex = 0; index < descNode.descendants.length; index++){
+                targets.push(nodeIndex1);
+                descTargets.push(descIndex);
             }
         }
         index += 1;
@@ -209,7 +211,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     };
     createNodesFromSource(utils, render, source);
     if (prevRender === undefined) {
-        findTargets(delta.addedIndexes, render, 0);
+        findTargets(delta.addedIndexes, delta.addedDescIndexes, render, 0, 0);
     }
     if (prevRender !== undefined) {}
     createAddedBuilds(utils, delta, render);
@@ -235,6 +237,6 @@ class Hangar {
         this.render = diff(utils, source, this.parentNode, this.leftNode, this.render);
     }
 }
-export { draw as draw };
 export { Build as Build };
 export { Hangar as Hangar };
+export { draw as draw };

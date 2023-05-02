@@ -1,10 +1,12 @@
 import type { BuilderInterface, BuildStep } from "../deps.ts";
-import type {
-  BuilderDataInterface,
-  BuilderInjection,
-  BuilderStack,
-} from "../type_flyweight/builder.ts";
+import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
+
+interface BuilderStack<N> {
+  address: number[];
+  nodes: (N | undefined)[];
+  attribute?: string;
+}
 
 import { getText } from "../deps.ts";
 

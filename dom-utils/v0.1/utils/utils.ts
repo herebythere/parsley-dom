@@ -3,7 +3,6 @@ import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
 import type { RenderResult } from "../type_flyweight/render.ts";
 
 function getBuilderData<N>(
-  utils: UtilsInterface<N>,
   template: Readonly<string[]>,
 ) {
   let builderData = utils.getBuilder(template);

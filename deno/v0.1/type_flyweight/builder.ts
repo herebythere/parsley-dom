@@ -10,10 +10,4 @@ interface BuilderDataInterface<N> {
   descendants: BuilderInjection[];
 }
 
-interface BuilderStack<N> {
-  address: number[];
-  nodes: (N | undefined)[];
-  attribute?: string;
-}
-
-export type { BuilderDataInterface, BuilderInjection, BuilderStack };
+export type { BuilderDataInterface, BuilderInjection };
