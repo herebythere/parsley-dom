@@ -1,8 +1,8 @@
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { BuilderInterface } from "../type_flyweight/builder.ts";
-import type { RenderSource } from "../type_flyweight/render.ts";
+import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
+import type { RenderResult } from "../type_flyweight/render.ts";
 
-const builderCache = new Map<Readonly<string[]>, BuilderInterface<Node>>();
+const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
 
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
@@ -11,26 +11,26 @@ class DOMUtils implements UtilsInterface<Node> {
     }
     return document.createElement(tagname);
   }
-  createTextNode(text: string) {
-    return document.createTextNode(text);
+  createTextNode(text: unknown) {
+    return document.createTextNode(
+      text?.toString() ?? "error: unable to render to string",
+    );
   }
-  // update for node[], node, string
-  insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
+  insertNode(node: Node, parentNode: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
     if (leftNode?.nextSibling === undefined) {
       parentNode.appendChild(node);
       return;
     }
-
-    node.insertBefore(node, leftNode.nextSibling);
+    parentNode.insertBefore(node, leftNode.nextSibling);
   }
-  getIfNode(node: RenderSource<Node>): Node | undefined {
+  removeNode(node: Node, parentNode: Node, leftNode?: Node) {
+    parentNode.removeChild(node);
+  }
+  getIfNode(node: unknown): Node | undefined {
     if (node instanceof Node) {
       return node;
     }
-  }
-  removeNode(node: Node, parentNode: Node) {
-    parentNode.removeChild(node);
   }
   cloneTree(node: Node) {
     return node.cloneNode(true);
@@ -46,20 +46,23 @@ class DOMUtils implements UtilsInterface<Node> {
     if (currNode === undefined) return;
 
     for (let index = 1; index < depth; index++) {
-      currNode = currNode.childNodes[index];
-      if (currNode === undefined) return;
+      const addressIndex = address[index];
+      currNode = currNode.childNodes[addressIndex];
     }
 
     return currNode;
   }
   setBuilder(
     template: Readonly<string[]>,
-    builder: BuilderInterface<Node>,
+    builder: BuilderDataInterface<Node>,
   ) {
     builderCache.set(template, builder);
   }
   getBuilder(template: Readonly<string[]>) {
-    return builderCache.get(template);
+    const builder = builderCache.get(template);
+    if (builder !== undefined) {
+      return builder;
+    }
   }
 }
 

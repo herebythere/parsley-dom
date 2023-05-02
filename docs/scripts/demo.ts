@@ -33,11 +33,11 @@ class TestComponent extends HTMLElement {
   constructor() {
     super();
 
-    this.attachShadow({ mode: "open" });
-    if (this.shadowRoot) {
+    const shadowRoot = this.attachShadow({mode: "closed"});
+    if (shadowRoot) {
       this.hangar = new Hangar<Node, State>(
         testNodeNested,
-        this.shadowRoot,
+        shadowRoot,
       );
 
       this.hangar.update(domutils, this);

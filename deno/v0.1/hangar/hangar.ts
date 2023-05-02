@@ -16,6 +16,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   render?: Render<N>;
 
   constructor(renderFunc: RenderFunc<N>, parentNode: N, leftNode?: N) {
+  	console.log("web component", parentNode);
     this.renderFunc = renderFunc;
     this.parentNode = parentNode;
     this.leftNode = leftNode;

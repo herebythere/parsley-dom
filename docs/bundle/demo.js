@@ -759,6 +759,19 @@ function findTargets(targets, render, sourceIndex) {
         index += 1;
     }
 }
+function adoptNodes(render, prevRender, delta) {
+    delta.prevSurvivedIndexes.push(0);
+    delta.survivedIndexes.push(0);
+    let index = 0;
+    while(index < delta.survivedIndexes.length){
+        const prevParentIndex = delta.prevSurvivedIndexes[index];
+        const parentIndex = delta.survivedIndexes[index];
+        const prevRenderNode = prevRender.nodes[prevParentIndex];
+        const renderNode = render.nodes[parentIndex];
+        Math.max(prevRenderNode.descendants.length, renderNode.descendants.length);
+        index += 1;
+    }
+}
 function mountResultChunk(utils, result, parent, left) {
     const node = utils.getIfNode(result);
     if (node !== undefined) {
@@ -806,9 +819,12 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         prevSurvivedIndexes: [],
         removedIndexes: []
     };
+    createNodesFromSource(utils, render, source);
     if (prevRender === undefined) {
-        createNodesFromSource(utils, render, source);
         findTargets(delta.addedIndexes, render, 0);
+    }
+    if (prevRender !== undefined) {
+        adoptNodes(prevRender, render, delta);
     }
     createAddedBuilds(utils, delta, render);
     console.log(render);
@@ -823,6 +839,7 @@ class Hangar {
     leftNode;
     render;
     constructor(renderFunc, parentNode, leftNode){
+        console.log("web component", parentNode);
         this.renderFunc = renderFunc;
         this.parentNode = parentNode;
         this.leftNode = leftNode;
@@ -862,11 +879,11 @@ class TestComponent extends HTMLElement {
     }
     constructor(){
         super();
-        this.attachShadow({
-            mode: "open"
+        const shadowRoot = this.attachShadow({
+            mode: "closed"
         });
-        if (this.shadowRoot) {
-            this.hangar = new Hangar(testNodeNested, this.shadowRoot);
+        if (shadowRoot) {
+            this.hangar = new Hangar(testNodeNested, shadowRoot);
             this.hangar.update(domutils, this);
         }
     }

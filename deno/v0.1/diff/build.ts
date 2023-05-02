@@ -137,12 +137,13 @@ function addSourceToRender<N>(
 function createRender<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
+  parent: N,
 ) {
   // create root node
   const node: RenderNode = { id: 0, parentId: -1, descendants: [[]] };
   const render: Render<N> = {
-    results: [undefined],
-    sources: [undefined],
+    results: [parent],
+    sources: [parent],
     nodes: [node],
   };
 
