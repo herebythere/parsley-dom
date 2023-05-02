@@ -84,7 +84,7 @@ function createNodesFromSource<N>(
   while (index < render.sources.length) {
     const source = render.sources[index];
     if (source instanceof Draw) {
-      let data = getBuilderData(utils, source.templateStrings);
+      let data = utils.getBuilder(source.templateStrings);
       if (data !== undefined) {
         for (
           let descIndex = 0;
@@ -131,8 +131,7 @@ function createRender<N>(
   }
 
   if (Array.isArray(source)) {
-    for (let index = 0; index < source.length; index++) {
-      const chunk = source[index];
+    for (const chunk of source) {
       addSourceToRender(utils, render, chunk, 0, 0);
     }
   }

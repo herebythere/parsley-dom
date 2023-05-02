@@ -25,11 +25,11 @@ interface Render<N> {
 
 interface DeltaTargets {
   addedIndexes: number[];
-	addedDescIndexes: number[];
+  addedDescIndexes: number[];
   survivedIndexes: number[];
   survivedDescIndexes: number[];
   prevSurvivedIndexes: number[];
- 	prevSurvivedDescIndexes: number[];
+  prevSurvivedDescIndexes: number[];
   removedIndexes: number[];
   removedDescIndexes: number[];
 }

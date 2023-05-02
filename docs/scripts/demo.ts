@@ -33,7 +33,7 @@ class TestComponent extends HTMLElement {
   constructor() {
     super();
 
-    const shadowRoot = this.attachShadow({mode: "closed"});
+    const shadowRoot = this.attachShadow({ mode: "closed" });
     if (shadowRoot) {
       this.hangar = new Hangar<Node, State>(
         testNodeNested,

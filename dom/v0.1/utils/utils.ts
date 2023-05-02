@@ -2,7 +2,6 @@ import type { UtilsInterface } from "../type_flyweight/utils.ts";
 import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
 import type { RenderResult } from "../type_flyweight/render.ts";
 
-
 function getBuilderData<N>(
   utils: UtilsInterface<N>,
   template: Readonly<string[]>,
@@ -35,7 +34,6 @@ function getBuild<N>(
   }
 }
 
-
 const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
 
 class DOMUtils implements UtilsInterface<Node> {
@@ -46,9 +44,7 @@ class DOMUtils implements UtilsInterface<Node> {
     return document.createElement(tagname);
   }
   createTextNode(text: unknown) {
-    return document.createTextNode(
-      text?.toString() ?? "error: unable to render to string",
-    );
+    return document.createTextNode(text);
   }
   insertNode(node: Node, parentNode: Node, leftNode?: Node) {
     if (parentNode === undefined) return;

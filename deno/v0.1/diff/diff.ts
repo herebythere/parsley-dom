@@ -12,7 +12,7 @@ import {
   createRender,
 } from "./build.ts";
 
-import { findTargets, adoptNodes } from "./adopt.ts";
+import { adoptNodes, findTargets } from "./adopt.ts";
 
 import { mountResults, mountRootToResults } from "./mounts.ts";
 
@@ -25,50 +25,48 @@ function diff<N>(
 ): Render<N> {
   // create structures
   //
-  const render: Render<N> = createRender<N>(utils, source);
+  const render: Render<N> = createRender<N>(utils, source, parentNode);
   const delta: DeltaTargets = {
     addedIndexes: [],
-  	addedDescIndexes: [],
+    addedDescIndexes: [],
     survivedIndexes: [],
-  	survivedDescIndexes: [],
+    survivedDescIndexes: [],
     prevSurvivedIndexes: [],
-  	prevSurvivedDescIndexes: [],
+    prevSurvivedDescIndexes: [],
     removedIndexes: [],
-  	removedDescIndexes: [],
+    removedDescIndexes: [],
   };
 
-	// create source build
-	//
+  // create source build
+  //
   createNodesFromSource(utils, render, source);
-  
-	// find targets
-	//
+
+  // find targets
+  //
   if (prevRender === undefined) {
     findTargets(delta.addedIndexes, render, 0);
   }
   if (prevRender !== undefined) {
-  	// find added, survived, and removed nodes
-  	adoptNodes(prevRender, render, delta);
+    // find added, survived, and removed nodes
+    // adoptNodes(prevRender, render, delta);
   }
-  
+
   // unmount previous renders
   //
-	
-	// create new builds 
-	//
+
+  // create new builds
+  //
   // adopt survivedNodes
   createAddedBuilds(utils, delta, render);
-
 
   console.log(render);
   console.log(delta);
 
-	// mount new renders
+  // mount new renders
   mountResults(utils, delta, render, parentNode);
   // if parent roots changed
-  
-  mountRootToResults(utils, delta, render, parentNode, leftNode);
 
+  mountRootToResults(utils, delta, render, parentNode, leftNode);
 
   return render;
 }
