@@ -6,6 +6,13 @@ import type {
 
 import { Draw } from "../draw/draw.ts";
 
+function adoptSurvivedNodes(
+	render: Render<N>,
+	delta: DeltaTargets,
+) {
+
+}
+
 function findTargets<N>(
   render: Render<N>,
   targets: number[],

@@ -13,6 +13,62 @@ import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { parse } from "../deps.ts";
 
+function unmountResultChunk<N>(
+  utils: UtilsInterface<N>,
+  result: RenderResult<N>,
+  parent: N,
+  left?: N,
+) {
+  const node = utils.getIfNode(result);
+  if (node !== undefined) {
+    utils.insertNode(node, parent, left);
+    return node;
+  }
+
+  if (result instanceof Build) {
+    let leftNode = left;
+    for (const node of result.nodes) {
+      utils.removeNode(node, parent, leftNode);
+      leftNode = node;
+    }
+    return leftNode;
+  }
+}
+
+// we are adding all descendants to parent
+function unmountResults<N>(
+  utils: UtilsInterface<N>,
+  delta: DeltaTargets,
+  render: Render<N>,
+  parent: N,
+) {
+  // mount descendants
+  for (const removedIndex of delta.removedIndexes) {
+    const result = render.results[removedIndex];
+    // avoids "undefined" as well, including root result
+    if (!(result instanceof Build)) continue;
+
+    const renderNode = render.nodes[removedIndex];
+    // for each descendant
+    for (let index = 0; index < result.descendants.length; index++) {
+      const descIndexes = renderNode.descendants[index];
+
+      const { parentNode, node } = result.descendants[index];
+      let leftNode = node;
+      for (const descIndex of descIndexes) {
+        const descResult = render.results[descIndex];
+        leftNode = unmountResultChunk(
+          utils,
+          descResult,
+          parentNode ?? parent,
+          leftNode,
+        );
+      }
+    }
+  }
+}
+
+
 function mountResultChunk<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,
@@ -84,4 +140,4 @@ function mountRootToResults<N>(
   }
 }
 
-export { mountResults, mountRootToResults };
+export { mountResults, mountRootToResults, unmountResults };
