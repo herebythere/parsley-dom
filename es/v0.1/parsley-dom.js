@@ -766,6 +766,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         findTargets(render, delta.addedIndexes, delta.addedDescIndexes, 0, 0);
     }
     if (prevRender !== undefined) {
+        console.log("prevRender delta:", delta);
         adoptNodes(prevRender, render, delta);
     }
     unmountResults(utils, delta, render, parentNode);

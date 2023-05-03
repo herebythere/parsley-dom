@@ -716,6 +716,7 @@ function findTargets(render, targets, descTargets, nodeIndex, nodeDescIndex) {
     }
 }
 function compareSources(prevRender, render, prevDescendants, descendants) {
+    console.log("compareSourcses", prevDescendants, descendants);
     if (prevDescendants.length !== descendants.length) return false;
     for(let index = 0; index < descendants.length; index++){
         const prevSourceIndex = prevDescendants[index];
@@ -729,9 +730,12 @@ function compareSources(prevRender, render, prevDescendants, descendants) {
         if (prevSource !== source) return false;
     }
 }
-function adoptNodes(render, prevRender, delta) {
+function adoptNodes(prevRender, render, delta) {
     delta.prevSurvivedIndexes.push(0);
     delta.survivedIndexes.push(0);
+    delta.prevSurvivedDescIndexes.push(0);
+    delta.survivedDescIndexes.push(0);
+    console.log("adopt delta:", delta);
     let survIndex = 0;
     while(survIndex < delta.survivedIndexes.length){
         const prevParentIndex = delta.prevSurvivedIndexes[survIndex];
@@ -758,7 +762,7 @@ function adoptNodes(render, prevRender, delta) {
             }
         }
         if (descArrayLength < renderNode.descendants.length) {
-            for(let index1 = descArrayLength; index1 < prevRenderNode.descendants.length; index1++){
+            for(let index1 = descArrayLength; index1 < renderNode.descendants.length; index1++){
                 findTargets(render, delta.addedIndexes, delta.addedDescIndexes, parentIndex, index1);
             }
         }

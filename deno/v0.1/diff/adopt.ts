@@ -91,13 +91,17 @@ function compareSources<N>(
 }
 
 function adoptNodes<N>(
-  render: Render<N>,
   prevRender: Render<N>,
+  render: Render<N>,
   delta: DeltaTargets,
 ) {
   // might need to compare first then add
   delta.prevSurvivedIndexes.push(0);
   delta.survivedIndexes.push(0);
+  delta.prevSurvivedDescIndexes.push(0);
+  delta.survivedDescIndexes.push(0);
+  
+  console.log("adopt delta:", delta);
 
   // walk through root nodes and descendants
   let survIndex = 0;
@@ -173,7 +177,7 @@ function adoptNodes<N>(
     if (descArrayLength < renderNode.descendants.length) {
       for (
         let index = descArrayLength;
-        index < prevRenderNode.descendants.length;
+        index < renderNode.descendants.length;
         index++
       ) {
         findTargets(
