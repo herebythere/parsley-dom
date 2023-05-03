@@ -49,7 +49,7 @@ function compareSources<N>(
     const sourceIndex = descendants[index];
 
     const prevSource = prevRender.sources[prevSourceIndex];
-    const source = render.sources[prevSourceIndex];
+    const source = render.sources[sourceIndex];
 
     if (prevSource instanceof Draw && source instanceof Draw) {
       if (prevSource.templateStrings !== source.templateStrings) return false;
