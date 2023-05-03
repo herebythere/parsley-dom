@@ -139,6 +139,23 @@ function createRender(utils, source, parent) {
     }
     return render;
 }
+function adoptSurvivedTargets(prevRender, render, delta) {
+    for(let index = 0; index < delta.survivedIndexes.length; index++){
+        const prevSurvivedIndex = delta.prevSurvivedIndexes[index];
+        const prevSurvivedDescIndex = delta.prevSurvivedDescIndexes[index];
+        const survivedIndex = delta.survivedIndexes[index];
+        const survivedDescIndex = delta.survivedDescIndexes[index];
+        const prevNode = prevRender.nodes[prevSurvivedIndex];
+        const node = prevRender.nodes[survivedIndex];
+        const prevDescendants = prevNode.descendants[prevSurvivedDescIndex];
+        const descendants = node.descendants[survivedDescIndex];
+        for(let descIndex = 0; descIndex < descendants.length; descIndex++){
+            const prevResultIndex = prevDescendants[descIndex];
+            const resultIndex = descendants[descIndex];
+            render.results[resultIndex] = prevRender.results[prevResultIndex];
+        }
+    }
+}
 function findTargets(render, targets, descTargets, nodeIndex, nodeDescIndex) {
     targets.push(nodeIndex);
     descTargets.push(nodeDescIndex);
@@ -162,9 +179,9 @@ function compareSources(prevRender, render, prevDescendants, descendants) {
     if (prevDescendants.length !== descendants.length) return false;
     for(let index = 0; index < descendants.length; index++){
         const prevSourceIndex = prevDescendants[index];
-        descendants[index];
+        const sourceIndex = descendants[index];
         const prevSource = prevRender.sources[prevSourceIndex];
-        const source = render.sources[prevSourceIndex];
+        const source = render.sources[sourceIndex];
         if (prevSource instanceof Draw && source instanceof Draw) {
             if (prevSource.templateStrings !== source.templateStrings) return false;
             continue;
@@ -206,6 +223,37 @@ function adoptNodes(render, prevRender, delta) {
             }
         }
         survIndex += 1;
+    }
+}
+function unmountResultChunk(utils, result, parent, left) {
+    const node = utils.getIfNode(result);
+    if (node !== undefined) {
+        utils.insertNode(node, parent, left);
+        return node;
+    }
+    if (result instanceof Build) {
+        let leftNode = left;
+        for (const node1 of result.nodes){
+            utils.removeNode(node1, parent, leftNode);
+            leftNode = node1;
+        }
+        return leftNode;
+    }
+}
+function unmountResults(utils, delta, render, parent) {
+    for (const removedIndex of delta.removedIndexes){
+        const result = render.results[removedIndex];
+        if (!(result instanceof Build)) continue;
+        const renderNode = render.nodes[removedIndex];
+        for(let index = 0; index < result.descendants.length; index++){
+            const descIndexes = renderNode.descendants[index];
+            const { parentNode , node  } = result.descendants[index];
+            let leftNode = node;
+            for (const descIndex of descIndexes){
+                const descResult = render.results[descIndex];
+                leftNode = unmountResultChunk(utils, descResult, parentNode ?? parent, leftNode);
+            }
+        }
     }
 }
 function mountResultChunk(utils, result, parent, left) {
@@ -266,11 +314,17 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     if (prevRender !== undefined) {
         adoptNodes(prevRender, render, delta);
     }
+    unmountResults(utils, delta, render, parentNode);
+    if (prevRender !== undefined) {
+        adoptSurvivedTargets(prevRender, render, delta);
+    }
     createAddedBuilds(utils, delta, render);
     console.log(render);
     console.log(delta);
     mountResults(utils, delta, render, parentNode);
-    mountRootToResults(utils, delta, render, parentNode, leftNode);
+    if (prevRender === undefined) {
+        mountRootToResults(utils, delta, render, parentNode, leftNode);
+    }
     return render;
 }
 class Hangar {

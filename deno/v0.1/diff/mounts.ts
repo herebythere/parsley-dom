@@ -68,7 +68,6 @@ function unmountResults<N>(
   }
 }
 
-
 function mountResultChunk<N>(
   utils: UtilsInterface<N>,
   result: RenderResult<N>,

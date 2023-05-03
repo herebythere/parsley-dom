@@ -11,8 +11,8 @@ import {
   createNodesFromSource,
   createRender,
 } from "./build.ts";
-import { adoptNodes, findTargets } from "./adopt.ts";
-import { mountResults, mountRootToResults } from "./mounts.ts";
+import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
+import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
 function diff<N>(
   utils: UtilsInterface<N>,
@@ -41,15 +41,18 @@ function diff<N>(
   if (prevRender !== undefined) {
     adoptNodes(prevRender, render, delta);
   }
-  
+
+  // parent root has changed
   unmountResults(utils, delta, render, parentNode);
 
-	adoptSurvivedNodes(delta, render);
+  if (prevRender !== undefined) {
+    adoptSurvivedTargets(prevRender, render, delta);
+  }
+
   createAddedBuilds(utils, delta, render);
 
   console.log(render);
   console.log(delta);
-
 
   mountResults(utils, delta, render, parentNode);
 

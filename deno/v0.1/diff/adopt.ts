@@ -6,11 +6,30 @@ import type {
 
 import { Draw } from "../draw/draw.ts";
 
-function adoptSurvivedNodes(
-	render: Render<N>,
-	delta: DeltaTargets,
+function adoptSurvivedTargets<N>(
+  prevRender: Render<N>,
+  render: Render<N>,
+  delta: DeltaTargets,
 ) {
+  for (let index = 0; index < delta.survivedIndexes.length; index++) {
+    const prevSurvivedIndex = delta.prevSurvivedIndexes[index];
+    const prevSurvivedDescIndex = delta.prevSurvivedDescIndexes[index];
 
+    const survivedIndex = delta.survivedIndexes[index];
+    const survivedDescIndex = delta.survivedDescIndexes[index];
+
+    const prevNode = prevRender.nodes[prevSurvivedIndex];
+    const node = prevRender.nodes[survivedIndex];
+
+    const prevDescendants = prevNode.descendants[prevSurvivedDescIndex];
+    const descendants = node.descendants[survivedDescIndex];
+
+    for (let descIndex = 0; descIndex < descendants.length; descIndex++) {
+      const prevResultIndex = prevDescendants[descIndex];
+      const resultIndex = descendants[descIndex];
+      render.results[resultIndex] = prevRender.results[prevResultIndex];
+    }
+  }
 }
 
 function findTargets<N>(
@@ -167,4 +186,4 @@ function adoptNodes<N>(
   }
 }
 
-export { adoptNodes, findTargets };
+export { adoptNodes, adoptSurvivedTargets, findTargets };
