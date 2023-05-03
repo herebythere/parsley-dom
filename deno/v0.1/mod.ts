@@ -7,8 +7,6 @@ export type { HangarInterface } from "./type_flyweight/hangar.ts";
 export type { UtilsInterface } from "./type_flyweight/utils.ts";
 export type { RenderFunc } from "./type_flyweight/render.ts";
 
-
-
 // build exports
 // not meant for user interaction
 export { Build } from "./build/build.ts";

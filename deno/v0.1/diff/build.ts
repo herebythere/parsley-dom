@@ -22,10 +22,10 @@ function createAddedBuilds<N>(
     const source = render.sources[index];
     let result: RenderResult<N> = utils.getIfNode(source);
     if (source instanceof Draw) {
-  	  const builderData = utils.getBuilder(source.templateStrings);
-			if (builderData !== undefined) {
-				result = new Build(utils, builderData);
-			}
+      const builderData = utils.getBuilder(source.templateStrings);
+      if (builderData !== undefined) {
+        result = new Build(utils, builderData);
+      }
     }
     if (result === undefined && source !== undefined) {
       result = utils.createTextNode(source);

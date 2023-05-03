@@ -1,6 +1,6 @@
-import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { BuilderDataInterface } from "../type_flyweight/builder.ts";
-import type { RenderResult } from "../type_flyweight/render.ts";
+import type { BuilderDataInterface, UtilsInterface } from "../deps.ts";
+
+const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
 
 function getBuilderData<N>(
   template: Readonly<string[]>,
@@ -33,13 +33,8 @@ function getBuild<N>(
   }
 }
 
-const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
-
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
-    if (tagname === ":fragment") {
-      return document.createDocumentFragment();
-    }
     return document.createElement(tagname);
   }
   createTextNode(text: unknown) {

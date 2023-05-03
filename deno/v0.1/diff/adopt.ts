@@ -6,7 +6,6 @@ import type {
 
 import { Draw } from "../draw/draw.ts";
 
-// possibly need to add descendant index 
 function findTargets<N>(
   render: Render<N>,
   targets: number[],
@@ -16,30 +15,28 @@ function findTargets<N>(
 ) {
   targets.push(nodeIndex);
   descTargets.push(nodeDescIndex);
-  
+
   let index = targets.length - 1;
   while (index < targets.length) {
     const targetIndex = targets[index];
     const targetDescIndex = descTargets[index];
-    
-  	const node = render.nodes[targetIndex];
-		const nodeDescIndexes = node.descendants[targetDescIndex];
-		for (const nodeIndex of nodeDescIndexes) {
-			const descNode = render.nodes[nodeIndex];
-			
-		  for (let descIndex = 0; index < descNode.descendants.length; index++) {
-		  	targets.push(nodeIndex);
-		  	descTargets.push(descIndex);
-		  }
-		}
-   	
+
+    const node = render.nodes[targetIndex];
+    const nodeDescIndexes = node.descendants[targetDescIndex];
+    for (const nodeIndex of nodeDescIndexes) {
+      const descNode = render.nodes[nodeIndex];
+
+      for (let descIndex = 0; index < descNode.descendants.length; index++) {
+        targets.push(nodeIndex);
+        descTargets.push(descIndex);
+      }
+    }
+
     index += 1;
   }
 }
 
 function compareSources<N>(
-  source: RenderSource<N>,
-  prevSource: RenderSource<N>,
   prevRender: Render<N>,
   render: Render<N>,
   prevDescendants: number[],
@@ -68,6 +65,7 @@ function adoptNodes<N>(
   prevRender: Render<N>,
   delta: DeltaTargets,
 ) {
+  // might need to compare first then add
   delta.prevSurvivedIndexes.push(0);
   delta.survivedIndexes.push(0);
 
@@ -96,20 +94,67 @@ function adoptNodes<N>(
       const descIndexes = renderNode.descendants[descArrayIndex];
 
       // compare array
+      if (compareSources(prevRender, render, prevDescIndexes, descIndexes)) {
+        // sources are the same
+        delta.survivedIndexes.push(parentIndex);
+        delta.survivedDescIndexes.push(descArrayIndex);
+        delta.prevSurvivedIndexes.push(prevParentIndex);
+        delta.prevSurvivedDescIndexes.push(descArrayIndex);
+        continue;
+      }
 
-      // compare sources, iterate across array
-      
-      // if same add all to adopted arrays and survived indexes
-
-      // if not, add all prev to removed arrays
-      // add all source to added arrays
-
-      descArrayIndex += 1;
+      // sources are different
+      // remove old nodes
+      findTargets(
+        render,
+        delta.removedIndexes,
+        delta.removedDescIndexes,
+        prevParentIndex,
+        descArrayIndex,
+      );
+      // add new nodes
+      findTargets(
+        render,
+        delta.addedIndexes,
+        delta.addedDescIndexes,
+        parentIndex,
+        descArrayIndex,
+      );
     }
 
     // remove leftover descendant arrays from prev descendants
+    if (descArrayLength < prevRenderNode.descendants.length) {
+      for (
+        let index = descArrayLength;
+        index < prevRenderNode.descendants.length;
+        index++
+      ) {
+        findTargets(
+          render,
+          delta.removedIndexes,
+          delta.removedDescIndexes,
+          prevParentIndex,
+          index,
+        );
+      }
+    }
 
     // add leftover descendant arrays from curr descendants
+    if (descArrayLength < renderNode.descendants.length) {
+      for (
+        let index = descArrayLength;
+        index < prevRenderNode.descendants.length;
+        index++
+      ) {
+        findTargets(
+          render,
+          delta.addedIndexes,
+          delta.addedDescIndexes,
+          parentIndex,
+          index,
+        );
+      }
+    }
 
     survIndex += 1;
   }

@@ -1,9 +1,13 @@
 export type {
-  BuilderInterface,
   BuildStep,
   Position,
   Vector,
 } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";
+
+export type {
+  BuilderDataInterface,
+  UtilsInterface,
+} from "../../deno/v0.1/mod.ts";
 
 export {
   ATTRIBUTE,
@@ -26,5 +30,3 @@ export {
   TAGNAME,
   TEXT,
 } from "https://raw.githubusercontent.com/taylor-vann/parsley/main/deno/v0.1/mod.ts";
-
-export type { UtilsInterface } from "../../deno/v0.1/mod.ts";
