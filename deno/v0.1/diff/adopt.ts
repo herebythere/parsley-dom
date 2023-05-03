@@ -52,7 +52,11 @@ function findTargets<N>(
     for (const nodeIndex of nodeDescIndexes) {
       const descNode = render.nodes[nodeIndex];
 
-      for (let descIndex = 0; index < descNode.descendants.length; index++) {
+      for (
+        let descIndex = 0;
+        descIndex < descNode.descendants.length;
+        descIndex++
+      ) {
         targets.push(nodeIndex);
         descTargets.push(descIndex);
       }

@@ -1,11 +1,18 @@
 import type { BuilderDataInterface, UtilsInterface } from "../deps.ts";
 
-const builderCache = new Map<Readonly<string[]>, BuilderDataInterface<Node>>();
+// import { Builder } from "../builder/builder.ts";
+import { Builder, parse } from "../deps.ts";
 
-function getBuilderData<N>(
+const builderDataCache = new WeakMap<
+  Readonly<string[]>,
+  BuilderDataInterface<Node>
+>();
+
+function getBuilder(
+  utils: UtilsInterface<Node>,
   template: Readonly<string[]>,
 ) {
-  let builderData = utils.getBuilder(template);
+  let builderData = builderDataCache.get(template);
   if (builderData === undefined) {
     const builder = new Builder();
     parse(template, builder);
@@ -13,31 +20,17 @@ function getBuilderData<N>(
   }
 
   if (builderData !== undefined) {
-    utils.setBuilder(template, builderData);
+    builderDataCache.set(template, builderData);
   }
 
   return builderData;
-}
-
-function getBuild<N>(
-  utils: UtilsInterface<N>,
-  draw: DrawInterface,
-): BuildInterface<N> | undefined {
-  const builderData = getBuilderData(
-    utils,
-    draw.templateStrings,
-  );
-
-  if (builderData !== undefined) {
-    return new Build(utils, builderData);
-  }
 }
 
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
     return document.createElement(tagname);
   }
-  createTextNode(text: unknown) {
+  createTextNode(text: string) {
     return document.createTextNode(text);
   }
   insertNode(node: Node, parentNode: Node, leftNode?: Node) {
@@ -76,14 +69,10 @@ class DOMUtils implements UtilsInterface<Node> {
 
     return currNode;
   }
-  getBuilderData(template: Readonly<string[]>) {
-    const builder = builderCache.get(template);
-    if (builder !== undefined) {
-      return builder;
-    }
-  }
-  setBuilderData(template: Readonly<string[], builder: BuilderDataInterface<Node>) {
-  	builderCache.set(template, builder);
+  getBuilderData(
+    template: Readonly<string[]>,
+  ): BuilderDataInterface<Node> | undefined {
+    return getBuilder(this, template);
   }
 }
 

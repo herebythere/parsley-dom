@@ -1,4 +1,5 @@
 export type {
+  BuilderInterface,
   BuildStep,
   Position,
   Vector,
@@ -8,6 +9,8 @@ export type {
   BuilderDataInterface,
   UtilsInterface,
 } from "../../deno/v0.1/mod.ts";
+
+export { Builder } from "../../deno/v0.1/mod.ts";
 
 export {
   ATTRIBUTE,

@@ -22,7 +22,7 @@ function createAddedBuilds<N>(
     const source = render.sources[index];
     let result: RenderResult<N> = utils.getIfNode(source);
     if (source instanceof Draw) {
-      const builderData = utils.getBuilder(source.templateStrings);
+      const builderData = utils.getBuilderData(source.templateStrings);
       if (builderData !== undefined) {
         result = new Build(utils, builderData);
       }
@@ -55,7 +55,7 @@ function addSourceToRender<N>(
     node.descendants.push([]);
   }
   if (source instanceof Draw) {
-    let data = utils.getBuilder(source.templateStrings);
+    let data = utils.getBuilderData(source.templateStrings);
     if (data !== undefined) {
       for (const desc of data.descendants) {
         node.descendants.push([]);
@@ -76,7 +76,7 @@ function createNodesFromSource<N>(
   while (index < render.sources.length) {
     const source = render.sources[index];
     if (source instanceof Draw) {
-      let data = utils.getBuilder(source.templateStrings);
+      let data = utils.getBuilderData(source.templateStrings);
       if (data !== undefined) {
         for (
           let descIndex = 0;
