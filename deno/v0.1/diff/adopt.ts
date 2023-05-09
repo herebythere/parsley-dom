@@ -72,6 +72,7 @@ function compareSources<N>(
   prevDescendants: number[],
   descendants: number[],
 ) {
+	console.log("compare sources:", prevDescendants, descendants);
   if (prevDescendants.length !== descendants.length) return false;
 
   for (let index = 0; index < descendants.length; index++) {
@@ -80,14 +81,18 @@ function compareSources<N>(
 
     const prevSource = prevRender.sources[prevSourceIndex];
     const source = render.sources[sourceIndex];
-
+		console.log("sources:", prevSource, source);
+		
     if (prevSource instanceof Draw && source instanceof Draw) {
+    	console.log("pair of draws:", prevSource.templateStrings === source.templateStrings);
       if (prevSource.templateStrings !== source.templateStrings) return false;
       continue;
     }
 
     if (prevSource !== source) return false;
   }
+  
+  return true;
 }
 
 function adoptNodes<N>(
@@ -130,17 +135,23 @@ function adoptNodes<N>(
       // compare array
       if (compareSources(prevRender, render, prevDescIndexes, descIndexes)) {
         // sources are the same
-        delta.survivedIndexes.push(parentIndex);
-        delta.survivedDescIndexes.push(descArrayIndex);
-        delta.prevSurvivedIndexes.push(prevParentIndex);
-        delta.prevSurvivedDescIndexes.push(descArrayIndex);
+        console.log("passed strings");
+        // causes recursion
+        // add each survived indexes
+        //
+        for (const prevIndex of prevDescIndexes) {
+        	delta.prevSurvivedIndexes.push(prevIndex);
+        }
+        
+        
+        
         continue;
       }
 
       // sources are different
       // remove old nodes
       findTargets(
-        render,
+        prevRender,
         delta.removedIndexes,
         delta.removedDescIndexes,
         prevParentIndex,
@@ -164,7 +175,7 @@ function adoptNodes<N>(
         index++
       ) {
         findTargets(
-          render,
+          prevRender,
           delta.removedIndexes,
           delta.removedDescIndexes,
           prevParentIndex,

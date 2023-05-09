@@ -14,6 +14,22 @@ import {
 import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
+
+/*
+	Need to handle this from a different perspective
+	
+	"sources" can be nodes or draws (or later builds)
+	
+	render nodes only occur on root and on draws
+	render nodes keep track of descendants and descendant arrays
+	
+	nodes should have:
+	a source index
+	a build index
+	a parent node index
+	descendant source indexes
+	
+*/
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -34,7 +50,9 @@ function diff<N>(
   };
 
   createNodesFromSource(utils, render, source);
-
+  console.log(render);
+  console.log(delta);
+	/*
   if (prevRender === undefined) {
     findTargets(render, delta.addedIndexes, delta.addedDescIndexes, 0, 0);
   }
@@ -61,6 +79,7 @@ function diff<N>(
     mountRootToResults(utils, delta, render, parentNode, leftNode);
   }
 
+	*/
   return render;
 }
 

@@ -20,18 +20,12 @@ function createAddedBuilds<N>(
 ) {
   for (const index of delta.addedIndexes) {
     const source = render.sources[index];
-    let result: RenderResult<N> = utils.getIfNode(source);
     if (source instanceof Draw) {
       const builderData = utils.getBuilderData(source.templateStrings);
       if (builderData !== undefined) {
         result = new Build(utils, builderData);
       }
     }
-    if (result === undefined && source !== undefined) {
-      result = utils.createTextNode(source);
-    }
-
-    render.results[index] = result;
   }
 }
 
@@ -43,27 +37,22 @@ function addSourceToRender<N>(
   parentDescId: number,
 ) {
   render.sources.push(source);
-  render.results.push(undefined);
 
   const id = render.sources.length - 1;
   const parentNode = render.nodes[parentId];
   parentNode.descendants[parentDescId].push(id);
 
   // add descendant index arrays
-  const node: RenderNode = { id, parentId, descendants: [] };
-  if (!(source instanceof Draw)) {
-    node.descendants.push([]);
-  }
   if (source instanceof Draw) {
+    const node: RenderNode = { id, parentId, descendants: [] };
     let data = utils.getBuilderData(source.templateStrings);
     if (data !== undefined) {
       for (const desc of data.descendants) {
         node.descendants.push([]);
       }
     }
+    render.nodes.push(node);
   }
-
-  render.nodes.push(node);
 }
 
 // create renders and add
@@ -112,7 +101,7 @@ function createRender<N>(
   // create root node
   const node: RenderNode = { id: 0, parentId: -1, descendants: [[]] };
   const render: Render<N> = {
-    results: [parent],
+    results: [],
     sources: [parent],
     nodes: [node],
   };
