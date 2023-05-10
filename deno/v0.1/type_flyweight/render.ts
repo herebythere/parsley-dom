@@ -35,13 +35,9 @@ interface Render<N> {
 
 interface DeltaTargets {
   addedIndexes: number[];
-  addedDescIndexes: number[];
   survivedIndexes: number[];
-  survivedDescIndexes: number[];
   prevSurvivedIndexes: number[];
-  prevSurvivedDescIndexes: number[];
   removedIndexes: number[];
-  removedDescIndexes: number[];
 }
 
 export type {
