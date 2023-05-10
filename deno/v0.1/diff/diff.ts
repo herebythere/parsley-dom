@@ -14,14 +14,24 @@ import {
 import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
-
 /*
 	Need to handle this from a different perspective
 	
-	"sources" can be nodes or draws (or later builds)
+	elements can be "pre-rendered" and then used throughout the tree
+	(html being stateful and linking to animations requires an instance surviving renders)
 	
-	render nodes only occur on root and on draws
-	render nodes keep track of descendants and descendant arrays
+	draws are the only object that truly expand a tree
+
+	sources: node | NodeLink
+	nodes: node[]
+	draws: draw[]
+	builds: draw[]
+
+	relational class
+	NodeLink {
+		drawIndex: number; (is build index too)
+		nodeIndex: number;
+	}
 	
 	nodes should have:
 	a source index
@@ -37,7 +47,7 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
-  const render: Render<N> = createRender<N>(utils, source, parentNode);
+  const render: Render<N> = createRender<N>(utils, source);
   const delta: DeltaTargets = {
     addedIndexes: [],
     addedDescIndexes: [],
@@ -50,6 +60,7 @@ function diff<N>(
   };
 
   createNodesFromSource(utils, render, source);
+  
   console.log(render);
   console.log(delta);
 	/*

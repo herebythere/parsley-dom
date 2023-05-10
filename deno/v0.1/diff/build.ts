@@ -23,7 +23,7 @@ function createAddedBuilds<N>(
     if (source instanceof Draw) {
       const builderData = utils.getBuilderData(source.templateStrings);
       if (builderData !== undefined) {
-        result = new Build(utils, builderData);
+        // result = new Build(utils, builderData);
       }
     }
   }
@@ -96,13 +96,13 @@ function createNodesFromSource<N>(
 function createRender<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
-  parent: N,
 ) {
   // create root node
-  const node: RenderNode = { id: 0, parentId: -1, descendants: [[]] };
+  const node: RenderNode = { id: -1, parentId: -1, descendants: [[]] };
   const render: Render<N> = {
-    results: [],
-    sources: [parent],
+    sources: [],
+    draws: [],
+    builds: [],
     nodes: [node],
   };
 

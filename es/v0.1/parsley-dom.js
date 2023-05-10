@@ -505,20 +505,20 @@ function addSourceToRender(utils, render, source, parentId, parentDescId) {
     const id = render.sources.length - 1;
     const parentNode = render.nodes[parentId];
     parentNode.descendants[parentDescId].push(id);
-    const node = {
-        id,
-        parentId,
-        descendants: []
-    };
     if (source instanceof Draw) {
+        const node = {
+            id,
+            parentId,
+            descendants: []
+        };
         let data = utils.getBuilderData(source.templateStrings);
         if (data !== undefined) {
             for (const desc of data.descendants){
                 node.descendants.push([]);
             }
         }
+        render.nodes.push(node);
     }
-    render.nodes.push(node);
 }
 function createNodesFromSource(utils, render, source) {
     let index = 1;
@@ -546,19 +546,15 @@ function createNodesFromSource(utils, render, source) {
 }
 function createRender(utils, source, parent) {
     const node = {
-        id: 0,
+        id: -1,
         parentId: -1,
         descendants: [
             []
         ]
     };
     const render = {
-        results: [
-            parent
-        ],
-        sources: [
-            parent
-        ],
+        results: [],
+        sources: [],
         nodes: [
             node
         ]

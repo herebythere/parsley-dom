@@ -14,13 +14,29 @@ type RenderResult<N> = BuildInterface<N> | N | undefined;
 interface RenderNode {
   id: number;
   parentId: number;
+  parentDescId: number;
+  sourceId: number;
   descendants: number[][];
 }
 
+interface NodeLink {
+	drawIndex: number;
+	nodeIndex: number;
+}
+
+/*
 interface Render<N> {
   sources: unknown[];
   results: RenderResult<N>[];
   nodes: RenderNode[];
+}
+*/
+
+interface Render<N> {
+	sources: (N | NodeLink)[];
+	nodes: RenderNode[];
+	draws: DrawInterface[];
+	builds: BuildInterface[];
 }
 
 interface DeltaTargets {
