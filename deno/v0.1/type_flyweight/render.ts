@@ -24,16 +24,10 @@ interface NodeLink {
 	nodeIndex: number;
 }
 
-/*
-interface Render<N> {
-  sources: unknown[];
-  results: RenderResult<N>[];
-  nodes: RenderNode[];
-}
-*/
+type RenderSource<N> = N | NodeLink;
 
 interface Render<N> {
-	sources: (N | NodeLink)[];
+	sources: RenderSource[];
 	nodes: RenderNode[];
 	draws: DrawInterface[];
 	builds: BuildInterface[];

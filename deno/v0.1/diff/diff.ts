@@ -50,13 +50,9 @@ function diff<N>(
   const render: Render<N> = createRender<N>(utils, source);
   const delta: DeltaTargets = {
     addedIndexes: [],
-    addedDescIndexes: [],
     survivedIndexes: [],
-    survivedDescIndexes: [],
     prevSurvivedIndexes: [],
-    prevSurvivedDescIndexes: [],
     removedIndexes: [],
-    removedDescIndexes: [],
   };
 
   createNodesFromSource(utils, render, source);

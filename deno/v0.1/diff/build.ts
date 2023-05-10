@@ -36,6 +36,7 @@ function addSourceToRender<N>(
   parentId: number,
   parentDescId: number,
 ) {
+	// create a node link and add to source
   render.sources.push(source);
 
   const id = render.sources.length - 1;
@@ -44,6 +45,7 @@ function addSourceToRender<N>(
 
   // add descendant index arrays
   if (source instanceof Draw) {
+  	// create a node link and add to source
     const node: RenderNode = { id, parentId, descendants: [] };
     let data = utils.getBuilderData(source.templateStrings);
     if (data !== undefined) {
@@ -93,6 +95,7 @@ function createNodesFromSource<N>(
   }
 }
 
+// changed render order
 function createRender<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
