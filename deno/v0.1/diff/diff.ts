@@ -11,8 +11,9 @@ import {
   createNodesFromSource,
   createRender,
 } from "./build.ts";
-import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
-import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
+
+// import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
+// import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
 /*
 	Need to handle this from a different perspective
@@ -48,16 +49,16 @@ function diff<N>(
   prevRender?: Render<N>,
 ): Render<N> {
   const render: Render<N> = createRender<N>(utils, source);
+
+  createNodesFromSource(utils, renderz);
+  console.log(render);
+  
   const delta: DeltaTargets = {
     addedIndexes: [],
     survivedIndexes: [],
     prevSurvivedIndexes: [],
     removedIndexes: [],
   };
-
-  createNodesFromSource(utils, render, source);
-  
-  console.log(render);
   console.log(delta);
 	/*
   if (prevRender === undefined) {

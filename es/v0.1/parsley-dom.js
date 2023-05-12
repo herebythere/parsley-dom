@@ -500,42 +500,60 @@ class Draw {
 function draw(templateStrings, ...injections) {
     return new Draw(templateStrings, injections);
 }
-function addSourceToRender(utils, render, source, parentId, parentDescId) {
-    render.sources.push(source);
-    const id = render.sources.length - 1;
-    const parentNode = render.nodes[parentId];
-    parentNode.descendants[parentDescId].push(id);
-    if (source instanceof Draw) {
-        const node = {
-            id,
-            parentId,
-            descendants: []
-        };
-        let data = utils.getBuilderData(source.templateStrings);
-        if (data !== undefined) {
-            for (const desc of data.descendants){
-                node.descendants.push([]);
-            }
-        }
-        render.nodes.push(node);
+class NodeLink {
+    drawIndex;
+    nodeIndex;
+    constructor(drawIndex, nodeIndex){
+        this.drawIndex = drawIndex;
+        this.nodeIndex = nodeIndex;
     }
 }
+function addSourceToRender(utils, render, source, parentId, parentDescId) {
+    if (source instanceof Draw) {
+        render.draws.push(source);
+        const descendants = [];
+        const builderData = utils.getBuilderData(source.templateStrings);
+        if (builderData !== undefined) {
+            while(descendants.length < builderData.descendants.length){
+                descendants.push([]);
+            }
+        }
+        render.nodes.push(descendants);
+        const drawIndex = render.draws.length - 1;
+        const nodeIndex = render.nodes.length - 1;
+        const nodeLink = new NodeLink(drawIndex, nodeIndex);
+        render.sources.push(nodeLink);
+    } else {
+        render.sources.push(source);
+    }
+    const parent = render.nodes[parentId];
+    const sourceIndex = render.sources.length - 1;
+    parent[parentDescId].push(sourceIndex);
+}
 function createNodesFromSource(utils, render, source) {
-    let index = 1;
-    while(index < render.sources.length){
-        const source1 = render.sources[index];
-        if (source1 instanceof Draw) {
-            let data = utils.getBuilderData(source1.templateStrings);
-            if (data !== undefined) {
-                for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
-                    const descendant = data.descendants[descIndex];
-                    const descSource = source1.injections[descendant.index];
-                    if (!Array.isArray(descSource)) {
-                        addSourceToRender(utils, render, descSource, index, descIndex);
-                    }
-                    if (Array.isArray(descSource)) {
-                        for (const chunk of descSource){
-                            addSourceToRender(utils, render, chunk, index, descIndex);
+    let index = 0;
+    while(index < render.nodes.length){
+        const node = render.nodes[index];
+        for(let descArrayIndex = 0; descArrayIndex < node.length; descArrayIndex++){
+            const descArray = node[descArrayIndex];
+            for (const sourceIndex of descArray){
+                const source1 = render.sources[sourceIndex];
+                if (source1 instanceof NodeLink) {
+                    render.nodes[source1.nodeIndex];
+                    const draw = render.draws[source1.drawIndex];
+                    let data = utils.getBuilderData(draw.templateStrings);
+                    if (data !== undefined) {
+                        for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
+                            const descendant = data.descendants[descIndex];
+                            const descSource = draw.injections[descendant.index];
+                            if (!Array.isArray(descSource)) {
+                                addSourceToRender(utils, render, descSource, index, descIndex);
+                            }
+                            if (Array.isArray(descSource)) {
+                                for (const chunk of descSource){
+                                    addSourceToRender(utils, render, chunk, index, descIndex);
+                                }
+                            }
                         }
                     }
                 }
@@ -544,17 +562,15 @@ function createNodesFromSource(utils, render, source) {
         index += 1;
     }
 }
-function createRender(utils, source, parent) {
-    const node = {
-        id: -1,
-        parentId: -1,
-        descendants: [
-            []
-        ]
-    };
+function createRender(utils, source) {
+    const node = [
+        []
+    ];
     const render = {
-        results: [],
+        root: [],
         sources: [],
+        draws: [],
+        builds: [],
         nodes: [
             node
         ]
@@ -570,19 +586,15 @@ function createRender(utils, source, parent) {
     return render;
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
-    const render = createRender(utils, source, parentNode);
-    const delta = {
-        addedIndexes: [],
-        addedDescIndexes: [],
-        survivedIndexes: [],
-        survivedDescIndexes: [],
-        prevSurvivedIndexes: [],
-        prevSurvivedDescIndexes: [],
-        removedIndexes: [],
-        removedDescIndexes: []
-    };
+    const render = createRender(utils, source);
     createNodesFromSource(utils, render, source);
     console.log(render);
+    const delta = {
+        addedIndexes: [],
+        survivedIndexes: [],
+        prevSurvivedIndexes: [],
+        removedIndexes: []
+    };
     console.log(delta);
     return render;
 }

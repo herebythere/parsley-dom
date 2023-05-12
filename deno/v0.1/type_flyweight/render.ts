@@ -9,28 +9,27 @@ type RenderSource<N> = DrawInterface | N | StringInterface;
 
 type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
 
-type RenderResult<N> = BuildInterface<N> | N | undefined;
+type RenderResult<N> = BuildInterface<N> | N | StringInterface | undefined;
 
+/*
 interface RenderNode {
   id: number;
-  parentId: number;
-  parentDescId: number;
-  sourceId: number;
   descendants: number[][];
 }
+*/
+type RenderNode = number[][];
 
-interface NodeLink {
+interface NodeLinkInterface {
 	drawIndex: number;
 	nodeIndex: number;
 }
 
-type RenderSource<N> = N | NodeLink;
-
 interface Render<N> {
-	sources: RenderSource[];
+	root: number[];
+	sources: (N | NodeLinkInterface | StringInterface)[];
 	nodes: RenderNode[];
 	draws: DrawInterface[];
-	builds: BuildInterface[];
+	builds: BuildInterface<N>[];
 }
 
 interface DeltaTargets {
@@ -47,4 +46,5 @@ export type {
   RenderNode,
   RenderResult,
   RenderSource,
+  NodeLinkInterface,
 };
