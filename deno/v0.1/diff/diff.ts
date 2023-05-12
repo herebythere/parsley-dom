@@ -12,7 +12,7 @@ import {
   createRender,
 } from "./build.ts";
 
-// import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
+import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 // import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
 /*
@@ -50,7 +50,7 @@ function diff<N>(
 ): Render<N> {
   const render: Render<N> = createRender<N>(utils, source);
 
-  createNodesFromSource(utils, renderz);
+  createNodesFromSource(utils, render);
   console.log(render);
   
   const delta: DeltaTargets = {
@@ -60,10 +60,13 @@ function diff<N>(
     removedIndexes: [],
   };
   console.log(delta);
-	/*
+  
   if (prevRender === undefined) {
-    findTargets(render, delta.addedIndexes, delta.addedDescIndexes, 0, 0);
+    findTargets(render, delta.addedIndexes, 0);
   }
+  
+	/*
+
   if (prevRender !== undefined) {
     adoptNodes(prevRender, render, delta);
   }

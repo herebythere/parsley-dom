@@ -2,15 +2,19 @@ import type {
   DeltaTargets,
   Render,
   RenderSource,
+  NodeLinkInterface,
 } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
+
+import { NodeLink } from "./node_link.ts";
 
 function adoptSurvivedTargets<N>(
   prevRender: Render<N>,
   render: Render<N>,
   delta: DeltaTargets,
 ) {
+	/*
   for (let index = 0; index < delta.survivedIndexes.length; index++) {
     const prevSurvivedIndex = delta.prevSurvivedIndexes[index];
     const prevSurvivedDescIndex = delta.prevSurvivedDescIndexes[index];
@@ -30,40 +34,36 @@ function adoptSurvivedTargets<N>(
       render.results[resultIndex] = prevRender.results[prevResultIndex];
     }
   }
+  */
 }
 
 function findTargets<N>(
   render: Render<N>,
   targets: number[],
-  descTargets: number[],
   nodeIndex: number,
-  nodeDescIndex: number,
 ) {
+	/*
   targets.push(nodeIndex);
-  descTargets.push(nodeDescIndex);
+  
+  
 
   let index = targets.length - 1;
   while (index < targets.length) {
     const targetIndex = targets[index];
-    const targetDescIndex = descTargets[index];
 
     const node = render.nodes[targetIndex];
-    const nodeDescIndexes = node.descendants[targetDescIndex];
-    for (const nodeIndex of nodeDescIndexes) {
-      const descNode = render.nodes[nodeIndex];
-
-      for (
-        let descIndex = 0;
-        descIndex < descNode.descendants.length;
-        descIndex++
-      ) {
-        targets.push(nodeIndex);
-        descTargets.push(descIndex);
-      }
+    for (const descArray of node) {
+    	for (const descIndex of descArray) {
+    		const source = render.sources[descIndex];
+    		if (source instanceof NodeLink) {
+    			targets.push(descIndex);
+    		}
+    	}
     }
 
     index += 1;
   }
+  */
 }
 
 function compareSources<N>(
@@ -72,6 +72,7 @@ function compareSources<N>(
   prevDescendants: number[],
   descendants: number[],
 ) {
+	/*
 	console.log("compare sources:", prevDescendants, descendants);
   if (prevDescendants.length !== descendants.length) return false;
 
@@ -93,6 +94,7 @@ function compareSources<N>(
   }
   
   return true;
+  */
 }
 
 function adoptNodes<N>(
@@ -100,6 +102,7 @@ function adoptNodes<N>(
   render: Render<N>,
   delta: DeltaTargets,
 ) {
+	/*
   // might need to compare first then add
   delta.prevSurvivedIndexes.push(0);
   delta.survivedIndexes.push(0);
@@ -203,6 +206,7 @@ function adoptNodes<N>(
 
     survIndex += 1;
   }
+  */
 }
 
 export { adoptNodes, adoptSurvivedTargets, findTargets };

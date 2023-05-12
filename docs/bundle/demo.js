@@ -583,17 +583,17 @@ function addSourceToRender(utils, render, source, parentId, parentDescId) {
     const sourceIndex = render.sources.length - 1;
     parent[parentDescId].push(sourceIndex);
 }
-function createNodesFromSource(utils, render, source) {
+function createNodesFromSource(utils, render) {
     let index = 0;
     while(index < render.nodes.length){
         const node = render.nodes[index];
         for(let descArrayIndex = 0; descArrayIndex < node.length; descArrayIndex++){
             const descArray = node[descArrayIndex];
             for (const sourceIndex of descArray){
-                const source1 = render.sources[sourceIndex];
-                if (source1 instanceof NodeLink) {
-                    render.nodes[source1.nodeIndex];
-                    const draw = render.draws[source1.drawIndex];
+                const source = render.sources[sourceIndex];
+                if (source instanceof NodeLink) {
+                    render.nodes[source.nodeIndex];
+                    const draw = render.draws[source.drawIndex];
                     let data = utils.getBuilderData(draw.templateStrings);
                     if (data !== undefined) {
                         for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
@@ -638,9 +638,26 @@ function createRender(utils, source) {
     }
     return render;
 }
+function findTargets(render, targets, nodeIndex) {
+    targets.push(nodeIndex);
+    let index = targets.length - 1;
+    while(index < targets.length){
+        const targetIndex = targets[index];
+        const node = render.nodes[targetIndex];
+        for (const descArray of node){
+            for (const descIndex of descArray){
+                const source = render.sources[descIndex];
+                if (source instanceof NodeLink) {
+                    targets.push(descIndex);
+                }
+            }
+        }
+        index += 1;
+    }
+}
 function diff(utils, source, parentNode, leftNode, prevRender) {
     const render = createRender(utils, source);
-    createNodesFromSource(utils, render, source);
+    createNodesFromSource(utils, render);
     console.log(render);
     const delta = {
         addedIndexes: [],
@@ -649,6 +666,9 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         removedIndexes: []
     };
     console.log(delta);
+    if (prevRender === undefined) {
+        findTargets(render, delta.addedIndexes, 0);
+    }
     return render;
 }
 class Hangar {

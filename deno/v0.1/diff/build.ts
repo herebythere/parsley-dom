@@ -14,15 +14,8 @@ import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { parse } from "../deps.ts";
 
-class NodeLink implements NodeLinkInterface {
-	drawIndex: number;
-	nodeIndex: number;
-	
-	constructor(drawIndex: number, nodeIndex: number) {
-		this.drawIndex = drawIndex;
-		this.nodeIndex = nodeIndex;
-	}
-}
+import { NodeLink } from "./node_link.ts";
+
 
 function createAddedBuilds<N>(
   utils: UtilsInterface<N>,
