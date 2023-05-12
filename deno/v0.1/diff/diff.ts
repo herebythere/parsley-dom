@@ -13,6 +13,7 @@ import {
 } from "./build.ts";
 
 import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
+
 // import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
 /*
@@ -41,6 +42,7 @@ import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 	descendant source indexes
 	
 */
+
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -49,7 +51,6 @@ function diff<N>(
   prevRender?: Render<N>,
 ): Render<N> {
   const render: Render<N> = createRender<N>(utils, source);
-
   createNodesFromSource(utils, render);
   console.log(render);
   
@@ -59,14 +60,13 @@ function diff<N>(
     prevSurvivedIndexes: [],
     removedIndexes: [],
   };
-  console.log(delta);
   
   if (prevRender === undefined) {
     findTargets(render, delta.addedIndexes, 0);
   }
+  console.log(delta);
   
 	/*
-
   if (prevRender !== undefined) {
     adoptNodes(prevRender, render, delta);
   }
@@ -89,8 +89,8 @@ function diff<N>(
     // or if parent roots changed
     mountRootToResults(utils, delta, render, parentNode, leftNode);
   }
-
 	*/
+
   return render;
 }
 

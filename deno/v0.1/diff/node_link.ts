@@ -1,6 +1,4 @@
-import type {
-  NodeLinkInterface,
-} from "../type_flyweight/render.ts";
+import type { NodeLinkInterface } from "../type_flyweight/render.ts";
 
 class NodeLink implements NodeLinkInterface {
 	drawIndex: number;

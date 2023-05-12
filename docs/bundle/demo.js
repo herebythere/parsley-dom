@@ -648,7 +648,7 @@ function findTargets(render, targets, nodeIndex) {
             for (const descIndex of descArray){
                 const source = render.sources[descIndex];
                 if (source instanceof NodeLink) {
-                    targets.push(descIndex);
+                    targets.push(source.nodeIndex);
                 }
             }
         }
@@ -665,10 +665,10 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         prevSurvivedIndexes: [],
         removedIndexes: []
     };
-    console.log(delta);
     if (prevRender === undefined) {
         findTargets(render, delta.addedIndexes, 0);
     }
+    console.log(delta);
     return render;
 }
 class Hangar {

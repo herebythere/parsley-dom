@@ -42,10 +42,7 @@ function findTargets<N>(
   targets: number[],
   nodeIndex: number,
 ) {
-	/*
   targets.push(nodeIndex);
-  
-  
 
   let index = targets.length - 1;
   while (index < targets.length) {
@@ -56,14 +53,13 @@ function findTargets<N>(
     	for (const descIndex of descArray) {
     		const source = render.sources[descIndex];
     		if (source instanceof NodeLink) {
-    			targets.push(descIndex);
+    			targets.push(source.nodeIndex);
     		}
     	}
     }
 
     index += 1;
   }
-  */
 }
 
 function compareSources<N>(
