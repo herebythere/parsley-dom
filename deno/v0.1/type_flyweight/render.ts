@@ -5,7 +5,7 @@ interface StringInterface {
   toString(): string;
 }
 
-type RenderSource<N> = DrawInterface | N | StringInterface;
+type RenderSource<N> =  N | StringInterface | DrawInterface;
 
 type RenderFunc<N, S = unknown> = (state: S) => RenderSource<N>;
 
@@ -19,17 +19,17 @@ interface RenderNode {
 */
 type RenderNode = number[][];
 
-interface NodeLinkInterface {
+interface SourceLinkInterface {
 	drawIndex: number;
 	nodeIndex: number;
 }
 
 interface Render<N> {
 	root: number[];
-	sources: (N | NodeLinkInterface | StringInterface)[];
+	sources: (N | StringInterface | SourceLinkInterface)[];
 	nodes: RenderNode[];
 	draws: DrawInterface[];
-	builds: BuildInterface<N>[];
+	builds: (N | BuildInterface<N> | undefined)[];
 }
 
 interface DeltaTargets {
@@ -46,5 +46,5 @@ export type {
   RenderNode,
   RenderResult,
   RenderSource,
-  NodeLinkInterface,
+  SourceLinkInterface,
 };

@@ -5,7 +5,7 @@ import type {
   DeltaTargets,
   Render,
   RenderNode,
-  NodeLinkInterface,
+  SourceLinkInterface,
   RenderResult,
   RenderSource,
 } from "../type_flyweight/render.ts";
@@ -14,8 +14,7 @@ import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { parse } from "../deps.ts";
 
-import { NodeLink } from "./node_link.ts";
-
+import { SourceLink } from "./node_link.ts";
 
 function createAddedBuilds<N>(
   utils: UtilsInterface<N>,
@@ -24,12 +23,24 @@ function createAddedBuilds<N>(
 ) {
   for (const index of delta.addedIndexes) {
     const source = render.sources[index];
-    if (source instanceof Draw) {
-      const builderData = utils.getBuilderData(source.templateStrings);
+    
+    if (source instanceof SourceLink) {
+    	const draw = render.draws[source.drawIndex];
+      const builderData = utils.getBuilderData(draw.templateStrings);
       if (builderData !== undefined) {
-        // result = new Build(utils, builderData);
+        const build = new Build(utils, builderData);
+        render.builds[index] = build;
       }
+      continue;
     }
+    
+    const node = utils.getIfNode(source);
+    if (node !== undefined) {
+      render.builds[index] = node;
+      continue;
+    }
+    
+    render.builds[index] = utils.createTextNode(source);
   }
 }
 
@@ -54,17 +65,17 @@ function addSourceToRender<N>(
 			}
 		}
 		render.nodes.push(descendants);
-		
 		// add node link to services
 		const drawIndex = render.draws.length - 1;
 		const nodeIndex = render.nodes.length - 1;
-		const nodeLink = new NodeLink(drawIndex, nodeIndex);
+		const nodeLink = new SourceLink(drawIndex, nodeIndex);
 		
 		render.sources.push(nodeLink);
 	} else {
 		render.sources.push(source);
 	}
 	
+	render.builds.push(undefined);
 	const parent = render.nodes[parentId];
 	const sourceIndex = render.sources.length - 1;
 	parent[parentDescId].push(sourceIndex);
@@ -82,7 +93,7 @@ function createNodesFromSource<N>(
     	const descArray = node[descArrayIndex];
     	for (const sourceIndex of descArray) {
     		const source = render.sources[sourceIndex];
-    		if (source instanceof NodeLink) {
+    		if (source instanceof SourceLink) {
     			const node = render.nodes[source.nodeIndex];
     			const draw = render.draws[source.drawIndex];
     			let data = utils.getBuilderData(draw.templateStrings);

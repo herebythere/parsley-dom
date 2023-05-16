@@ -16,33 +16,6 @@ import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 
 // import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
 
-/*
-	Need to handle this from a different perspective
-	
-	elements can be "pre-rendered" and then used throughout the tree
-	(html being stateful and linking to animations requires an instance surviving renders)
-	
-	draws are the only object that truly expand a tree
-
-	sources: node | NodeLink
-	nodes: node[]
-	draws: draw[]
-	builds: draw[]
-
-	relational class
-	NodeLink {
-		drawIndex: number; (is build index too)
-		nodeIndex: number;
-	}
-	
-	nodes should have:
-	a source index
-	a build index
-	a parent node index
-	descendant source indexes
-	
-*/
-
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -51,6 +24,10 @@ function diff<N>(
   prevRender?: Render<N>,
 ): Render<N> {
   const render: Render<N> = createRender<N>(utils, source);
+  
+  // create nodes frorm source
+  // - no matter what, the *new* structure *is* the structure to be presented
+
   createNodesFromSource(utils, render);
   console.log(render);
   
@@ -62,10 +39,13 @@ function diff<N>(
   };
   
   if (prevRender === undefined) {
-    findTargets(render, delta.addedIndexes, 0);
+  	for (const index of render.nodes[0][0]) {
+	    findTargets(render, delta.addedIndexes, index);
+  	}
   }
   console.log(delta);
   
+  createAddedBuilds(utils, delta, render);
 	/*
   if (prevRender !== undefined) {
     adoptNodes(prevRender, render, delta);

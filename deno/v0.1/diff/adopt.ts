@@ -2,12 +2,12 @@ import type {
   DeltaTargets,
   Render,
   RenderSource,
-  NodeLinkInterface,
+  SourceLinkInterface,
 } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
 
-import { NodeLink } from "./node_link.ts";
+import { SourceLink } from "./node_link.ts";
 
 function adoptSurvivedTargets<N>(
   prevRender: Render<N>,
@@ -40,23 +40,24 @@ function adoptSurvivedTargets<N>(
 function findTargets<N>(
   render: Render<N>,
   targets: number[],
-  nodeIndex: number,
+  sourceIndex: number,
 ) {
-  targets.push(nodeIndex);
+  targets.push(sourceIndex);
 
   let index = targets.length - 1;
   while (index < targets.length) {
     const targetIndex = targets[index];
-
-    const node = render.nodes[targetIndex];
-    for (const descArray of node) {
-    	for (const descIndex of descArray) {
-    		const source = render.sources[descIndex];
-    		if (source instanceof NodeLink) {
-    			targets.push(source.nodeIndex);
-    		}
-    	}
+    const source = render.sources[targetIndex];
+    if (source instanceof SourceLink) {
+    	const node = render.nodes[source.nodeIndex];
+    	// iterate across all nodes
+  		for (const descArray of node) {
+		  	for (const descIndex of descArray) {
+					targets.push(descIndex);
+		  	}
+		  }
     }
+		
 
     index += 1;
   }

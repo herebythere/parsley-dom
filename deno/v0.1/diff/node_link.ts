@@ -1,6 +1,6 @@
-import type { NodeLinkInterface } from "../type_flyweight/render.ts";
+import type { SourceLinkInterface } from "../type_flyweight/render.ts";
 
-class NodeLink implements NodeLinkInterface {
+class SourceLink implements SourceLinkInterface {
 	drawIndex: number;
 	nodeIndex: number;
 	
@@ -10,5 +10,5 @@ class NodeLink implements NodeLinkInterface {
 	}
 }
 
-export { NodeLink }
+export { SourceLink }
 

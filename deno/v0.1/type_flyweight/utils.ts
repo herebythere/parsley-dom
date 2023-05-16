@@ -8,7 +8,6 @@ interface UtilsInterface<N> {
   insertNode(node: N, parentNode?: N, leftNode?: N): void;
   removeNode(node: N, parentNode?: N, leftNode?: N): void;
   getIfNode(node: unknown): N | undefined;
-  //  getIfDrawFunc(node: Draws<N>): DrawFunc | undefined;
   cloneTree(node: N): N;
   getDescendant(
     baseTier: N[],
