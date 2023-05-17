@@ -40,11 +40,20 @@ function adoptSurvivedTargets<N>(
 function findTargets<N>(
   render: Render<N>,
   targets: number[],
-  sourceIndex: number,
+  nodeIndex: number,
 ) {
-  targets.push(sourceIndex);
+  let index = targets.length;
+  
+	const node = render.nodes[nodeIndex];
+	for (const descArray of node) {
+  	for (const descIndex of descArray) {
+  		const descSource = render.sources[descIndex];
+  		if (descSource instanceof SourceLink) {
+  			targets.push(descIndex);
+  		}
+  	}
+  }
 
-  let index = targets.length - 1;
   while (index < targets.length) {
     const targetIndex = targets[index];
     const source = render.sources[targetIndex];
@@ -53,11 +62,13 @@ function findTargets<N>(
     	// iterate across all nodes
   		for (const descArray of node) {
 		  	for (const descIndex of descArray) {
-					targets.push(descIndex);
+		  		const descSource = render.sources[descIndex];
+		  		if (descSource instanceof SourceLink) {
+		  			targets.push(descIndex);
+		  		}
 		  	}
 		  }
     }
-		
 
     index += 1;
   }

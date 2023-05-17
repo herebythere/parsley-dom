@@ -31,16 +31,21 @@ function createAddedBuilds<N>(
         const build = new Build(utils, builderData);
         render.builds[index] = build;
       }
-      continue;
+      
+      const node = render.nodes[source.nodeIndex];
+      for (const descIndexArray of node) {
+      	for (const descIndex of descIndexArray) {
+      		const source = render.sources[descIndex];
+  		    const node = utils.getIfNode(source);
+					if (node !== undefined) {
+						render.builds[descIndex] = node;
+						continue;
+					}
+					
+					render.builds[descIndex] = utils.createTextNode(source);
+      	}
+      }
     }
-    
-    const node = utils.getIfNode(source);
-    if (node !== undefined) {
-      render.builds[index] = node;
-      continue;
-    }
-    
-    render.builds[index] = utils.createTextNode(source);
   }
 }
 
@@ -82,17 +87,23 @@ function addSourceToRender<N>(
 }
 
 // create renders and add
+//
+// needs to be updated so that nested structures are added
 function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
 ) {
   let index = 0;
+  console.log("crreate nodes frmo source");
   while (index < render.nodes.length) {
     const node = render.nodes[index];
+    console.log("node", node);
     for (let descArrayIndex = 0; descArrayIndex < node.length; descArrayIndex++) {
     	const descArray = node[descArrayIndex];
+    	    console.log("desc array:", descArray);
     	for (const sourceIndex of descArray) {
     		const source = render.sources[sourceIndex];
+  	    console.log("source:", source);
     		if (source instanceof SourceLink) {
     			const node = render.nodes[source.nodeIndex];
     			const draw = render.draws[source.drawIndex];
@@ -107,13 +118,13 @@ function createNodesFromSource<N>(
 					    const descSource = draw.injections[descendant.index];
 
 					    if (!Array.isArray(descSource)) {
-					      addSourceToRender(utils, render, descSource, index, descIndex);
+					      addSourceToRender(utils, render, descSource, source.nodeIndex, descIndex);
 					    }
 
 					    if (Array.isArray(descSource)) {
 					      for (const chunk of descSource) {
 					        // add source and descendant to render
-					        addSourceToRender(utils, render, chunk, index, descIndex);
+					        addSourceToRender(utils, render, chunk, source.nodeIndex, descIndex);
 					      }
 					    }
 					  }
@@ -131,6 +142,7 @@ function createRender<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
 ) {
+	console.log("create render:", source);
   // create root node
   const node: RenderNode = [[]];
   const render: Render<N> = {
@@ -138,6 +150,7 @@ function createRender<N>(
     sources: [],
     draws: [],
     builds: [],
+    parents: [],
     nodes: [node],
   };
 

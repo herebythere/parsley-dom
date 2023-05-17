@@ -29,6 +29,7 @@ interface Render<N> {
 	sources: (N | StringInterface | SourceLinkInterface)[];
 	nodes: RenderNode[];
 	draws: DrawInterface[];
+	parents: N[];
 	builds: (N | BuildInterface<N> | undefined)[];
 }
 

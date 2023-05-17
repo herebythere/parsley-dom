@@ -518,14 +518,19 @@ function createAddedBuilds(utils, delta, render) {
                 const build = new Build(utils, builderData);
                 render.builds[index] = build;
             }
-            continue;
+            const node = render.nodes[source.nodeIndex];
+            for (const descIndexArray of node){
+                for (const descIndex of descIndexArray){
+                    const source1 = render.sources[descIndex];
+                    const node1 = utils.getIfNode(source1);
+                    if (node1 !== undefined) {
+                        render.builds[descIndex] = node1;
+                        continue;
+                    }
+                    render.builds[descIndex] = utils.createTextNode(source1);
+                }
+            }
         }
-        const node = utils.getIfNode(source);
-        if (node !== undefined) {
-            render.builds[index] = node;
-            continue;
-        }
-        render.builds[index] = utils.createTextNode(source);
     }
 }
 function addSourceToRender(utils, render, source, parentId, parentDescId) {
@@ -553,12 +558,16 @@ function addSourceToRender(utils, render, source, parentId, parentDescId) {
 }
 function createNodesFromSource(utils, render) {
     let index = 0;
+    console.log("crreate nodes frmo source");
     while(index < render.nodes.length){
         const node = render.nodes[index];
+        console.log("node", node);
         for(let descArrayIndex = 0; descArrayIndex < node.length; descArrayIndex++){
             const descArray = node[descArrayIndex];
+            console.log("desc array:", descArray);
             for (const sourceIndex of descArray){
                 const source = render.sources[sourceIndex];
+                console.log("source:", source);
                 if (source instanceof SourceLink) {
                     render.nodes[source.nodeIndex];
                     const draw = render.draws[source.drawIndex];
@@ -568,11 +577,11 @@ function createNodesFromSource(utils, render) {
                             const descendant = data.descendants[descIndex];
                             const descSource = draw.injections[descendant.index];
                             if (!Array.isArray(descSource)) {
-                                addSourceToRender(utils, render, descSource, index, descIndex);
+                                addSourceToRender(utils, render, descSource, source.nodeIndex, descIndex);
                             }
                             if (Array.isArray(descSource)) {
                                 for (const chunk of descSource){
-                                    addSourceToRender(utils, render, chunk, index, descIndex);
+                                    addSourceToRender(utils, render, chunk, source.nodeIndex, descIndex);
                                 }
                             }
                         }
@@ -584,6 +593,7 @@ function createNodesFromSource(utils, render) {
     }
 }
 function createRender(utils, source) {
+    console.log("create render:", source);
     const node = [
         []
     ];
@@ -592,6 +602,7 @@ function createRender(utils, source) {
         sources: [],
         draws: [],
         builds: [],
+        parents: [],
         nodes: [
             node
         ]
@@ -606,17 +617,28 @@ function createRender(utils, source) {
     }
     return render;
 }
-function findTargets(render, targets, sourceIndex) {
-    targets.push(sourceIndex);
-    let index = targets.length - 1;
+function findTargets(render, targets, nodeIndex) {
+    let index = targets.length;
+    const node = render.nodes[nodeIndex];
+    for (const descArray of node){
+        for (const descIndex of descArray){
+            const descSource = render.sources[descIndex];
+            if (descSource instanceof SourceLink) {
+                targets.push(descIndex);
+            }
+        }
+    }
     while(index < targets.length){
         const targetIndex = targets[index];
         const source = render.sources[targetIndex];
         if (source instanceof SourceLink) {
-            const node = render.nodes[source.nodeIndex];
-            for (const descArray of node){
-                for (const descIndex of descArray){
-                    targets.push(descIndex);
+            const node1 = render.nodes[source.nodeIndex];
+            for (const descArray1 of node1){
+                for (const descIndex1 of descArray1){
+                    const descSource1 = render.sources[descIndex1];
+                    if (descSource1 instanceof SourceLink) {
+                        targets.push(descIndex1);
+                    }
                 }
             }
         }
@@ -634,9 +656,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         removedIndexes: []
     };
     if (prevRender === undefined) {
-        for (const index of render.nodes[0][0]){
-            findTargets(render, delta.addedIndexes, index);
-        }
+        findTargets(render, delta.addedIndexes, 0);
     }
     console.log(delta);
     createAddedBuilds(utils, delta, render);

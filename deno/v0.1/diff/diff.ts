@@ -37,11 +37,9 @@ function diff<N>(
     prevSurvivedIndexes: [],
     removedIndexes: [],
   };
-  
+
   if (prevRender === undefined) {
-  	for (const index of render.nodes[0][0]) {
-	    findTargets(render, delta.addedIndexes, index);
-  	}
+	  findTargets(render, delta.addedIndexes, 0);
   }
   console.log(delta);
   
