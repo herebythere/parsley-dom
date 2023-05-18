@@ -503,6 +503,7 @@ function draw(templateStrings, ...injections) {
 class SourceLink {
     drawIndex;
     nodeIndex;
+    parentIndex = 0;
     constructor(drawIndex, nodeIndex){
         this.drawIndex = drawIndex;
         this.nodeIndex = nodeIndex;
@@ -517,17 +518,28 @@ function createAddedBuilds(utils, delta, render) {
             if (builderData !== undefined) {
                 const build = new Build(utils, builderData);
                 render.builds[index] = build;
-            }
-            const node = render.nodes[source.nodeIndex];
-            for (const descIndexArray of node){
-                for (const descIndex of descIndexArray){
-                    const source1 = render.sources[descIndex];
-                    const node1 = utils.getIfNode(source1);
-                    if (node1 !== undefined) {
-                        render.builds[descIndex] = node1;
-                        continue;
+                const node = render.nodes[source.nodeIndex];
+                for(let buildIndex = 0; buildIndex < build.descendants.length; buildIndex++){
+                    let parentIndex = source.parentIndex;
+                    const descendant = build.descendants[buildIndex];
+                    if (descendant.parentNode !== undefined) {
+                        render.parents.push(descendant.parentNode);
+                        parentIndex = render.parents.length - 1;
                     }
-                    render.builds[descIndex] = utils.createTextNode(source1);
+                    const descIndexArray = node[buildIndex];
+                    for (const descIndex of descIndexArray){
+                        const source1 = render.sources[descIndex];
+                        const node1 = utils.getIfNode(source1);
+                        if (node1 !== undefined) {
+                            render.builds[descIndex] = node1;
+                            continue;
+                        }
+                        if (source1 instanceof SourceLink) {
+                            source1.parentIndex = parentIndex;
+                            continue;
+                        }
+                        render.builds[descIndex] = utils.createTextNode(source1);
+                    }
                 }
             }
         }
@@ -540,6 +552,7 @@ function addSourceToRender(utils, render, source, parentId, parentDescId) {
         const builderData = utils.getBuilderData(source.templateStrings);
         if (builderData !== undefined) {
             while(descendants.length < builderData.descendants.length){
+                console.log("descendant builder data", builderData.descendants[descendants.length]);
                 descendants.push([]);
             }
         }
@@ -569,7 +582,6 @@ function createNodesFromSource(utils, render) {
                 const source = render.sources[sourceIndex];
                 console.log("source:", source);
                 if (source instanceof SourceLink) {
-                    render.nodes[source.nodeIndex];
                     const draw = render.draws[source.drawIndex];
                     let data = utils.getBuilderData(draw.templateStrings);
                     if (data !== undefined) {
@@ -592,7 +604,7 @@ function createNodesFromSource(utils, render) {
         index += 1;
     }
 }
-function createRender(utils, source) {
+function createRender(utils, source, parentNode) {
     console.log("create render:", source);
     const node = [
         []
@@ -602,7 +614,9 @@ function createRender(utils, source) {
         sources: [],
         draws: [],
         builds: [],
-        parents: [],
+        parents: [
+            parentNode
+        ],
         nodes: [
             node
         ]
@@ -619,6 +633,7 @@ function createRender(utils, source) {
 }
 function findTargets(render, targets, nodeIndex) {
     let index = targets.length;
+    console.log("findTargets");
     const node = render.nodes[nodeIndex];
     for (const descArray of node){
         for (const descIndex of descArray){
@@ -628,15 +643,19 @@ function findTargets(render, targets, nodeIndex) {
             }
         }
     }
+    console.log("mid findTargets");
     while(index < targets.length){
         const targetIndex = targets[index];
         const source = render.sources[targetIndex];
+        console.log("found target", targetIndex, source);
         if (source instanceof SourceLink) {
             const node1 = render.nodes[source.nodeIndex];
+            console.log("target is source link", node1);
             for (const descArray1 of node1){
                 for (const descIndex1 of descArray1){
                     const descSource1 = render.sources[descIndex1];
                     if (descSource1 instanceof SourceLink) {
+                        console.log("desc source link found");
                         targets.push(descIndex1);
                     }
                 }
@@ -646,7 +665,7 @@ function findTargets(render, targets, nodeIndex) {
     }
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
-    const render = createRender(utils, source);
+    const render = createRender(utils, source, parentNode);
     createNodesFromSource(utils, render);
     console.log(render);
     const delta = {

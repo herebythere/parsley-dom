@@ -43,7 +43,8 @@ function findTargets<N>(
   nodeIndex: number,
 ) {
   let index = targets.length;
-  
+	console.log("findTargets");
+	
 	const node = render.nodes[nodeIndex];
 	for (const descArray of node) {
   	for (const descIndex of descArray) {
@@ -54,16 +55,20 @@ function findTargets<N>(
   	}
   }
 
+	console.log("mid findTargets");
   while (index < targets.length) {
     const targetIndex = targets[index];
     const source = render.sources[targetIndex];
+    console.log("found target", targetIndex, source);
     if (source instanceof SourceLink) {
     	const node = render.nodes[source.nodeIndex];
     	// iterate across all nodes
+    	console.log("target is source link", node);
   		for (const descArray of node) {
 		  	for (const descIndex of descArray) {
 		  		const descSource = render.sources[descIndex];
 		  		if (descSource instanceof SourceLink) {
+		  			console.log("desc source link found");
 		  			targets.push(descIndex);
 		  		}
 		  	}

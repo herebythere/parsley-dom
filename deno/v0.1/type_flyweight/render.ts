@@ -22,6 +22,7 @@ type RenderNode = number[][];
 interface SourceLinkInterface {
 	drawIndex: number;
 	nodeIndex: number;
+	parentIndex: number;
 }
 
 interface Render<N> {

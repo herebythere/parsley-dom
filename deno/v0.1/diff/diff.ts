@@ -12,6 +12,8 @@ import {
   createRender,
 } from "./build.ts";
 
+
+
 import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
 
 // import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
@@ -23,13 +25,8 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
-  const render: Render<N> = createRender<N>(utils, source);
-  
-  // create nodes frorm source
-  // - no matter what, the *new* structure *is* the structure to be presented
-
+  const render: Render<N> = createRender<N>(utils, source, parentNode);
   createNodesFromSource(utils, render);
-  console.log(render);
   
   const delta: DeltaTargets = {
     addedIndexes: [],
@@ -41,33 +38,17 @@ function diff<N>(
   if (prevRender === undefined) {
 	  findTargets(render, delta.addedIndexes, 0);
   }
-  console.log(delta);
+
+  createAddedBuilds(utils, delta, render);
   
-  createAddedBuilds(utils, delta, render);
-	/*
-  if (prevRender !== undefined) {
-    adoptNodes(prevRender, render, delta);
-  }
-
-  // parent root has changed
-  unmountResults(utils, delta, render, parentNode);
-
-  if (prevRender !== undefined) {
-    adoptSurvivedTargets(prevRender, render, delta);
-  }
-
-  createAddedBuilds(utils, delta, render);
-
-  console.log(render);
-  console.log(delta);
-
-  mountResults(utils, delta, render, parentNode);
-
-  if (prevRender === undefined) {
-    // or if parent roots changed
-    mountRootToResults(utils, delta, render, parentNode, leftNode);
-  }
-	*/
+	console.log(delta);
+	console.log(render);
+	
+  // mountResults(utils, delta, render, parentNode);
+  
+  // need ability to add parent to descending nodes
+  // go from node to node, and add parent
+  // if no parent exists on the descendant build, then use the parent
 
   return render;
 }
