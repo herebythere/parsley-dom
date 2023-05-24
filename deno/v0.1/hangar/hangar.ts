@@ -23,7 +23,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
 
   update(utils: UtilsInterface<N>, state: S) {
     const start = performance.now();
-    
+
     const source = this.renderFunc(state);
     this.render = diff(
       utils,
@@ -32,7 +32,7 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
       this.leftNode,
       this.render,
     );
-    
+
     console.log("time", performance.now() - start);
   }
 }

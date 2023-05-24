@@ -1,16 +1,14 @@
-# parsley-dom
+# treeshaker
 
-Visit the [quick start](https://taylor-vann.github.io/parsley-dom).
+Visit the [quick start](https://herebythere.github.io/parsley-dom).
 
-Parsley-DOM is created with [Parsley](https://github.com/taylor-vann/parsley), a
-library that provides XML build steps.
-
+_Treeshaker_ uses [Parsley](https://github.com/herebythere/parsley) to
+deserialize XML data.
 
 ## About
 
-Treeshaker builds and maintains node-based structures like DOM Trees and Object Scenes.
+Treeshaker composes structures like DOM and Object Scenes with XML templates.
 
 ## License
 
 BSD 3-Clause License
-

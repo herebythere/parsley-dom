@@ -12,11 +12,10 @@ import {
   createRender,
 } from "./build.ts";
 
+import { findTargets } from "./utils.ts";
 
-
-import { adoptNodes, adoptSurvivedTargets, findTargets } from "./adopt.ts";
-
-// import { mountResults, mountRootToResults, unmountResults } from "./mounts.ts";
+// one time compose, no diffs retuns new render
+// function compose()
 
 function diff<N>(
   utils: UtilsInterface<N>,
@@ -25,9 +24,13 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
+  // create root
+  // just an arrray of indexes
+  // easier for mounting and unmounting later
   const render: Render<N> = createRender<N>(utils, source, parentNode);
+  /*
   createNodesFromSource(utils, render);
-  
+
   const delta: DeltaTargets = {
     addedIndexes: [],
     survivedIndexes: [],
@@ -36,20 +39,18 @@ function diff<N>(
   };
 
   if (prevRender === undefined) {
+  	// for every source in root
+  	// if source is a draw add descendant indexes
 	  findTargets(render, delta.addedIndexes, 0);
   }
 
+	// this stays the same essentially
   createAddedBuilds(utils, delta, render);
-  
-	console.log(delta);
-	console.log(render);
-	
-  // mountResults(utils, delta, render, parentNode);
-  
-  // need ability to add parent to descending nodes
-  // go from node to node, and add parent
-  // if no parent exists on the descendant build, then use the parent
 
+	console.log(delta);
+	*/
+
+  console.log(render);
   return render;
 }
 
