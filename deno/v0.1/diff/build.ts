@@ -85,21 +85,25 @@ function addSourceToRender<N>(
     render.draws.push(source);
 
     // get builder and add nodes
-    const descendants = [];
-    const builderData = utils.getBuilderData(source.templateStrings);
-    if (builderData !== undefined) {
-      while (descendants.length < builderData.descendants.length) {
-        descendants.push([]);
-      }
-    }
+    const descendants: number[][] = [];
     render.nodes.push(descendants);
-
+    
     // add node link to services
     const drawIndex = render.draws.length - 1;
     const nodeIndex = render.nodes.length - 1;
     const nodeLink = new SourceLink(drawIndex, nodeIndex);
 
-    render.sources.push(nodeLink);
+    render.sources.push(nodeLink);  
+    
+    //
+    const builderData = utils.getBuilderData(source.templateStrings);
+    if (builderData !== undefined) {
+      while (descendants.length < builderData.descendants.length) {
+      	console.log("builderr desc:", builderData.descendants[descendants.length]);
+      	console.log("potential source", source.injections[builderData.descendants[descendants.length].index]);
+        descendants.push([]);
+      }
+    }
   } else {
     render.sources.push(source);
   }
@@ -107,6 +111,9 @@ function addSourceToRender<N>(
   render.builds.push(undefined);
   const sourceIndex = render.sources.length - 1;
   sourceIndexArray.push(sourceIndex);
+  
+  // get source
+  // if it's nodelink
 }
 
 // create renders and add
@@ -116,6 +123,8 @@ function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
 ) {
+	// iterate across 
+
   let index = 0;
   console.log("crreate nodes frmo source");
   while (index < render.nodes.length) {
@@ -143,18 +152,8 @@ function createNodesFromSource<N>(
               const descendant = data.descendants[descIndex];
               const descSource = draw.injections[descendant.index];
 
-              const sourceIndexArray =
-                render.nodes[source.nodeIndex][descIndex];
-              if (!Array.isArray(descSource)) {
-                addSourceToRender(utils, render, sourceIndexArray, descSource);
-              }
-
-              if (Array.isArray(descSource)) {
-                for (const chunk of descSource) {
-                  // add source and descendant to render
-                  addSourceToRender(utils, render, sourceIndexArray, chunk);
-                }
-              }
+              addSource(utils, render, descArray, descSource);
+							addRootToRender(utils, render, descArray);
             }
           }
         }
@@ -163,6 +162,47 @@ function createNodesFromSource<N>(
 
     index += 1;
   }
+}
+
+function addSource<N>(
+  utils: UtilsInterface<N>,
+  render: Render<N>,
+  sourceIndexArray: number[],
+  source: RenderSource<N>,
+) {
+  if (!Array.isArray(source)) {
+    addSourceToRender(utils, render, sourceIndexArray, source);
+  }
+
+  if (Array.isArray(source)) {
+    for (const chunk of source) {
+      addSourceToRender(utils, render, sourceIndexArray, chunk);
+    }
+  }
+}
+
+
+function addRootToRender<N>(
+  utils: UtilsInterface<N>,
+  render: Render<N>,
+  sourceIndexArray: number[],
+) {
+	for (const sourceIndex of sourceIndexArray) {
+		const source = render.sources[sourceIndex];
+		if (source instanceof SourceLink) {
+			const node = render.nodes[source.nodeIndex];
+			const draw = render.draws[source.drawIndex];
+			
+			const buildData = utils.getBuilderData(draw.templateStrings);
+			if (buildData !== undefined) {
+
+				for (let descIndex = 0; descIndex < buildData.descendants.length; descIndex++) {
+					const { index } = buildData.descendants[descIndex];
+					addSource(utils, render, node[descIndex], draw.injections[index]);
+				}
+			}
+		}
+	}
 }
 
 // changed render order
@@ -182,15 +222,11 @@ function createRender<N>(
   };
 
   // add sources
-  if (!Array.isArray(source)) {
-    addSourceToRender(utils, render, render.root, source);
-  }
-
-  if (Array.isArray(source)) {
-    for (const chunk of source) {
-      addSourceToRender(utils, render, render.root, chunk);
-    }
-  }
+  addSource(utils, render, render.root, source);
+  
+	addRootToRender(utils, render, render.root);
+  
+  // iterate across root and add 
 
   return render;
 }

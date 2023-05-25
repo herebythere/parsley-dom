@@ -17,6 +17,7 @@ import { findTargets } from "./utils.ts";
 // one time compose, no diffs retuns new render
 // function compose()
 
+
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -24,13 +25,13 @@ function diff<N>(
   leftNode?: N,
   prevRender?: Render<N>,
 ): Render<N> {
-  // create root
-  // just an arrray of indexes
-  // easier for mounting and unmounting later
+	// create current render
   const render: Render<N> = createRender<N>(utils, source, parentNode);
-  /*
+  
+  // build initial structure
   createNodesFromSource(utils, render);
-
+  
+  /*
   const delta: DeltaTargets = {
     addedIndexes: [],
     survivedIndexes: [],
