@@ -33,7 +33,7 @@ class DOMUtils implements UtilsInterface<Node> {
   createTextNode(text: string) {
     return document.createTextNode(text);
   }
-  insertNode(node: Node, parentNode: Node, leftNode?: Node) {
+  insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
     if (leftNode?.nextSibling === undefined) {
       parentNode.appendChild(node);

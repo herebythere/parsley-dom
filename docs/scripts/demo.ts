@@ -14,11 +14,20 @@ const testArray = () => {
   return ["world", ["what's", "really"], "good"];
 };
 
-const testNodeNested = () => {
+const testNodeFunc = () => {
   return draw`
-  	<p>howdy!</p>
-		<p>hello ${testArray()}!</p>
+  	<p>horray! ${testArray()}</p>
 	`;
+};
+
+const testNodeNested = () => {
+  return [
+    "whatup",
+    draw`
+  	<p>howdy!</p>
+		<p>hello ${testNodeFunc()}!</p>
+	`,
+  ];
 };
 
 // actual elements

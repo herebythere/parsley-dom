@@ -21,48 +21,31 @@ function findTargets<N>(
   targets: number[],
   sourceIndex: number,
 ) {
+  let index = targets.push(sourceIndex);
   const source = render.sources[sourceIndex];
-  if (source instanceof SourceLink) {
-    let index = targets.length;
-    console.log("findTargets");
+  if (!(source instanceof SourceLink)) return;
 
-    const node = render.nodes[source.nodeIndex];
-    for (const descArray of node) {
-      for (const descIndex of descArray) {
-        const descSource = render.sources[descIndex];
-        if (descSource instanceof SourceLink) {
+  const node = render.nodes[source.nodeIndex];
+  for (const descArray of node) {
+    for (const descIndex of descArray) {
+      targets.push(descIndex);
+    }
+  }
+
+  while (index < targets.length) {
+    const targetIndex = targets[index];
+    const source = render.sources[targetIndex];
+    if (source instanceof SourceLink) {
+      const node = render.nodes[source.nodeIndex];
+      for (const descArray of node) {
+        for (const descIndex of descArray) {
           targets.push(descIndex);
         }
       }
     }
 
-    console.log("mid findTargets");
-    while (index < targets.length) {
-      const targetIndex = targets[index];
-      const source = render.sources[targetIndex];
-      console.log("found target", targetIndex, source);
-      if (source instanceof SourceLink) {
-        const node = render.nodes[source.nodeIndex];
-        // iterate across all nodes
-        console.log("target is source link", node);
-        for (const descArray of node) {
-          for (const descIndex of descArray) {
-            const descSource = render.sources[descIndex];
-            if (descSource instanceof SourceLink) {
-              console.log("desc source link found");
-              targets.push(descIndex);
-            }
-          }
-        }
-      }
-
-      index += 1;
-    }
+    index += 1;
   }
-  // get soujrce
-  // if source is not node link skip
-  //
-  // get node index
 }
 
 export { findTargets, SourceLink };
