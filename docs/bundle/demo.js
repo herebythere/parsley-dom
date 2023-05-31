@@ -655,6 +655,44 @@ function createAddedBuilds(utils, delta, render) {
         render.builds[index] = utils.createTextNode(source);
     }
 }
+function addSourceToRender(render, indexes, source) {
+    if (source instanceof Draw) {
+        const nodeLink = new SourceLink(render.draws.push(source) - 1, render.nodes.push([]) - 1);
+        render.sources.push(nodeLink);
+    } else {
+        render.sources.push(source);
+    }
+    render.builds.push(undefined);
+    indexes.push(render.sources.length - 1);
+}
+function addSource(render, sourceIndexArray, source) {
+    if (!Array.isArray(source)) {
+        addSourceToRender(render, sourceIndexArray, source);
+    }
+    if (Array.isArray(source)) {
+        for (const chunk of source){
+            addSourceToRender(render, sourceIndexArray, chunk);
+        }
+    }
+}
+function addDescToRender(utils, render, sourceIndexArray) {
+    for (const sourceIndex of sourceIndexArray){
+        const source = render.sources[sourceIndex];
+        if (source instanceof SourceLink) {
+            const node = render.nodes[source.nodeIndex];
+            const draw = render.draws[source.drawIndex];
+            const buildData = utils.getBuilderData(draw.templateStrings);
+            if (buildData !== undefined) {
+                while(node.length < buildData.descendants.length){
+                    const { index  } = buildData.descendants[node.length];
+                    const descendants = [];
+                    node.push(descendants);
+                    addSource(render, descendants, draw.injections[index]);
+                }
+            }
+        }
+    }
+}
 function createNodesFromSource(utils, render) {
     let index = 0;
     for (const sourceIndex of render.root){
@@ -689,44 +727,6 @@ function createNodesFromSource(utils, render) {
         index += 1;
     }
 }
-function addDescToRender(utils, render, sourceIndexArray) {
-    for (const sourceIndex of sourceIndexArray){
-        const source = render.sources[sourceIndex];
-        if (source instanceof SourceLink) {
-            const node = render.nodes[source.nodeIndex];
-            const draw = render.draws[source.drawIndex];
-            const buildData = utils.getBuilderData(draw.templateStrings);
-            if (buildData !== undefined) {
-                while(node.length < buildData.descendants.length){
-                    const { index  } = buildData.descendants[node.length];
-                    const descendants = [];
-                    node.push(descendants);
-                    addSource(render, descendants, draw.injections[index]);
-                }
-            }
-        }
-    }
-}
-function addSourceToRender(render, indexes, source) {
-    if (source instanceof Draw) {
-        const nodeLink = new SourceLink(render.draws.push(source) - 1, render.nodes.push([]) - 1);
-        render.sources.push(nodeLink);
-    } else {
-        render.sources.push(source);
-    }
-    render.builds.push(undefined);
-    indexes.push(render.sources.length - 1);
-}
-function addSource(render, sourceIndexArray, source) {
-    if (!Array.isArray(source)) {
-        addSourceToRender(render, sourceIndexArray, source);
-    }
-    if (Array.isArray(source)) {
-        for (const chunk of source){
-            addSourceToRender(render, sourceIndexArray, chunk);
-        }
-    }
-}
 function createRender(utils, source, parentNode) {
     const render = {
         root: [],
@@ -743,7 +743,113 @@ function createRender(utils, source, parentNode) {
     createNodesFromSource(utils, render);
     return render;
 }
-function mount(utils, render, parentNode, prevNode) {
+function getDeltas(render, prevRender, delta) {
+    let index = 0;
+    while(index < render.root.length && index < prevRender.root.length){
+        const sourceIndex = render.root[index];
+        const prevSourceIndex = prevRender.root[index];
+        const source = render.sources[sourceIndex];
+        const prevSource = prevRender.sources[prevSourceIndex];
+        if (prevSource instanceof SourceLink && source instanceof SourceLink) {
+            const draw = render.draws[source.drawIndex];
+            const prevDraw = prevRender.draws[prevSource.drawIndex];
+            if (prevDraw.templateStrings !== draw.templateStrings) {
+                findTargets(render, delta.addedIndexes, sourceIndex);
+                findTargets(render, delta.removedIndexes, prevSourceIndex);
+                delta.remountRoot = true;
+            } else {
+                render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
+                delta.survivedIndexes.push(sourceIndex);
+                delta.prevSurvivedIndexes.push(prevSourceIndex);
+            }
+        } else {
+            if (prevSource !== source) {
+                findTargets(render, delta.addedIndexes, sourceIndex);
+                findTargets(render, delta.removedIndexes, prevSourceIndex);
+                delta.remountRoot = true;
+            } else {
+                render.builds[index] = prevRender.builds[index];
+            }
+        }
+        index += 1;
+    }
+    while(index < render.root.length){
+        const sourceIndex1 = render.root[index];
+        findTargets(render, delta.addedIndexes, sourceIndex1);
+        delta.remountRoot = true;
+        index += 1;
+    }
+    while(index < prevRender.root.length){
+        const prevSourceIndex1 = prevRender.root[index];
+        findTargets(prevRender, delta.removedIndexes, prevSourceIndex1);
+        delta.remountRoot = true;
+        index += 1;
+    }
+    let survivedIndex = 0;
+    while(survivedIndex < delta.survivedIndexes.length){
+        const sourceIndex2 = delta.survivedIndexes[survivedIndex];
+        const prevSourceIndex2 = delta.prevSurvivedIndexes[survivedIndex];
+        const source1 = render.sources[sourceIndex2];
+        const prevSource1 = prevRender.sources[prevSourceIndex2];
+        if (prevSource1 instanceof SourceLink && source1 instanceof SourceLink) {
+            const nodes = render.nodes[source1.nodeIndex];
+            const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
+            for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){
+                const node = nodes[nodeIndex];
+                const prevNode = prevNodes[nodeIndex];
+                let resetIndex = false;
+                let descIndex = 0;
+                while(descIndex < node.length && descIndex < prevNode.length){
+                    const sourceIndex3 = node[descIndex];
+                    const prevSourceIndex3 = prevNode[descIndex];
+                    const source2 = render.sources[sourceIndex3];
+                    const prevSource2 = prevRender.sources[prevSourceIndex3];
+                    if (prevSource2 instanceof SourceLink && source2 instanceof SourceLink) {
+                        const draw1 = render.draws[source2.drawIndex];
+                        const prevDraw1 = prevRender.draws[prevSource2.drawIndex];
+                        if (prevDraw1.templateStrings !== draw1.templateStrings) {
+                            findTargets(render, delta.addedIndexes, sourceIndex3);
+                            findTargets(prevRender, delta.removedIndexes, prevSourceIndex3);
+                            resetIndex = true;
+                        } else {
+                            render.builds[sourceIndex3] = prevRender.builds[prevSourceIndex3];
+                            delta.survivedIndexes.push(sourceIndex3);
+                            delta.prevSurvivedIndexes.push(prevSourceIndex3);
+                        }
+                    } else {
+                        if (prevSource2 !== source2) {
+                            findTargets(render, delta.addedIndexes, sourceIndex3);
+                            findTargets(prevRender, delta.removedIndexes, prevSourceIndex3);
+                            resetIndex = true;
+                        } else {
+                            render.builds[index] = prevRender.builds[index];
+                        }
+                    }
+                    descIndex += 1;
+                }
+                while(descIndex < node.length){
+                    const sourceIndex4 = node[descIndex];
+                    findTargets(render, delta.addedIndexes, sourceIndex4);
+                    resetIndex = true;
+                    descIndex += 1;
+                }
+                while(descIndex < prevNode.length){
+                    const prevSourceIndex4 = prevNode[descIndex];
+                    findTargets(prevRender, delta.removedIndexes, prevSourceIndex4);
+                    resetIndex = true;
+                    descIndex += 1;
+                }
+                if (resetIndex) {
+                    delta.prevDescIndexes.push(prevSource1.nodeIndex);
+                    delta.descIndexes.push(source1.nodeIndex);
+                    delta.descArrayIndexes.push(nodeIndex);
+                }
+            }
+        }
+        survivedIndex += 1;
+    }
+}
+function mountRoot(utils, render, parentNode, prevNode) {
     let prev = prevNode;
     for (const sourceIndex of render.root){
         const build = render.builds[sourceIndex];
@@ -765,35 +871,33 @@ function mountNodes(utils, render, delta) {
     for (const sourceIndex of delta.addedIndexes){
         const source = render.sources[sourceIndex];
         if (!(source instanceof SourceLink)) continue;
-        if (source instanceof SourceLink) {
-            const parentNode = render.parents[source.parentIndex];
-            const node = render.nodes[source.nodeIndex];
-            const buildSource = render.builds[sourceIndex];
-            if (!(buildSource instanceof Build)) continue;
-            for(let arrayIndex = 0; arrayIndex < node.length; arrayIndex++){
-                const sourceIndexes = node[arrayIndex];
-                let { node: prev , parentNode: descParentNode  } = buildSource.descendants[arrayIndex];
-                descParentNode = descParentNode ?? parentNode;
-                for (const sourceIndex1 of sourceIndexes){
-                    const source1 = render.sources[sourceIndex1];
-                    if (source1 instanceof SourceLink) {
-                        const parent = render.parents[source1.parentIndex];
-                        const build = render.builds[sourceIndex1];
-                        if (build instanceof Build) {
-                            for (const node1 of build.nodes){
-                                utils.insertNode(node1, parent, prev);
-                                prev = node1;
-                            }
-                        }
-                        continue;
-                    }
+        const parentNode = render.parents[source.parentIndex];
+        const node = render.nodes[source.nodeIndex];
+        const buildSource = render.builds[sourceIndex];
+        if (!(buildSource instanceof Build)) continue;
+        for(let arrayIndex = 0; arrayIndex < node.length; arrayIndex++){
+            const sourceIndexes = node[arrayIndex];
+            let { node: prev , parentNode: descParentNode  } = buildSource.descendants[arrayIndex];
+            descParentNode = descParentNode ?? parentNode;
+            for (const sourceIndex1 of sourceIndexes){
+                const source1 = render.sources[sourceIndex1];
+                const build = render.builds[sourceIndex1];
+                if (source1 instanceof SourceLink) {
+                    const parent = render.parents[source1.parentIndex];
                     const build1 = render.builds[sourceIndex1];
-                    const nodeBuild = utils.getIfNode(build1);
-                    if (nodeBuild !== undefined) {
-                        console.log("found node descendants!");
-                        utils.insertNode(nodeBuild, descParentNode, prev);
-                        prev = node;
+                    if (build1 instanceof Build) {
+                        for (const node1 of build1.nodes){
+                            utils.insertNode(node1, parent, prev);
+                            prev = node1;
+                        }
                     }
+                    continue;
+                }
+                const nodeBuild = utils.getIfNode(build);
+                if (nodeBuild !== undefined) {
+                    console.log("found node descendants!");
+                    utils.insertNode(nodeBuild, descParentNode, prev);
+                    prev = node;
                 }
             }
         }
@@ -802,19 +906,25 @@ function mountNodes(utils, render, delta) {
 function diff(utils, source, parentNode, leftNode, prevRender) {
     const render = createRender(utils, source, parentNode);
     const delta = {
+        remountRoot: false,
         addedIndexes: [],
-        survivedIndexes: [],
         prevSurvivedIndexes: [],
+        survivedIndexes: [],
+        descIndexes: [],
+        prevDescIndexes: [],
+        descArrayIndexes: [],
         removedIndexes: []
     };
     if (prevRender === undefined) {
         for (const sourceIndex of render.root){
             findTargets(render, delta.addedIndexes, sourceIndex);
         }
+    } else {
+        getDeltas(render, prevRender, delta);
     }
     createAddedBuilds(utils, delta, render);
     if (prevRender === undefined) {
-        mount(utils, render, parentNode, leftNode);
+        mountRoot(utils, render, parentNode, leftNode);
     }
     mountNodes(utils, render, delta);
     console.log(delta);
@@ -892,20 +1002,23 @@ class DOMUtils {
     }
 }
 const domutils = new DOMUtils();
-document.createTextNode("hello!");
-const testArray = ()=>{
-    return [
-        "world",
-        [
-            "what's",
-            "really"
-        ],
-        "good"
-    ];
-};
+let nodeSwitch = 0;
+const textNode = document.createTextNode("UwU!");
+const testArray = [
+    "world",
+    [
+        "what's",
+        "really"
+    ],
+    "good"
+];
 const testNodeFunc = ()=>{
+    nodeSwitch += 1;
+    nodeSwitch %= 2;
+    console.log("nodeSwitch", nodeSwitch);
+    const node = nodeSwitch ? textNode : testArray;
     return draw`
-  	<p>horray! ${testArray()}</p>
+  	<p>horray! ${node}</p>
 	`;
 };
 const testNodeNested = ()=>{

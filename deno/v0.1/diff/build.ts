@@ -69,6 +69,68 @@ function createAddedBuilds<N>(
   }
 }
 
+function addSourceToRender<N>(
+  render: Render<N>,
+  indexes: number[],
+  source: RenderSource<N>,
+) {
+  // create a node link and / or add to source
+  if (source instanceof Draw) {
+    // add node link to services
+    const nodeLink = new SourceLink(
+      render.draws.push(source) - 1,
+      render.nodes.push([]) - 1,
+    );
+
+    render.sources.push(nodeLink);
+  } else {
+    render.sources.push(source);
+  }
+
+  render.builds.push(undefined);
+  indexes.push(render.sources.length - 1);
+}
+
+function addSource<N>(
+  render: Render<N>,
+  sourceIndexArray: number[],
+  source: RenderSource<N>,
+) {
+  if (!Array.isArray(source)) {
+    addSourceToRender(render, sourceIndexArray, source);
+  }
+
+  if (Array.isArray(source)) {
+    for (const chunk of source) {
+      addSourceToRender(render, sourceIndexArray, chunk);
+    }
+  }
+}
+
+function addDescToRender<N>(
+  utils: UtilsInterface<N>,
+  render: Render<N>,
+  sourceIndexArray: number[],
+) {
+  for (const sourceIndex of sourceIndexArray) {
+    const source = render.sources[sourceIndex];
+    if (source instanceof SourceLink) {
+      const node = render.nodes[source.nodeIndex];
+      const draw = render.draws[source.drawIndex];
+
+      const buildData = utils.getBuilderData(draw.templateStrings);
+      if (buildData !== undefined) {
+        while (node.length < buildData.descendants.length) {
+          const { index } = buildData.descendants[node.length];
+          const descendants: number[] = [];
+          node.push(descendants);
+          addSource(render, descendants, draw.injections[index]);
+        }
+      }
+    }
+  }
+}
+
 function createNodesFromSource<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
@@ -115,69 +177,6 @@ function createNodesFromSource<N>(
     }
 
     index += 1;
-  }
-}
-
-function addDescToRender<N>(
-  utils: UtilsInterface<N>,
-  render: Render<N>,
-  sourceIndexArray: number[],
-) {
-  for (const sourceIndex of sourceIndexArray) {
-    const source = render.sources[sourceIndex];
-    if (source instanceof SourceLink) {
-      const node = render.nodes[source.nodeIndex];
-      const draw = render.draws[source.drawIndex];
-
-      const buildData = utils.getBuilderData(draw.templateStrings);
-      if (buildData !== undefined) {
-        while (node.length < buildData.descendants.length) {
-          const { index } = buildData.descendants[node.length];
-          const descendants: number[] = [];
-          node.push(descendants);
-          addSource(render, descendants, draw.injections[index]);
-        }
-      }
-    }
-  }
-}
-
-function addSourceToRender<N>(
-  render: Render<N>,
-  indexes: number[],
-  source: RenderSource<N>,
-) {
-  // create a node link and / or add to source
-  if (source instanceof Draw) {
-    // add node link to services
-    const nodeLink = new SourceLink(
-      render.draws.push(source) - 1,
-      render.nodes.push([]) - 1,
-    );
-
-    render.sources.push(nodeLink);
-  } else {
-    render.sources.push(source);
-  }
-
-  render.builds.push(undefined);
-  indexes.push(render.sources.length - 1);
-}
-
-function addSource<N>(
-  render: Render<N>,
-  sourceIndexArray: number[],
-  source: RenderSource<N>,
-) {
-  if (!Array.isArray(source)) {
-    addSourceToRender(render, sourceIndexArray, source);
-    // if source is node link add descendants to render
-  }
-
-  if (Array.isArray(source)) {
-    for (const chunk of source) {
-      addSourceToRender(render, sourceIndexArray, chunk);
-    }
   }
 }
 

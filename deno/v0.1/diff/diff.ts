@@ -15,6 +15,9 @@ import {
 import { findTargets } from "./utils.ts";
 import { Build } from "../build/build.ts";
 import { SourceLink } from "./utils.ts";
+
+import { getDeltas } from "./deltas.ts";
+
 // one time compose, no diffs retuns new render
 // function compose()
 
@@ -31,7 +34,7 @@ function compose<N>(
   return render;
 }
 
-function mount<N>(
+function mountRoot<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
   parentNode: N,
@@ -63,47 +66,42 @@ function mountNodes<N>(
   render: Render<N>,
   delta: DeltaTargets,
 ) {
-  // added indexes
-  // if sourrce link
-  // get build and parent for each render
-
   for (const sourceIndex of delta.addedIndexes) {
     const source = render.sources[sourceIndex];
     if (!(source instanceof SourceLink)) continue;
 
-    if (source instanceof SourceLink) {
-      const parentNode = render.parents[source.parentIndex];
-      const node = render.nodes[source.nodeIndex];
-      const buildSource = render.builds[sourceIndex];
-      if (!(buildSource instanceof Build)) continue;
+    const parentNode = render.parents[source.parentIndex];
+    const node = render.nodes[source.nodeIndex];
+    const buildSource = render.builds[sourceIndex];
+    if (!(buildSource instanceof Build)) continue;
 
-      for (let arrayIndex = 0; arrayIndex < node.length; arrayIndex++) {
-        const sourceIndexes = node[arrayIndex];
-        let { node: prev, parentNode: descParentNode } =
-          buildSource.descendants[arrayIndex];
-        descParentNode = descParentNode ?? parentNode;
+    for (let arrayIndex = 0; arrayIndex < node.length; arrayIndex++) {
+      const sourceIndexes = node[arrayIndex];
+      let { node: prev, parentNode: descParentNode } =
+        buildSource.descendants[arrayIndex];
+      descParentNode = descParentNode ?? parentNode;
 
-        for (const sourceIndex of sourceIndexes) {
-          const source = render.sources[sourceIndex];
-          if (source instanceof SourceLink) {
-            const parent = render.parents[source.parentIndex];
-            const build = render.builds[sourceIndex];
-            if (build instanceof Build) {
-              for (const node of build.nodes) {
-                utils.insertNode(node, parent, prev);
-                prev = node;
-              }
-            }
-            continue;
-          }
-
+      for (const sourceIndex of sourceIndexes) {
+        const source = render.sources[sourceIndex];
+        const build = render.builds[sourceIndex];
+        
+        if (source instanceof SourceLink) {
+          const parent = render.parents[source.parentIndex];
           const build = render.builds[sourceIndex];
-          const nodeBuild = utils.getIfNode(build);
-          if (nodeBuild !== undefined) {
-            console.log("found node descendants!");
-            utils.insertNode(nodeBuild, descParentNode, prev);
-            prev = node;
+          if (build instanceof Build) {
+            for (const node of build.nodes) {
+              utils.insertNode(node, parent, prev);
+              prev = node;
+            }
           }
+          continue;
+        }
+
+        const nodeBuild = utils.getIfNode(build);
+        if (nodeBuild !== undefined) {
+          console.log("found node descendants!");
+          utils.insertNode(nodeBuild, descParentNode, prev);
+          prev = node;
         }
       }
     }
@@ -121,9 +119,13 @@ function diff<N>(
   const render: Render<N> = createRender<N>(utils, source, parentNode);
 
   const delta: DeltaTargets = {
+  	remountRoot: false,
     addedIndexes: [],
-    survivedIndexes: [],
     prevSurvivedIndexes: [],
+		survivedIndexes: [],
+    descIndexes: [],
+    prevDescIndexes: [],
+    descArrayIndexes: [],
     removedIndexes: [],
   };
 
@@ -133,17 +135,24 @@ function diff<N>(
     for (const sourceIndex of render.root) {
       findTargets(render, delta.addedIndexes, sourceIndex);
     }
+  } else {
+  	getDeltas(render, prevRender, delta);
   }
+  
+  // get diffs
+  // which are removed
+  // which are added
+  // if a descendant has changed, remove the entire source link?
+  // match the descendant and desc array, remove desc array
+  //
 
   createAddedBuilds(utils, delta, render);
 
-  // mount
   if (prevRender === undefined) {
-    mount(utils, render, parentNode, leftNode);
+  	// or if parentNode and leftNode changed
+    mountRoot(utils, render, parentNode, leftNode);
   }
 
-  // missing first child
-  // mount nodes
   mountNodes(utils, render, delta);
 
   console.log(delta);

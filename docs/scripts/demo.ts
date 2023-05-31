@@ -8,15 +8,20 @@ interface State {
   getAttribute: Element["getAttribute"];
 }
 
-const textNode = document.createTextNode("hello!");
+let nodeSwitch = 0;
 
-const testArray = () => {
-  return ["world", ["what's", "really"], "good"];
-};
+const textNode = document.createTextNode("UwU!");
+
+const testArray = ["world", ["what's", "really"], "good"];
 
 const testNodeFunc = () => {
+	nodeSwitch += 1;
+	nodeSwitch %= 2;
+	console.log("nodeSwitch", nodeSwitch);
+	const node = nodeSwitch ? textNode : testArray;
+	
   return draw`
-  	<p>horray! ${testArray()}</p>
+  	<p>horray! ${node}</p>
 	`;
 };
 
