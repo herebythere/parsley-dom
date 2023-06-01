@@ -75,7 +75,6 @@ function getDeltas<N>(
 		index +=1;
 	}
 	
-	
 	// now survived indexes
 	//
 	let survivedIndex = 0;
@@ -124,6 +123,8 @@ function getDeltas<N>(
 							render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
 							delta.survivedIndexes.push(sourceIndex);
 							delta.prevSurvivedIndexes.push(prevSourceIndex);
+							render.parents.push(prevRender.parents[prevSource.parentIndex]);
+							source.parentIndex = render.parents.length - 1;
 						}
 					} else {
 						if (prevSource !== source) {
@@ -165,25 +166,5 @@ function getDeltas<N>(
 	}
 
 }
-	
-	// start with roots
-	
-	// if source is same, add to render
-	
-	// if source is not same, mark node id and node descendant id
-	// to "unmount" and "re-mount" later 
-	
-	// mark descend nodes for removal
-	// make new nodes as added
-	
-	
-	
-	// trick is that later order is:
-	// create sources
-	// unmount changed areas
-	// remove changed nodes
-	// create added nodes
-	// mount changed areas
-	// mount added nodes
 
 export { getDeltas }

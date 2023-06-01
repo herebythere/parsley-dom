@@ -21,18 +21,16 @@ import { getDeltas } from "./deltas.ts";
 // one time compose, no diffs retuns new render
 // function compose()
 
-function compose<N>(
-  utils: UtilsInterface<N>,
-  source: RenderSource<N>,
-  parentNode: N,
-  leftNode?: N,
-) {
-  const render: Render<N> = createRender<N>(utils, source, parentNode);
+	
+	
+// order:
+// create sources
+// unmount changed areas
+// remove changed nodes
+// create added nodes
+// mount changed areas
+// mount added nodes
 
-  // mount
-
-  return render;
-}
 
 function mountRoot<N>(
   utils: UtilsInterface<N>,
@@ -108,6 +106,113 @@ function mountNodes<N>(
   }
 }
 
+
+function unmountNodes<N>(
+  utils: UtilsInterface<N>,
+  render: Render<N>,
+  delta: DeltaTargets,
+) {
+  for (const sourceIndex of delta.removedIndexes) {
+    const build = render.builds[sourceIndex];
+    if (build instanceof Build) {
+      for (const node of build.nodes) {
+        utils.removeNode(node);
+      }
+    }
+
+    const nodeBuild = utils.getIfNode(build);
+    if (nodeBuild !== undefined) {
+      utils.removeNode(nodeBuild);
+    }
+  }
+}
+
+function unmountChangedAreas<N>(
+	utils: UtilsInterface<N>,
+  render: Render<N>,
+  prevRender: Render<N>,
+  delta: DeltaTargets,
+) {
+	for (let index = 0; index < delta.prevDescIndexes.length; index++) {
+		const prevRenderIndex = delta.prevDescIndexes[index];
+		const descArrayIndex = delta.descArrayIndexes[index];
+		const prevSource = prevRender.sources[prevRenderIndex];
+		
+		if (prevSource instanceof SourceLink) {
+			const prevParent = prevRender.parents[prevSource.parentIndex];
+			console.log("prevParent", prevParent);
+			const prevNodes = prevRender.nodes[prevSource.nodeIndex];
+			const prevDescs = prevNodes[descArrayIndex];
+			
+			for (const descIndex of prevDescs) {
+				const descBuild = prevRender.builds[descIndex];
+				if (descBuild instanceof Build) {
+					for (const node of descBuild.nodes) {
+						console.log("changed area node removed", node, node.parentNode);
+						
+						utils.removeNode(node);
+					}
+					continue;
+				}
+				
+				const node = utils.getIfNode(descBuild);
+				if (node !== undefined) {
+					utils.removeNode(node);
+				}
+			}
+		}
+	}
+}
+
+function mountChangedAreas<N>(
+	utils: UtilsInterface<N>,
+  render: Render<N>,
+  prevRender: Render<N>,
+  delta: DeltaTargets,
+) {
+	for (let index = 0; index < delta.descIndexes.length; index++) {
+		const renderIndex = delta.descIndexes[index];
+		const descArrayIndex = delta.descArrayIndexes[index];
+		
+		const source = render.sources[renderIndex];
+		const build = render.builds[renderIndex];
+		
+		if (source instanceof SourceLink && build instanceof Build) {
+			const nodes = render.nodes[source.nodeIndex];
+			const parent = render.parents[source.parentIndex];
+
+			const descs = nodes[descArrayIndex];
+			let {node: left} = build.descendants[descArrayIndex];
+			
+			for (const descIndex of descs) {
+				const source = render.sources[descIndex];
+				const descBuild = render.builds[descIndex];
+				if (source instanceof SourceLink && descBuild instanceof Build) {
+					const parent = render.parents[source.parentIndex];
+					for (const node of descBuild.nodes) {
+						console.log("mount changed", node, parent, left);
+						utils.insertNode(node, parent, left);
+						left = node;
+					}
+					continue;
+				}
+				
+				const node = utils.getIfNode(descBuild);
+				if (node !== undefined) {
+					utils.insertNode(node, parent, left);
+				}
+			}
+		}
+	}
+}
+
+// order:
+// create sources
+// unmount changed areas
+// remove changed nodes
+// create added nodes
+// mount changed areas
+// mount added nodes
 function diff<N>(
   utils: UtilsInterface<N>,
   source: RenderSource<N>,
@@ -116,8 +221,15 @@ function diff<N>(
   prevRender?: Render<N>,
 ): Render<N> {
   // create current render
-  const render: Render<N> = createRender<N>(utils, source, parentNode);
-
+  const render: Render<N> = {
+    root: [],
+    sources: [],
+    draws: [],
+    builds: [],
+    parents: [parentNode],
+    nodes: [],
+  };
+  
   const delta: DeltaTargets = {
   	remountRoot: false,
     addedIndexes: [],
@@ -128,7 +240,11 @@ function diff<N>(
     descArrayIndexes: [],
     removedIndexes: [],
   };
+  
+	// create sources
+  createRender<N>(utils, render, source);
 
+	// compare to previous render
   if (prevRender === undefined) {
     // for every source in root
     // if source is a draw add descendant indexes
@@ -139,12 +255,27 @@ function diff<N>(
   	getDeltas(render, prevRender, delta);
   }
   
-  // get diffs
-  // which are removed
-  // which are added
-  // if a descendant has changed, remove the entire source link?
-  // match the descendant and desc array, remove desc array
-  //
+  
+  // unmount removed nodes
+  if (prevRender !== undefined) {
+    unmountNodes(utils, prevRender, delta);
+  }
+
+  // unmount changed areas
+  
+  if (prevRender !== undefined) {
+		unmountChangedAreas(
+			utils,
+			render,
+			prevRender,
+			delta,
+		);
+  }
+
+	// remove changed nodes
+	// create added nodes
+	// mount changed areas
+	// mount added nodes
 
   createAddedBuilds(utils, delta, render);
 
@@ -152,7 +283,18 @@ function diff<N>(
   	// or if parentNode and leftNode changed
     mountRoot(utils, render, parentNode, leftNode);
   }
-
+  
+  if (prevRender !== undefined) {
+		
+		mountChangedAreas(
+			utils,
+			render,
+			prevRender,
+			delta,
+		);
+		
+  }
+  
   mountNodes(utils, render, delta);
 
   console.log(delta);
@@ -161,4 +303,4 @@ function diff<N>(
   return render;
 }
 
-export { compose, diff };
+export { diff };

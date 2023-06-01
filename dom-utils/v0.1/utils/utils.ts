@@ -41,8 +41,14 @@ class DOMUtils implements UtilsInterface<Node> {
     }
     parentNode.insertBefore(node, leftNode.nextSibling);
   }
-  removeNode(node: Node, parentNode: Node, leftNode?: Node) {
-    parentNode.removeChild(node);
+  removeNode(node: Node, parentNode?: Node, leftNode?: Node) {
+  	if (parentNode !== undefined) {
+	    parentNode.removeChild(node);
+	    return;
+  	}
+  	if (node.parentNode !== null) {
+	    node.parentNode.removeChild(node);
+  	}
   }
   getIfNode(node: unknown): Node | undefined {
     if (node instanceof Node) {

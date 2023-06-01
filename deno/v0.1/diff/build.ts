@@ -183,23 +183,12 @@ function createNodesFromSource<N>(
 // changed render order
 function createRender<N>(
   utils: UtilsInterface<N>,
+  render: Render<N>,
   source: RenderSource<N>,
-  parentNode: N,
 ) {
-  // create root node
-  const render: Render<N> = {
-    root: [],
-    sources: [],
-    draws: [],
-    builds: [],
-    parents: [parentNode],
-    nodes: [],
-  };
 
-  // add source to root
   addSource(render, render.root, source);
 
-  // expand draws
   addDescToRender(utils, render, render.root);
 
   createNodesFromSource(utils, render);
