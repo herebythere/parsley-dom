@@ -186,7 +186,6 @@ function createRender<N>(
   render: Render<N>,
   source: RenderSource<N>,
 ) {
-
   addSource(render, render.root, source);
 
   addDescToRender(utils, render, render.root);

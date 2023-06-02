@@ -751,8 +751,6 @@ function getDeltas(render, prevRender, delta) {
                 render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
                 delta.survivedIndexes.push(sourceIndex);
                 delta.prevSurvivedIndexes.push(prevSourceIndex);
-                render.parents.push(prevRender.parents[prevSource.parentIndex]);
-                source.parentIndex = render.parents.length - 1;
             }
         } else {
             if (prevSource !== source) {
@@ -823,6 +821,7 @@ function getDeltas(render, prevRender, delta) {
                 }
                 while(descIndex < node.length){
                     const sourceIndex4 = node[descIndex];
+                    render.sources[sourceIndex4];
                     findTargets(render, delta.addedIndexes, sourceIndex4);
                     resetIndex = true;
                     descIndex += 1;
@@ -834,8 +833,8 @@ function getDeltas(render, prevRender, delta) {
                     descIndex += 1;
                 }
                 if (resetIndex) {
-                    delta.prevDescIndexes.push(prevSource1.nodeIndex);
-                    delta.descIndexes.push(source1.nodeIndex);
+                    delta.prevDescIndexes.push(prevSourceIndex2);
+                    delta.descIndexes.push(sourceIndex2);
                     delta.descArrayIndexes.push(nodeIndex);
                 }
             }
@@ -889,7 +888,6 @@ function mountNodes(utils, render, delta) {
                 }
                 const nodeBuild = utils.getIfNode(build);
                 if (nodeBuild !== undefined) {
-                    console.log("found node descendants!");
                     utils.insertNode(nodeBuild, descParentNode, prev);
                     prev = node;
                 }
@@ -911,21 +909,19 @@ function unmountNodes(utils, render, delta) {
         }
     }
 }
-function unmountChangedAreas(utils, render, prevRender, delta) {
+function unmountChangedAreas(utils, prevRender, delta) {
     for(let index = 0; index < delta.prevDescIndexes.length; index++){
         const prevRenderIndex = delta.prevDescIndexes[index];
         const descArrayIndex = delta.descArrayIndexes[index];
         const prevSource = prevRender.sources[prevRenderIndex];
         if (prevSource instanceof SourceLink) {
-            const prevParent = prevRender.parents[prevSource.parentIndex];
-            console.log("prevParent", prevParent);
+            prevRender.parents[prevSource.parentIndex];
             const prevNodes = prevRender.nodes[prevSource.nodeIndex];
             const prevDescs = prevNodes[descArrayIndex];
             for (const descIndex of prevDescs){
                 const descBuild = prevRender.builds[descIndex];
                 if (descBuild instanceof Build) {
                     for (const node of descBuild.nodes){
-                        console.log("changed area node removed", node, node.parentNode);
                         utils.removeNode(node);
                     }
                     continue;
@@ -938,7 +934,7 @@ function unmountChangedAreas(utils, render, prevRender, delta) {
         }
     }
 }
-function mountChangedAreas(utils, render, prevRender, delta) {
+function mountChangedAreas(utils, render, delta) {
     for(let index = 0; index < delta.descIndexes.length; index++){
         const renderIndex = delta.descIndexes[index];
         const descArrayIndex = delta.descArrayIndexes[index];
@@ -947,6 +943,7 @@ function mountChangedAreas(utils, render, prevRender, delta) {
         if (source instanceof SourceLink && build instanceof Build) {
             const nodes = render.nodes[source.nodeIndex];
             const parent = render.parents[source.parentIndex];
+            console.log("mount changed areas:", nodes, parent);
             const descs = nodes[descArrayIndex];
             let { node: left  } = build.descendants[descArrayIndex];
             for (const descIndex of descs){
@@ -955,7 +952,6 @@ function mountChangedAreas(utils, render, prevRender, delta) {
                 if (source1 instanceof SourceLink && descBuild instanceof Build) {
                     const parent1 = render.parents[source1.parentIndex];
                     for (const node of descBuild.nodes){
-                        console.log("mount changed", node, parent1, left);
                         utils.insertNode(node, parent1, left);
                         left = node;
                     }
@@ -964,6 +960,7 @@ function mountChangedAreas(utils, render, prevRender, delta) {
                 const node1 = utils.getIfNode(descBuild);
                 if (node1 !== undefined) {
                     utils.insertNode(node1, parent, left);
+                    left = node1;
                 }
             }
         }
@@ -1002,14 +999,14 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         unmountNodes(utils, prevRender, delta);
     }
     if (prevRender !== undefined) {
-        unmountChangedAreas(utils, render, prevRender, delta);
+        unmountChangedAreas(utils, prevRender, delta);
     }
     createAddedBuilds(utils, delta, render);
     if (prevRender === undefined) {
         mountRoot(utils, render, parentNode, leftNode);
     }
     if (prevRender !== undefined) {
-        mountChangedAreas(utils, render, prevRender, delta);
+        mountChangedAreas(utils, render, delta);
     }
     mountNodes(utils, render, delta);
     console.log(delta);

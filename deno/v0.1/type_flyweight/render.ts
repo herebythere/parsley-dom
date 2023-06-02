@@ -29,7 +29,7 @@ interface Render<N> {
 }
 
 interface DeltaTargets {
-	remountRoot: boolean;
+  remountRoot: boolean;
   addedIndexes: number[];
   prevSurvivedIndexes: number[];
   survivedIndexes: number[];
