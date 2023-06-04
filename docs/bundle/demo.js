@@ -781,11 +781,9 @@ function getDeltas(render, prevRender, delta) {
         const prevSourceIndex2 = delta.prevSurvivedIndexes[survivedIndex];
         const source1 = render.sources[sourceIndex2];
         const prevSource1 = prevRender.sources[prevSourceIndex2];
-        console.log("check survive:", sourceIndex2, prevSourceIndex2, source1, prevSource1);
         if (prevSource1 instanceof SourceLink && source1 instanceof SourceLink) {
             render.parents.push(prevRender.parents[prevSource1.parentIndex]);
             source1.parentIndex = render.parents.length - 1;
-            console.log("survived parents:", prevSource1.parentIndex, prevRender.parents[prevSource1.parentIndex]);
             const nodes = render.nodes[source1.nodeIndex];
             const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
             for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){
@@ -1092,23 +1090,21 @@ class DOMUtils {
 }
 const domutils = new DOMUtils();
 let nodeSwitch = 0;
-const textNode = document.createTextNode("UwU!");
-const testArray = [
-    "world",
-    [
-        "what's",
-        "really"
-    ],
-    "good"
-];
+document.createTextNode("UwU!");
+function createLargeTestArray() {
+    const largetTestArray = [];
+    for(let index = 0; index < 2000; index++){
+        const p = document.createElement("p");
+        p.appendChild(document.createTextNode("UwU!"));
+        largetTestArray.push(p);
+    }
+    return largetTestArray;
+}
+const testDraw = draw`<p>horray!</p>`;
 const testNodeFunc = ()=>{
     nodeSwitch += 1;
     nodeSwitch %= 2;
-    console.log("nodeSwitch", nodeSwitch);
-    const node = nodeSwitch ? textNode : testArray;
-    return draw`
-  	<p>horray! ${node}</p>
-	`;
+    return nodeSwitch ? testDraw : createLargeTestArray();
 };
 const testNodeNested = ()=>{
     return [

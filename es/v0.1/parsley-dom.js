@@ -695,11 +695,9 @@ function getDeltas(render, prevRender, delta) {
         const prevSourceIndex2 = delta.prevSurvivedIndexes[survivedIndex];
         const source1 = render.sources[sourceIndex2];
         const prevSource1 = prevRender.sources[prevSourceIndex2];
-        console.log("check survive:", sourceIndex2, prevSourceIndex2, source1, prevSource1);
         if (prevSource1 instanceof SourceLink && source1 instanceof SourceLink) {
             render.parents.push(prevRender.parents[prevSource1.parentIndex]);
             source1.parentIndex = render.parents.length - 1;
-            console.log("survived parents:", prevSource1.parentIndex, prevRender.parents[prevSource1.parentIndex]);
             const nodes = render.nodes[source1.nodeIndex];
             const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
             for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){

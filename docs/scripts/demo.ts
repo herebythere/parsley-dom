@@ -14,15 +14,20 @@ const textNode = document.createTextNode("UwU!");
 
 const testArray = ["world", ["what's", "really"], "good"];
 
+const largetTestArray: Node[] = [];
+for (let index = 0; index < 2000; index++) {
+  const p = document.createElement("p");
+  p.appendChild(document.createTextNode("UwU!"));
+  largetTestArray.push(p);
+}
+
+const testDraw = draw`<p>horray!</p>`;
+
 const testNodeFunc = () => {
   nodeSwitch += 1;
   nodeSwitch %= 2;
-  console.log("nodeSwitch", nodeSwitch);
-  const node = nodeSwitch ? textNode : testArray;
 
-  return draw`
-  	<p>horray! ${node}</p>
-	`;
+  return nodeSwitch ? testDraw : largetTestArray;
 };
 
 const testNodeNested = () => {
