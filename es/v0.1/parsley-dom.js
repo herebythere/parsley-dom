@@ -695,7 +695,11 @@ function getDeltas(render, prevRender, delta) {
         const prevSourceIndex2 = delta.prevSurvivedIndexes[survivedIndex];
         const source1 = render.sources[sourceIndex2];
         const prevSource1 = prevRender.sources[prevSourceIndex2];
+        console.log("check survive:", sourceIndex2, prevSourceIndex2, source1, prevSource1);
         if (prevSource1 instanceof SourceLink && source1 instanceof SourceLink) {
+            render.parents.push(prevRender.parents[prevSource1.parentIndex]);
+            source1.parentIndex = render.parents.length - 1;
+            console.log("survived parents:", prevSource1.parentIndex, prevRender.parents[prevSource1.parentIndex]);
             const nodes = render.nodes[source1.nodeIndex];
             const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
             for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){
@@ -719,8 +723,6 @@ function getDeltas(render, prevRender, delta) {
                             render.builds[sourceIndex3] = prevRender.builds[prevSourceIndex3];
                             delta.survivedIndexes.push(sourceIndex3);
                             delta.prevSurvivedIndexes.push(prevSourceIndex3);
-                            render.parents.push(prevRender.parents[prevSource2.parentIndex]);
-                            source2.parentIndex = render.parents.length - 1;
                         }
                     } else {
                         if (prevSource2 !== source2) {
@@ -857,23 +859,22 @@ function mountChangedAreas(utils, render, delta) {
         if (source instanceof SourceLink && build instanceof Build) {
             const nodes = render.nodes[source.nodeIndex];
             const parent = render.parents[source.parentIndex];
-            console.log("mount changed areas:", nodes, parent);
             const descs = nodes[descArrayIndex];
-            let { node: left  } = build.descendants[descArrayIndex];
+            let { node: left , parentNode: descParentNode  } = build.descendants[descArrayIndex];
+            descParentNode = descParentNode ?? parent;
             for (const descIndex of descs){
                 const source1 = render.sources[descIndex];
                 const descBuild = render.builds[descIndex];
                 if (source1 instanceof SourceLink && descBuild instanceof Build) {
-                    const parent1 = render.parents[source1.parentIndex];
                     for (const node of descBuild.nodes){
-                        utils.insertNode(node, parent1, left);
+                        utils.insertNode(node, descParentNode, left);
                         left = node;
                     }
                     continue;
                 }
                 const node1 = utils.getIfNode(descBuild);
                 if (node1 !== undefined) {
-                    utils.insertNode(node1, parent, left);
+                    utils.insertNode(node1, descParentNode, left);
                     left = node1;
                 }
             }

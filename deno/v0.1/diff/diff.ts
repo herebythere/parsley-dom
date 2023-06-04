@@ -171,17 +171,18 @@ function mountChangedAreas<N>(
       const nodes = render.nodes[source.nodeIndex];
       const parent = render.parents[source.parentIndex];
 
-      console.log("mount changed areas:", nodes, parent);
       const descs = nodes[descArrayIndex];
-      let { node: left } = build.descendants[descArrayIndex];
+
+      let { node: left, parentNode: descParentNode } =
+        build.descendants[descArrayIndex];
+      descParentNode = descParentNode ?? parent;
 
       for (const descIndex of descs) {
         const source = render.sources[descIndex];
         const descBuild = render.builds[descIndex];
         if (source instanceof SourceLink && descBuild instanceof Build) {
-          const parent = render.parents[source.parentIndex];
           for (const node of descBuild.nodes) {
-            utils.insertNode(node, parent, left);
+            utils.insertNode(node, descParentNode, left);
             left = node;
           }
           continue;
@@ -189,7 +190,7 @@ function mountChangedAreas<N>(
 
         const node = utils.getIfNode(descBuild);
         if (node !== undefined) {
-          utils.insertNode(node, parent, left);
+          utils.insertNode(node, descParentNode, left);
           left = node;
         }
       }
