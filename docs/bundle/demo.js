@@ -678,18 +678,16 @@ function addSource(render, sourceIndexArray, source) {
 function addDescToRender(utils, render, sourceIndexArray) {
     for (const sourceIndex of sourceIndexArray){
         const source = render.sources[sourceIndex];
-        if (source instanceof SourceLink) {
-            const node = render.nodes[source.nodeIndex];
-            const draw = render.draws[source.drawIndex];
-            const buildData = utils.getBuilderData(draw.templateStrings);
-            if (buildData !== undefined) {
-                while(node.length < buildData.descendants.length){
-                    const { index  } = buildData.descendants[node.length];
-                    const descendants = [];
-                    node.push(descendants);
-                    addSource(render, descendants, draw.injections[index]);
-                }
-            }
+        if (!(source instanceof SourceLink)) continue;
+        const node = render.nodes[source.nodeIndex];
+        const draw = render.draws[source.drawIndex];
+        const buildData = utils.getBuilderData(draw.templateStrings);
+        if (buildData === undefined) continue;
+        while(node.length < buildData.descendants.length){
+            const { index  } = buildData.descendants[node.length];
+            const descendants = [];
+            node.push(descendants);
+            addSource(render, descendants, draw.injections[index]);
         }
     }
 }
@@ -707,20 +705,18 @@ function createNodesFromSource(utils, render) {
             const descArray = node[descArrayIndex];
             for (const sourceIndex1 of descArray){
                 const source1 = render.sources[sourceIndex1];
-                if (source1 instanceof SourceLink) {
-                    const draw = render.draws[source1.drawIndex];
-                    const node1 = render.nodes[source1.nodeIndex];
-                    let data = utils.getBuilderData(draw.templateStrings);
-                    if (data !== undefined) {
-                        for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
-                            const descendant = data.descendants[descIndex];
-                            const descSource = draw.injections[descendant.index];
-                            const descendants = [];
-                            node1.push(descendants);
-                            addSource(render, descendants, descSource);
-                            addDescToRender(utils, render, descendants);
-                        }
-                    }
+                if (!(source1 instanceof SourceLink)) continue;
+                const draw = render.draws[source1.drawIndex];
+                let data = utils.getBuilderData(draw.templateStrings);
+                if (data === undefined) continue;
+                const node1 = render.nodes[source1.nodeIndex];
+                for(let descIndex = 0; descIndex < data.descendants.length; descIndex++){
+                    const descendant = data.descendants[descIndex];
+                    const descSource = draw.injections[descendant.index];
+                    const descendants = [];
+                    node1.push(descendants);
+                    addSource(render, descendants, descSource);
+                    addDescToRender(utils, render, descendants);
                 }
             }
         }
@@ -846,17 +842,16 @@ function mountRoot(utils, render, parentNode, prevNode) {
     let prev = prevNode;
     for (const sourceIndex of render.root){
         const build = render.builds[sourceIndex];
-        const node = utils.getIfNode(build);
-        if (node !== undefined) {
-            utils.insertNode(node, parentNode, prev);
-            prev = node;
-            continue;
-        }
         if (build instanceof Build) {
-            for (const node1 of build.nodes){
-                utils.insertNode(node1, parentNode, prev);
-                prev = node1;
+            for (const node of build.nodes){
+                utils.insertNode(node, parentNode, prev);
+                prev = node;
             }
+        }
+        const node1 = utils.getIfNode(build);
+        if (node1 !== undefined) {
+            utils.insertNode(node1, parentNode, prev);
+            prev = node1;
         }
     }
 }
@@ -875,16 +870,12 @@ function mountNodes(utils, render, delta) {
             for (const sourceIndex1 of sourceIndexes){
                 const source1 = render.sources[sourceIndex1];
                 const build = render.builds[sourceIndex1];
-                if (source1 instanceof SourceLink) {
-                    const parent = render.parents[source1.parentIndex];
-                    const build1 = render.builds[sourceIndex1];
-                    if (build1 instanceof Build) {
-                        for (const node1 of build1.nodes){
-                            utils.insertNode(node1, parent, prev);
-                            prev = node1;
-                        }
+                if (source1 instanceof SourceLink && build instanceof Build) {
+                    render.parents[source1.parentIndex];
+                    for (const node1 of build.nodes){
+                        utils.insertNode(node1, descParentNode, prev);
+                        prev = node1;
                     }
-                    continue;
                 }
                 const nodeBuild = utils.getIfNode(build);
                 if (nodeBuild !== undefined) {
@@ -995,10 +986,10 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         getDeltas(render, prevRender, delta);
     }
     if (prevRender !== undefined) {
-        unmountNodes(utils, prevRender, delta);
+        unmountChangedAreas(utils, prevRender, delta);
     }
     if (prevRender !== undefined) {
-        unmountChangedAreas(utils, prevRender, delta);
+        unmountNodes(utils, prevRender, delta);
     }
     createAddedBuilds(utils, delta, render);
     if (prevRender === undefined) {
@@ -1091,28 +1082,25 @@ class DOMUtils {
 const domutils = new DOMUtils();
 let nodeSwitch = 0;
 document.createTextNode("UwU!");
-function createLargeTestArray() {
-    const largetTestArray = [];
-    for(let index = 0; index < 2000; index++){
-        const p = document.createElement("p");
-        p.appendChild(document.createTextNode("UwU!"));
-        largetTestArray.push(p);
-    }
-    return largetTestArray;
+const largetTestArray = [];
+for(let index = 0; index < 200; index++){
+    const p = document.createElement("p");
+    p.appendChild(document.createTextNode("UwU!"));
+    largetTestArray.push(p);
 }
 const testDraw = draw`<p>horray!</p>`;
 const testNodeFunc = ()=>{
     nodeSwitch += 1;
     nodeSwitch %= 2;
-    return nodeSwitch ? testDraw : createLargeTestArray();
+    return nodeSwitch ? testDraw : largetTestArray;
 };
 const testNodeNested = ()=>{
     return [
         "whatup",
         draw`
-  	<p>howdy!</p>
-		<p>hello ${testNodeFunc()}!</p>
-	`
+			<p>howdy!</p>
+			<p>hello ${testNodeFunc()}!</p>
+		`
     ];
 };
 class TestComponent extends HTMLElement {

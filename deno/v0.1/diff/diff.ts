@@ -6,11 +6,7 @@ import type {
   RenderSource,
 } from "../type_flyweight/render.ts";
 
-import {
-  createAddedBuilds,
-  createNodesFromSource,
-  createRender,
-} from "./build.ts";
+import { createAddedBuilds, createRender } from "./build.ts";
 
 import { findTargets } from "./utils.ts";
 import { Build } from "../build/build.ts";
@@ -37,21 +33,19 @@ function mountRoot<N>(
 ) {
   let prev = prevNode;
 
-  // mount root
   for (const sourceIndex of render.root) {
     const build = render.builds[sourceIndex];
-    const node = utils.getIfNode(build);
-    if (node !== undefined) {
-      utils.insertNode(node, parentNode, prev);
-      prev = node;
-      continue;
-    }
-
     if (build instanceof Build) {
       for (const node of build.nodes) {
         utils.insertNode(node, parentNode, prev);
         prev = node;
       }
+    }
+
+    const node = utils.getIfNode(build);
+    if (node !== undefined) {
+      utils.insertNode(node, parentNode, prev);
+      prev = node;
     }
   }
 }
@@ -80,16 +74,12 @@ function mountNodes<N>(
         const source = render.sources[sourceIndex];
         const build = render.builds[sourceIndex];
 
-        if (source instanceof SourceLink) {
+        if (source instanceof SourceLink && build instanceof Build) {
           const parent = render.parents[source.parentIndex];
-          const build = render.builds[sourceIndex];
-          if (build instanceof Build) {
-            for (const node of build.nodes) {
-              utils.insertNode(node, parent, prev);
-              prev = node;
-            }
+          for (const node of build.nodes) {
+            utils.insertNode(node, descParentNode, prev);
+            prev = node;
           }
-          continue;
         }
 
         const nodeBuild = utils.getIfNode(build);
@@ -247,19 +237,18 @@ function diff<N>(
     getDeltas(render, prevRender, delta);
   }
 
-  // unmount removed nodes
-  if (prevRender !== undefined) {
-    unmountNodes(utils, prevRender, delta);
-  }
-
   // unmount changed areas
-
   if (prevRender !== undefined) {
     unmountChangedAreas(
       utils,
       prevRender,
       delta,
     );
+  }
+
+  // unmount removed nodes
+  if (prevRender !== undefined) {
+    unmountNodes(utils, prevRender, delta);
   }
 
   // remove changed nodes

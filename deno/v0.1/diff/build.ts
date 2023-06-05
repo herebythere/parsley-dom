@@ -13,7 +13,6 @@ import type {
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
 import { parse } from "../deps.ts";
-
 import { SourceLink } from "./utils.ts";
 
 function createAddedBuilds<N>(
@@ -114,19 +113,20 @@ function addDescToRender<N>(
 ) {
   for (const sourceIndex of sourceIndexArray) {
     const source = render.sources[sourceIndex];
-    if (source instanceof SourceLink) {
-      const node = render.nodes[source.nodeIndex];
-      const draw = render.draws[source.drawIndex];
+    if (!(source instanceof SourceLink)) continue;
 
-      const buildData = utils.getBuilderData(draw.templateStrings);
-      if (buildData !== undefined) {
-        while (node.length < buildData.descendants.length) {
-          const { index } = buildData.descendants[node.length];
-          const descendants: number[] = [];
-          node.push(descendants);
-          addSource(render, descendants, draw.injections[index]);
-        }
-      }
+    const node = render.nodes[source.nodeIndex];
+    const draw = render.draws[source.drawIndex];
+
+    const buildData = utils.getBuilderData(draw.templateStrings);
+    if (buildData === undefined) continue;
+
+    while (node.length < buildData.descendants.length) {
+      const { index } = buildData.descendants[node.length];
+      const descendants: number[] = [];
+      node.push(descendants);
+
+      addSource(render, descendants, draw.injections[index]);
     }
   }
 }
@@ -154,24 +154,26 @@ function createNodesFromSource<N>(
       const descArray = node[descArrayIndex];
       for (const sourceIndex of descArray) {
         const source = render.sources[sourceIndex];
-        if (source instanceof SourceLink) {
-          const draw = render.draws[source.drawIndex];
-          const node = render.nodes[source.nodeIndex];
-          let data = utils.getBuilderData(draw.templateStrings);
-          if (data !== undefined) {
-            for (
-              let descIndex = 0;
-              descIndex < data.descendants.length;
-              descIndex++
-            ) {
-              const descendant = data.descendants[descIndex];
-              const descSource = draw.injections[descendant.index];
-              const descendants: number[] = [];
-              node.push(descendants);
-              addSource(render, descendants, descSource);
-              addDescToRender(utils, render, descendants);
-            }
-          }
+        if (!(source instanceof SourceLink)) continue;
+
+        const draw = render.draws[source.drawIndex];
+        let data = utils.getBuilderData(draw.templateStrings);
+        if (data === undefined) continue;
+
+        const node = render.nodes[source.nodeIndex];
+        for (
+          let descIndex = 0;
+          descIndex < data.descendants.length;
+          descIndex++
+        ) {
+          const descendant = data.descendants[descIndex];
+          const descSource = draw.injections[descendant.index];
+
+          const descendants: number[] = [];
+          node.push(descendants);
+
+          addSource(render, descendants, descSource);
+          addDescToRender(utils, render, descendants);
         }
       }
     }
@@ -180,7 +182,6 @@ function createNodesFromSource<N>(
   }
 }
 
-// changed render order
 function createRender<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
@@ -195,4 +196,4 @@ function createRender<N>(
   return render;
 }
 
-export { createAddedBuilds, createNodesFromSource, createRender };
+export { createAddedBuilds, createRender };

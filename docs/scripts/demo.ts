@@ -15,7 +15,7 @@ const textNode = document.createTextNode("UwU!");
 const testArray = ["world", ["what's", "really"], "good"];
 
 const largetTestArray: Node[] = [];
-for (let index = 0; index < 2000; index++) {
+for (let index = 0; index < 200; index++) {
   const p = document.createElement("p");
   p.appendChild(document.createTextNode("UwU!"));
   largetTestArray.push(p);
@@ -34,9 +34,9 @@ const testNodeNested = () => {
   return [
     "whatup",
     draw`
-  	<p>howdy!</p>
-		<p>hello ${testNodeFunc()}!</p>
-	`,
+			<p>howdy!</p>
+			<p>hello ${testNodeFunc()}!</p>
+		`,
   ];
 };
 
