@@ -2,12 +2,12 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
-function cloneNodes(utils, nodes) {
-    let clonedNodes = [];
-    for (const node of nodes){
-        clonedNodes.push(utils.cloneTree(node));
+function cloneNodes(utils, sourceNodes) {
+    let nodes = [];
+    for (const node of sourceNodes){
+        nodes.push(utils.cloneTree(node));
     }
-    return clonedNodes;
+    return nodes;
 }
 function createInjections(utils, nodes, builderInjections) {
     const injections = [];
@@ -607,16 +607,15 @@ function findTargets(render, targets, sourceIndex) {
     }
     while(index < targets.length){
         const targetIndex = targets[index];
+        index += 1;
         const source1 = render.sources[targetIndex];
-        if (source1 instanceof SourceLink) {
-            const node1 = render.nodes[source1.nodeIndex];
-            for (const descArray1 of node1){
-                for (const descIndex1 of descArray1){
-                    targets.push(descIndex1);
-                }
+        if (!(source1 instanceof SourceLink)) continue;
+        const node1 = render.nodes[source1.nodeIndex];
+        for (const descArray1 of node1){
+            for (const descIndex1 of descArray1){
+                targets.push(descIndex1);
             }
         }
-        index += 1;
     }
 }
 function createAddedBuilds(utils, delta, render) {
@@ -646,7 +645,6 @@ function createAddedBuilds(utils, delta, render) {
                     const source1 = render.sources[descIndex];
                     if (source1 instanceof SourceLink) {
                         source1.parentIndex = parentIndex;
-                        continue;
                     }
                 }
             }
@@ -760,82 +758,78 @@ function getDeltas(render, prevRender, delta) {
         index += 1;
     }
     while(index < render.root.length){
-        const sourceIndex1 = render.root[index];
-        findTargets(render, delta.addedIndexes, sourceIndex1);
+        findTargets(render, delta.addedIndexes, render.root[index]);
         delta.remountRoot = true;
         index += 1;
     }
     while(index < prevRender.root.length){
-        const prevSourceIndex1 = prevRender.root[index];
-        findTargets(prevRender, delta.removedIndexes, prevSourceIndex1);
+        findTargets(prevRender, delta.removedIndexes, prevRender.root[index]);
         delta.remountRoot = true;
         index += 1;
     }
     let survivedIndex = 0;
     while(survivedIndex < delta.survivedIndexes.length){
-        const sourceIndex2 = delta.survivedIndexes[survivedIndex];
-        const prevSourceIndex2 = delta.prevSurvivedIndexes[survivedIndex];
-        const source1 = render.sources[sourceIndex2];
-        const prevSource1 = prevRender.sources[prevSourceIndex2];
-        if (prevSource1 instanceof SourceLink && source1 instanceof SourceLink) {
-            render.parents.push(prevRender.parents[prevSource1.parentIndex]);
-            source1.parentIndex = render.parents.length - 1;
-            const nodes = render.nodes[source1.nodeIndex];
-            const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
-            for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){
-                const node = nodes[nodeIndex];
-                const prevNode = prevNodes[nodeIndex];
-                let resetIndex = false;
-                let descIndex = 0;
-                while(descIndex < node.length && descIndex < prevNode.length){
-                    const sourceIndex3 = node[descIndex];
-                    const prevSourceIndex3 = prevNode[descIndex];
-                    const source2 = render.sources[sourceIndex3];
-                    const prevSource2 = prevRender.sources[prevSourceIndex3];
-                    if (prevSource2 instanceof SourceLink && source2 instanceof SourceLink) {
-                        const draw1 = render.draws[source2.drawIndex];
-                        const prevDraw1 = prevRender.draws[prevSource2.drawIndex];
-                        if (prevDraw1.templateStrings !== draw1.templateStrings) {
-                            findTargets(render, delta.addedIndexes, sourceIndex3);
-                            findTargets(prevRender, delta.removedIndexes, prevSourceIndex3);
-                            resetIndex = true;
-                        } else {
-                            render.builds[sourceIndex3] = prevRender.builds[prevSourceIndex3];
-                            delta.survivedIndexes.push(sourceIndex3);
-                            delta.prevSurvivedIndexes.push(prevSourceIndex3);
-                        }
+        const sourceIndex1 = delta.survivedIndexes[survivedIndex];
+        const prevSourceIndex1 = delta.prevSurvivedIndexes[survivedIndex];
+        survivedIndex += 1;
+        const source1 = render.sources[sourceIndex1];
+        const prevSource1 = prevRender.sources[prevSourceIndex1];
+        if (!(prevSource1 instanceof SourceLink && source1 instanceof SourceLink)) {
+            continue;
+        }
+        render.parents.push(prevRender.parents[prevSource1.parentIndex]);
+        source1.parentIndex = render.parents.length - 1;
+        const nodes = render.nodes[source1.nodeIndex];
+        const prevNodes = prevRender.nodes[prevSource1.nodeIndex];
+        for(let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++){
+            const node = nodes[nodeIndex];
+            const prevNode = prevNodes[nodeIndex];
+            let resetIndex = false;
+            let descIndex = 0;
+            while(descIndex < node.length && descIndex < prevNode.length){
+                const sourceIndex2 = node[descIndex];
+                const prevSourceIndex2 = prevNode[descIndex];
+                const source2 = render.sources[sourceIndex2];
+                const prevSource2 = prevRender.sources[prevSourceIndex2];
+                if (prevSource2 instanceof SourceLink && source2 instanceof SourceLink) {
+                    const draw1 = render.draws[source2.drawIndex];
+                    const prevDraw1 = prevRender.draws[prevSource2.drawIndex];
+                    if (prevDraw1.templateStrings !== draw1.templateStrings) {
+                        findTargets(render, delta.addedIndexes, sourceIndex2);
+                        findTargets(prevRender, delta.removedIndexes, prevSourceIndex2);
+                        resetIndex = true;
                     } else {
-                        if (prevSource2 !== source2) {
-                            findTargets(render, delta.addedIndexes, sourceIndex3);
-                            findTargets(prevRender, delta.removedIndexes, prevSourceIndex3);
-                            resetIndex = true;
-                        } else {
-                            render.builds[index] = prevRender.builds[index];
-                        }
+                        render.builds[sourceIndex2] = prevRender.builds[prevSourceIndex2];
+                        delta.survivedIndexes.push(sourceIndex2);
+                        delta.prevSurvivedIndexes.push(prevSourceIndex2);
                     }
-                    descIndex += 1;
+                } else {
+                    if (prevSource2 !== source2) {
+                        findTargets(render, delta.addedIndexes, sourceIndex2);
+                        findTargets(prevRender, delta.removedIndexes, prevSourceIndex2);
+                        resetIndex = true;
+                    } else {
+                        render.builds[index] = prevRender.builds[index];
+                    }
                 }
-                while(descIndex < node.length){
-                    const sourceIndex4 = node[descIndex];
-                    render.sources[sourceIndex4];
-                    findTargets(render, delta.addedIndexes, sourceIndex4);
-                    resetIndex = true;
-                    descIndex += 1;
-                }
-                while(descIndex < prevNode.length){
-                    const prevSourceIndex4 = prevNode[descIndex];
-                    findTargets(prevRender, delta.removedIndexes, prevSourceIndex4);
-                    resetIndex = true;
-                    descIndex += 1;
-                }
-                if (resetIndex) {
-                    delta.prevDescIndexes.push(prevSourceIndex2);
-                    delta.descIndexes.push(sourceIndex2);
-                    delta.descArrayIndexes.push(nodeIndex);
-                }
+                descIndex += 1;
+            }
+            while(descIndex < node.length){
+                findTargets(render, delta.addedIndexes, node[descIndex]);
+                resetIndex = true;
+                descIndex += 1;
+            }
+            while(descIndex < prevNode.length){
+                findTargets(prevRender, delta.removedIndexes, prevNode[descIndex]);
+                resetIndex = true;
+                descIndex += 1;
+            }
+            if (resetIndex) {
+                delta.prevDescIndexes.push(prevSourceIndex1);
+                delta.descIndexes.push(sourceIndex1);
+                delta.descArrayIndexes.push(nodeIndex);
             }
         }
-        survivedIndex += 1;
     }
 }
 function mountRoot(utils, render, parentNode, prevNode) {
@@ -858,29 +852,29 @@ function mountRoot(utils, render, parentNode, prevNode) {
 function mountNodes(utils, render, delta) {
     for (const sourceIndex of delta.addedIndexes){
         const source = render.sources[sourceIndex];
-        if (!(source instanceof SourceLink)) continue;
-        const parentNode = render.parents[source.parentIndex];
-        const node = render.nodes[source.nodeIndex];
         const buildSource = render.builds[sourceIndex];
-        if (!(buildSource instanceof Build)) continue;
+        if (!(source instanceof SourceLink && buildSource instanceof Build)) {
+            continue;
+        }
+        const parent = render.parents[source.parentIndex];
+        const node = render.nodes[source.nodeIndex];
         for(let arrayIndex = 0; arrayIndex < node.length; arrayIndex++){
             const sourceIndexes = node[arrayIndex];
-            let { node: prev , parentNode: descParentNode  } = buildSource.descendants[arrayIndex];
-            descParentNode = descParentNode ?? parentNode;
+            let { node: prev , parentNode  } = buildSource.descendants[arrayIndex];
+            parentNode = parentNode ?? parent;
             for (const sourceIndex1 of sourceIndexes){
                 const source1 = render.sources[sourceIndex1];
                 const build = render.builds[sourceIndex1];
-                if (source1 instanceof SourceLink && build instanceof Build) {
-                    render.parents[source1.parentIndex];
-                    for (const node1 of build.nodes){
-                        utils.insertNode(node1, descParentNode, prev);
-                        prev = node1;
-                    }
-                }
                 const nodeBuild = utils.getIfNode(build);
                 if (nodeBuild !== undefined) {
-                    utils.insertNode(nodeBuild, descParentNode, prev);
+                    utils.insertNode(nodeBuild, parentNode, prev);
                     prev = node;
+                }
+                if (source1 instanceof SourceLink && build instanceof Build) {
+                    for (const node1 of build.nodes){
+                        utils.insertNode(node1, parentNode, prev);
+                        prev = node1;
+                    }
                 }
             }
         }
@@ -905,22 +899,20 @@ function unmountChangedAreas(utils, prevRender, delta) {
         const prevRenderIndex = delta.prevDescIndexes[index];
         const descArrayIndex = delta.descArrayIndexes[index];
         const prevSource = prevRender.sources[prevRenderIndex];
-        if (prevSource instanceof SourceLink) {
-            prevRender.parents[prevSource.parentIndex];
-            const prevNodes = prevRender.nodes[prevSource.nodeIndex];
-            const prevDescs = prevNodes[descArrayIndex];
-            for (const descIndex of prevDescs){
-                const descBuild = prevRender.builds[descIndex];
-                if (descBuild instanceof Build) {
-                    for (const node of descBuild.nodes){
-                        utils.removeNode(node);
-                    }
-                    continue;
+        if (!(prevSource instanceof SourceLink)) continue;
+        prevRender.parents[prevSource.parentIndex];
+        const prevNodes = prevRender.nodes[prevSource.nodeIndex];
+        const prevDescs = prevNodes[descArrayIndex];
+        for (const descIndex of prevDescs){
+            const descBuild = prevRender.builds[descIndex];
+            if (descBuild instanceof Build) {
+                for (const node of descBuild.nodes){
+                    utils.removeNode(node);
                 }
-                const node1 = utils.getIfNode(descBuild);
-                if (node1 !== undefined) {
-                    utils.removeNode(node1);
-                }
+            }
+            const node1 = utils.getIfNode(descBuild);
+            if (node1 !== undefined) {
+                utils.removeNode(node1);
             }
         }
     }
@@ -1083,7 +1075,7 @@ const domutils = new DOMUtils();
 let nodeSwitch = 0;
 document.createTextNode("UwU!");
 const largetTestArray = [];
-for(let index = 0; index < 200; index++){
+for(let index = 0; index < 2000; index++){
     const p = document.createElement("p");
     p.appendChild(document.createTextNode("UwU!"));
     largetTestArray.push(p);

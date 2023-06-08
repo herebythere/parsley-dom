@@ -31,12 +31,12 @@ interface Render<N> {
 interface DeltaTargets {
   remountRoot: boolean;
   addedIndexes: number[];
+  removedIndexes: number[];
   prevSurvivedIndexes: number[];
   survivedIndexes: number[];
   prevDescIndexes: number[];
   descIndexes: number[];
   descArrayIndexes: number[];
-  removedIndexes: number[];
 }
 
 export type {

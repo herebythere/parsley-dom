@@ -1,20 +1,8 @@
-import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { DrawInterface } from "../type_flyweight/draw.ts";
-import type { BuildInterface } from "../type_flyweight/build.ts";
-import type {
-  DeltaTargets,
-  Render,
-  RenderNode,
-  RenderResult,
-  RenderSource,
-  SourceLinkInterface,
-} from "../type_flyweight/render.ts";
-
-import { Draw } from "../draw/draw.ts";
-import { Build } from "../build/build.ts";
-import { parse } from "../deps.ts";
+import type { DeltaTargets, Render } from "../type_flyweight/render.ts";
 
 import { findTargets, SourceLink } from "./utils.ts";
+
+// sources are equal
 
 function getDeltas<N>(
   render: Render<N>,
@@ -62,14 +50,12 @@ function getDeltas<N>(
   }
 
   while (index < render.root.length) {
-    const sourceIndex = render.root[index];
-    findTargets(render, delta.addedIndexes, sourceIndex);
+    findTargets(render, delta.addedIndexes, render.root[index]);
     delta.remountRoot = true;
     index += 1;
   }
   while (index < prevRender.root.length) {
-    const prevSourceIndex = prevRender.root[index];
-    findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
+    findTargets(prevRender, delta.removedIndexes, prevRender.root[index]);
     delta.remountRoot = true;
     index += 1;
   }
@@ -81,89 +67,87 @@ function getDeltas<N>(
     const sourceIndex = delta.survivedIndexes[survivedIndex];
     const prevSourceIndex = delta.prevSurvivedIndexes[survivedIndex];
 
-    // they should always be
+    survivedIndex += 1;
+
     const source = render.sources[sourceIndex];
     const prevSource = prevRender.sources[prevSourceIndex];
 
-    if (prevSource instanceof SourceLink && source instanceof SourceLink) {
-      render.parents.push(prevRender.parents[prevSource.parentIndex]);
-      source.parentIndex = render.parents.length - 1;
-
-      const nodes = render.nodes[source.nodeIndex];
-      const prevNodes = prevRender.nodes[prevSource.nodeIndex];
-
-      for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
-        const node = nodes[nodeIndex];
-        const prevNode = prevNodes[nodeIndex];
-
-        let resetIndex = false;
-
-        let descIndex = 0;
-        while (descIndex < node.length && descIndex < prevNode.length) {
-          const sourceIndex = node[descIndex];
-          const prevSourceIndex = prevNode[descIndex];
-
-          const source = render.sources[sourceIndex];
-          const prevSource = prevRender.sources[prevSourceIndex];
-
-          // if theyre equal
-
-          if (
-            prevSource instanceof SourceLink && source instanceof SourceLink
-          ) {
-            const draw = render.draws[source.drawIndex];
-            const prevDraw = prevRender.draws[prevSource.drawIndex];
-
-            if (prevDraw.templateStrings !== draw.templateStrings) {
-              // add remove
-              findTargets(render, delta.addedIndexes, sourceIndex);
-              findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
-              resetIndex = true;
-            } else {
-              // add to build
-              render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
-              delta.survivedIndexes.push(sourceIndex);
-              delta.prevSurvivedIndexes.push(prevSourceIndex);
-            }
-          } else {
-            if (prevSource !== source) {
-              // add remove
-              findTargets(render, delta.addedIndexes, sourceIndex);
-              findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
-              resetIndex = true;
-            } else {
-              // add to build
-              render.builds[index] = prevRender.builds[index];
-            }
-          }
-
-          descIndex += 1;
-        }
-
-        while (descIndex < node.length) {
-          const sourceIndex = node[descIndex];
-          const source = render.sources[sourceIndex];
-
-          findTargets(render, delta.addedIndexes, sourceIndex);
-          resetIndex = true;
-          descIndex += 1;
-        }
-        while (descIndex < prevNode.length) {
-          const prevSourceIndex = prevNode[descIndex];
-          findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
-          resetIndex = true;
-          descIndex += 1;
-        }
-
-        if (resetIndex) {
-          delta.prevDescIndexes.push(prevSourceIndex);
-          delta.descIndexes.push(sourceIndex);
-          delta.descArrayIndexes.push(nodeIndex);
-        }
-      }
+    // they should always be source links
+    if (!(prevSource instanceof SourceLink && source instanceof SourceLink)) {
+      continue;
     }
 
-    survivedIndex += 1;
+    render.parents.push(prevRender.parents[prevSource.parentIndex]);
+    source.parentIndex = render.parents.length - 1;
+
+    const nodes = render.nodes[source.nodeIndex];
+    const prevNodes = prevRender.nodes[prevSource.nodeIndex];
+
+    for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+      const node = nodes[nodeIndex];
+      const prevNode = prevNodes[nodeIndex];
+
+      let resetIndex = false;
+
+      let descIndex = 0;
+      while (descIndex < node.length && descIndex < prevNode.length) {
+        const sourceIndex = node[descIndex];
+        const prevSourceIndex = prevNode[descIndex];
+
+        const source = render.sources[sourceIndex];
+        const prevSource = prevRender.sources[prevSourceIndex];
+
+        // if theyre equal
+
+        if (
+          prevSource instanceof SourceLink && source instanceof SourceLink
+        ) {
+          const draw = render.draws[source.drawIndex];
+          const prevDraw = prevRender.draws[prevSource.drawIndex];
+
+          if (prevDraw.templateStrings !== draw.templateStrings) {
+            // add remove
+            findTargets(render, delta.addedIndexes, sourceIndex);
+            findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
+            resetIndex = true;
+          } else {
+            // add to build
+            render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
+            delta.survivedIndexes.push(sourceIndex);
+            delta.prevSurvivedIndexes.push(prevSourceIndex);
+          }
+        } else {
+          if (prevSource !== source) {
+            // add remove
+            findTargets(render, delta.addedIndexes, sourceIndex);
+            findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
+            resetIndex = true;
+          } else {
+            // add to build
+            render.builds[index] = prevRender.builds[index];
+          }
+        }
+
+        descIndex += 1;
+      }
+
+      while (descIndex < node.length) {
+        findTargets(render, delta.addedIndexes, node[descIndex]);
+        resetIndex = true;
+        descIndex += 1;
+      }
+      while (descIndex < prevNode.length) {
+        findTargets(prevRender, delta.removedIndexes, prevNode[descIndex]);
+        resetIndex = true;
+        descIndex += 1;
+      }
+
+      if (resetIndex) {
+        delta.prevDescIndexes.push(prevSourceIndex);
+        delta.descIndexes.push(sourceIndex);
+        delta.descArrayIndexes.push(nodeIndex);
+      }
+    }
   }
 }
 

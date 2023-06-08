@@ -2,7 +2,6 @@ import type { UtilsInterface } from "../type_flyweight/utils.ts";
 import type {
   DeltaTargets,
   Render,
-  RenderNode,
   RenderSource,
 } from "../type_flyweight/render.ts";
 
@@ -32,7 +31,6 @@ function mountRoot<N>(
   prevNode?: N,
 ) {
   let prev = prevNode;
-
   for (const sourceIndex of render.root) {
     const build = render.builds[sourceIndex];
     if (build instanceof Build) {
@@ -57,35 +55,34 @@ function mountNodes<N>(
 ) {
   for (const sourceIndex of delta.addedIndexes) {
     const source = render.sources[sourceIndex];
-    if (!(source instanceof SourceLink)) continue;
-
-    const parentNode = render.parents[source.parentIndex];
-    const node = render.nodes[source.nodeIndex];
     const buildSource = render.builds[sourceIndex];
-    if (!(buildSource instanceof Build)) continue;
+    if (!(source instanceof SourceLink && buildSource instanceof Build)) {
+      continue;
+    }
+
+    const parent = render.parents[source.parentIndex];
+    const node = render.nodes[source.nodeIndex];
 
     for (let arrayIndex = 0; arrayIndex < node.length; arrayIndex++) {
       const sourceIndexes = node[arrayIndex];
-      let { node: prev, parentNode: descParentNode } =
-        buildSource.descendants[arrayIndex];
-      descParentNode = descParentNode ?? parentNode;
+      let { node: prev, parentNode } = buildSource.descendants[arrayIndex];
+      parentNode = parentNode ?? parent;
 
       for (const sourceIndex of sourceIndexes) {
         const source = render.sources[sourceIndex];
         const build = render.builds[sourceIndex];
 
-        if (source instanceof SourceLink && build instanceof Build) {
-          const parent = render.parents[source.parentIndex];
-          for (const node of build.nodes) {
-            utils.insertNode(node, descParentNode, prev);
-            prev = node;
-          }
-        }
-
         const nodeBuild = utils.getIfNode(build);
         if (nodeBuild !== undefined) {
-          utils.insertNode(nodeBuild, descParentNode, prev);
+          utils.insertNode(nodeBuild, parentNode, prev);
           prev = node;
+        }
+
+        if (source instanceof SourceLink && build instanceof Build) {
+          for (const node of build.nodes) {
+            utils.insertNode(node, parentNode, prev);
+            prev = node;
+          }
         }
       }
     }
@@ -121,25 +118,23 @@ function unmountChangedAreas<N>(
     const prevRenderIndex = delta.prevDescIndexes[index];
     const descArrayIndex = delta.descArrayIndexes[index];
     const prevSource = prevRender.sources[prevRenderIndex];
+    if (!(prevSource instanceof SourceLink)) continue;
 
-    if (prevSource instanceof SourceLink) {
-      const prevParent = prevRender.parents[prevSource.parentIndex];
-      const prevNodes = prevRender.nodes[prevSource.nodeIndex];
-      const prevDescs = prevNodes[descArrayIndex];
+    const prevParent = prevRender.parents[prevSource.parentIndex];
+    const prevNodes = prevRender.nodes[prevSource.nodeIndex];
+    const prevDescs = prevNodes[descArrayIndex];
 
-      for (const descIndex of prevDescs) {
-        const descBuild = prevRender.builds[descIndex];
-        if (descBuild instanceof Build) {
-          for (const node of descBuild.nodes) {
-            utils.removeNode(node);
-          }
-          continue;
-        }
-
-        const node = utils.getIfNode(descBuild);
-        if (node !== undefined) {
+    for (const descIndex of prevDescs) {
+      const descBuild = prevRender.builds[descIndex];
+      if (descBuild instanceof Build) {
+        for (const node of descBuild.nodes) {
           utils.removeNode(node);
         }
+      }
+
+      const node = utils.getIfNode(descBuild);
+      if (node !== undefined) {
+        utils.removeNode(node);
       }
     }
   }

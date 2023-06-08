@@ -8,12 +8,12 @@ import type {
 } from "../type_flyweight/build.ts";
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
-function cloneNodes<N>(utils: UtilsInterface<N>, nodes: N[]) {
-  let clonedNodes = [];
-  for (const node of nodes) {
-    clonedNodes.push(utils.cloneTree(node));
+function cloneNodes<N>(utils: UtilsInterface<N>, sourceNodes: N[]) {
+  let nodes = [];
+  for (const node of sourceNodes) {
+    nodes.push(utils.cloneTree(node));
   }
-  return clonedNodes;
+  return nodes;
 }
 
 function createInjections<N>(

@@ -1,18 +1,13 @@
 import type { UtilsInterface } from "../type_flyweight/utils.ts";
-import type { DrawInterface } from "../type_flyweight/draw.ts";
 import type { BuildInterface } from "../type_flyweight/build.ts";
 import type {
   DeltaTargets,
   Render,
-  RenderNode,
-  RenderResult,
   RenderSource,
-  SourceLinkInterface,
 } from "../type_flyweight/render.ts";
 
 import { Draw } from "../draw/draw.ts";
 import { Build } from "../build/build.ts";
-import { parse } from "../deps.ts";
 import { SourceLink } from "./utils.ts";
 
 function createAddedBuilds<N>(
@@ -22,6 +17,7 @@ function createAddedBuilds<N>(
 ) {
   for (const index of delta.addedIndexes) {
     const source = render.sources[index];
+
     const node = utils.getIfNode(source);
     if (node !== undefined) {
       render.builds[index] = node;
@@ -53,11 +49,8 @@ function createAddedBuilds<N>(
         const descIndexArray = node[buildIndex];
         for (const descIndex of descIndexArray) {
           const source = render.sources[descIndex];
-
           if (source instanceof SourceLink) {
-            // add parent node referernce
             source.parentIndex = parentIndex;
-            continue;
           }
         }
       }

@@ -1,9 +1,4 @@
-import type {
-  DeltaTargets,
-  Render,
-  RenderSource,
-  SourceLinkInterface,
-} from "../type_flyweight/render.ts";
+import type { Render, SourceLinkInterface } from "../type_flyweight/render.ts";
 
 class SourceLink implements SourceLinkInterface {
   drawIndex: number;
@@ -22,29 +17,31 @@ function findTargets<N>(
   sourceIndex: number,
 ) {
   let index = targets.push(sourceIndex);
+
   const source = render.sources[sourceIndex];
   if (!(source instanceof SourceLink)) return;
 
   const node = render.nodes[source.nodeIndex];
   for (const descArray of node) {
     for (const descIndex of descArray) {
+      // if source link?
       targets.push(descIndex);
     }
   }
 
   while (index < targets.length) {
     const targetIndex = targets[index];
+    index += 1;
+
     const source = render.sources[targetIndex];
-    if (source instanceof SourceLink) {
-      const node = render.nodes[source.nodeIndex];
-      for (const descArray of node) {
-        for (const descIndex of descArray) {
-          targets.push(descIndex);
-        }
+    if (!(source instanceof SourceLink)) continue;
+
+    const node = render.nodes[source.nodeIndex];
+    for (const descArray of node) {
+      for (const descIndex of descArray) {
+        targets.push(descIndex);
       }
     }
-
-    index += 1;
   }
 }
 
