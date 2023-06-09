@@ -175,7 +175,7 @@ function createNodesFromSource<N>(
   }
 }
 
-function createRender<N>(
+function buildRender<N>(
   utils: UtilsInterface<N>,
   render: Render<N>,
   source: RenderSource<N>,
@@ -189,4 +189,4 @@ function createRender<N>(
   return render;
 }
 
-export { createAddedBuilds, createRender };
+export { buildRender, createAddedBuilds };

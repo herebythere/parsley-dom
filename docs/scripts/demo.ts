@@ -35,7 +35,7 @@ const testNodeNested = () => {
     "whatup",
     draw`
 			<p>howdy!</p>
-			<p>hello ${testNodeFunc()}!</p>
+			${testNodeFunc()}!</p>
 		`,
   ];
 };
@@ -68,8 +68,12 @@ class TestComponent extends HTMLElement {
   }
 
   update() {
-    this.hangar.update(domutils, this);
+    queueMicrotask(this.updateAsync);
   }
+
+  updateAsync = () => {
+    this.hangar.update(domutils, this);
+  };
 }
 
 customElements.define("test-component", TestComponent);

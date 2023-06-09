@@ -1,7 +1,8 @@
 import type { BuilderDataInterface, UtilsInterface } from "../deps.ts";
+import type { BuildStep } from "../deps.ts";
 
-// import { Builder } from "../builder/builder.ts";
-import { Builder, parse } from "../deps.ts";
+import { parse } from "../deps.ts";
+import { createBuilder } from "../builder/builder.ts";
 
 const builderDataCache = new WeakMap<
   Readonly<string[]>,
@@ -14,9 +15,9 @@ function getBuilder(
 ) {
   let builderData = builderDataCache.get(template);
   if (builderData === undefined) {
-    const builder = new Builder();
-    parse(template, builder);
-    builderData = builder.build(utils, template);
+    const steps: BuildStep[] = [];
+    parse(template, steps);
+    builderData = createBuilder(utils, template, steps);
   }
 
   if (builderData !== undefined) {
@@ -78,7 +79,9 @@ class DOMUtils implements UtilsInterface<Node> {
   getBuilderData(
     template: Readonly<string[]>,
   ): BuilderDataInterface<Node> | undefined {
-    return getBuilder(this, template);
+    const buildData = getBuilder(this, template);
+    console.log("buildData", buildData);
+    return buildData;
   }
 }
 

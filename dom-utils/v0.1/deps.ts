@@ -10,8 +10,6 @@ export type {
   UtilsInterface,
 } from "../../deno/v0.1/mod.ts";
 
-export { Builder } from "../../deno/v0.1/mod.ts";
-
 export {
   ATTRIBUTE,
   ATTRIBUTE_DECLARATION,

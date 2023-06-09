@@ -24,7 +24,6 @@ function findTargets<N>(
   const node = render.nodes[source.nodeIndex];
   for (const descArray of node) {
     for (const descIndex of descArray) {
-      // if source link?
       targets.push(descIndex);
     }
   }

@@ -511,44 +511,38 @@ function injectLogic(stack, step, data) {
     }
     data.injections.push(injection);
 }
-class Builder {
-    steps = [];
-    push(step) {
-        this.steps.push(step);
-    }
-    build(utils, template) {
-        const stack = {
-            nodes: [
-                undefined
-            ],
-            address: [
-                -1
-            ],
-            attribute: undefined
-        };
-        const data = {
-            nodes: [],
-            injections: [],
-            descendants: []
-        };
-        for (const step of this.steps){
-            if (step.type === "BUILD") {
-                stackLogic(utils, template, stack, step, data);
-            }
-            if (step.type === "INJECT") {
-                injectLogic(stack, step, data);
-            }
+function createBuilder(utils, template, steps) {
+    const stack = {
+        nodes: [
+            undefined
+        ],
+        address: [
+            -1
+        ],
+        attribute: undefined
+    };
+    const data = {
+        nodes: [],
+        injections: [],
+        descendants: []
+    };
+    for (const step of steps){
+        if (step.type === "BUILD") {
+            stackLogic(utils, template, stack, step, data);
         }
-        return data;
+        if (step.type === "INJECT") {
+            injectLogic(stack, step, data);
+        }
     }
+    return data;
 }
 const builderDataCache = new WeakMap();
 function getBuilder(utils, template) {
     let builderData = builderDataCache.get(template);
     if (builderData === undefined) {
-        const builder = new Builder();
-        parse(template, builder);
-        builderData = builder.build(utils, template);
+        const steps = [];
+        parse(template, steps);
+        builderData = createBuilder(utils, template, steps);
     }
     if (builderData !== undefined) {
         builderDataCache.set(template, builderData);
@@ -571,7 +565,13 @@ class DOMUtils {
         parentNode.insertBefore(node, leftNode.nextSibling);
     }
     removeNode(node, parentNode, leftNode) {
-        parentNode.removeChild(node);
+        if (parentNode !== undefined) {
+            parentNode.removeChild(node);
+            return;
+        }
+        if (node.parentNode !== null) {
+            node.parentNode.removeChild(node);
+        }
     }
     getIfNode(node) {
         if (node instanceof Node) {
@@ -592,7 +592,9 @@ class DOMUtils {
         return currNode;
     }
     getBuilderData(template) {
-        return getBuilder(this, template);
+        const buildData = getBuilder(this, template);
+        console.log("buildData", buildData);
+        return buildData;
     }
 }
 export { DOMUtils as DOMUtils };

@@ -10,6 +10,5 @@ export type { RenderFunc } from "./type_flyweight/render.ts";
 // build exports
 // not meant for user interaction
 export { Build } from "./build/build.ts";
-export { Builder } from "./builder/builder.ts";
 export { Hangar } from "./hangar/hangar.ts";
 export { draw } from "./draw/draw.ts";

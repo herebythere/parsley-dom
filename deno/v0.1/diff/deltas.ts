@@ -4,6 +4,17 @@ import { findTargets, SourceLink } from "./utils.ts";
 
 // sources are equal
 
+function addRemove<N>(
+  render: Render<N>,
+  prevRender: Render<N>,
+  delta: DeltaTargets,
+  sourceIndex: number,
+  prevSourceIndex: number,
+) {
+  findTargets(render, delta.addedIndexes, sourceIndex);
+  findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
+}
+
 function getDeltas<N>(
   render: Render<N>,
   prevRender: Render<N>,
@@ -26,7 +37,7 @@ function getDeltas<N>(
       if (prevDraw.templateStrings !== draw.templateStrings) {
         // add remove
         findTargets(render, delta.addedIndexes, sourceIndex);
-        findTargets(render, delta.removedIndexes, prevSourceIndex);
+        findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
         delta.remountRoot = true;
       } else {
         // add to build
@@ -38,7 +49,7 @@ function getDeltas<N>(
       if (prevSource !== source) {
         // add remove
         findTargets(render, delta.addedIndexes, sourceIndex);
-        findTargets(render, delta.removedIndexes, prevSourceIndex);
+        findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
         delta.remountRoot = true;
       } else {
         // add to build

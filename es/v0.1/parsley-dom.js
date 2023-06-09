@@ -35,460 +35,6 @@ class Build {
         this.descendants = createInjections(utils, this.nodes, data.descendants);
     }
 }
-function getText(template, vector) {
-    const origin = vector.origin;
-    let templateText = template[origin.x];
-    if (templateText) {
-        return templateText.substr(origin.y, vector.target.y - origin.y + 1);
-    }
-}
-const ATTRIBUTE = "ATTRIBUTE";
-const ATTRIBUTE_DECLARATION = "ATTRIBUTE_DECLARATION";
-const ATTRIBUTE_DECLARATION_CLOSE = "ATTRIBUTE_DECLARATION_CLOSE";
-const ATTRIBUTE_SETTER = "ATTRIBUTE_SETTER";
-const ATTRIBUTE_VALUE = "ATTRIBUTE_VALUE";
-const CLOSE_NODE_SLASH = "CLOSE_NODE_SLASH";
-const CLOSE_NODE_SPACE = "CLOSE_NODE_SPACE";
-const CLOSE_NODE_CLOSED = "CLOSE_NODE_CLOSED";
-const CLOSE_TAGNAME = "CLOSE_TAGNAME";
-const ERROR = "ERROR";
-const INDEPENDENT_NODE = "INDEPENDENT_NODE";
-const INDEPENDENT_NODE_CLOSED = "INDEPENDENT_NODE_CLOSED";
-const NODE = "NODE";
-const NODE_CLOSED = "NODE_CLOSED";
-const NODE_SPACE = "NODE_SPACE";
-const TAGNAME = "TAGNAME";
-const TEXT = "TEXT";
-const ATTRIBUTE_INJECTION = "ATTRIBUTE_INJECTION";
-const DESCENDANT_INJECTION = "DESCENDANT_INJECTION";
-const ATTRIBUTE_MAP_INJECTION = "ATTRIBUTE_MAP_INJECTION";
-const INITIAL = "INITIAL";
-const DEFAULT = "DEFAULT";
-const LB = "<";
-const RB = ">";
-const SP = " ";
-const NL = "\n";
-const TB = "\t";
-const FS = "/";
-const QT = '"';
-const EQ = "=";
-const INIITAL_MAP = new Map([
-    [
-        LB,
-        NODE
-    ],
-    [
-        DEFAULT,
-        TEXT
-    ]
-]);
-const NODE_MAP = new Map([
-    [
-        SP,
-        ERROR
-    ],
-    [
-        NL,
-        ERROR
-    ],
-    [
-        TB,
-        ERROR
-    ],
-    [
-        FS,
-        CLOSE_NODE_SLASH
-    ],
-    [
-        RB,
-        ERROR
-    ],
-    [
-        DEFAULT,
-        TAGNAME
-    ]
-]);
-const CLOSE_NODE_SLASH_MAP = new Map([
-    [
-        SP,
-        ERROR
-    ],
-    [
-        NL,
-        ERROR
-    ],
-    [
-        TB,
-        ERROR
-    ],
-    [
-        DEFAULT,
-        CLOSE_TAGNAME
-    ]
-]);
-const TAGNAME_MAP = new Map([
-    [
-        RB,
-        NODE_CLOSED
-    ],
-    [
-        SP,
-        NODE_SPACE
-    ],
-    [
-        NL,
-        NODE_SPACE
-    ],
-    [
-        TB,
-        NODE_SPACE
-    ],
-    [
-        FS,
-        INDEPENDENT_NODE
-    ],
-    [
-        DEFAULT,
-        TAGNAME
-    ]
-]);
-const CLOSE_TAGNAME_MAP = new Map([
-    [
-        RB,
-        CLOSE_NODE_CLOSED
-    ],
-    [
-        SP,
-        CLOSE_NODE_SPACE
-    ],
-    [
-        NL,
-        CLOSE_NODE_SPACE
-    ],
-    [
-        TB,
-        CLOSE_NODE_SPACE
-    ],
-    [
-        DEFAULT,
-        CLOSE_TAGNAME
-    ]
-]);
-const CLOSE_NODE_SPACE_MAP = new Map([
-    [
-        RB,
-        CLOSE_NODE_CLOSED
-    ],
-    [
-        DEFAULT,
-        CLOSE_NODE_SPACE
-    ]
-]);
-const INDEPENDENT_NODE_MAP = new Map([
-    [
-        RB,
-        INDEPENDENT_NODE_CLOSED
-    ],
-    [
-        DEFAULT,
-        INDEPENDENT_NODE
-    ]
-]);
-const NODE_SPACE_MAP = new Map([
-    [
-        RB,
-        NODE_CLOSED
-    ],
-    [
-        SP,
-        NODE_SPACE
-    ],
-    [
-        NL,
-        NODE_SPACE
-    ],
-    [
-        TB,
-        NODE_SPACE
-    ],
-    [
-        FS,
-        INDEPENDENT_NODE
-    ],
-    [
-        DEFAULT,
-        ATTRIBUTE
-    ]
-]);
-const ATTRIBUTE_MAP = new Map([
-    [
-        SP,
-        NODE_SPACE
-    ],
-    [
-        NL,
-        NODE_SPACE
-    ],
-    [
-        TB,
-        NODE_SPACE
-    ],
-    [
-        EQ,
-        ATTRIBUTE_SETTER
-    ],
-    [
-        RB,
-        NODE_CLOSED
-    ],
-    [
-        FS,
-        INDEPENDENT_NODE
-    ],
-    [
-        DEFAULT,
-        ATTRIBUTE
-    ]
-]);
-const ATTRIBUTE_SETTER_MAP = new Map([
-    [
-        QT,
-        ATTRIBUTE_DECLARATION
-    ],
-    [
-        NL,
-        NODE_SPACE
-    ],
-    [
-        DEFAULT,
-        NODE_SPACE
-    ]
-]);
-const ATTRIBUTE_DECLARATION_MAP = new Map([
-    [
-        QT,
-        ATTRIBUTE_DECLARATION_CLOSE
-    ],
-    [
-        DEFAULT,
-        ATTRIBUTE_VALUE
-    ]
-]);
-const ATTRIBUTE_VALUE_MAP = new Map([
-    [
-        QT,
-        ATTRIBUTE_DECLARATION_CLOSE
-    ],
-    [
-        DEFAULT,
-        ATTRIBUTE_VALUE
-    ]
-]);
-const ATTRIBUTE_DECLARATION_CLOSE_MAP = new Map([
-    [
-        RB,
-        NODE_CLOSED
-    ],
-    [
-        FS,
-        INDEPENDENT_NODE
-    ],
-    [
-        DEFAULT,
-        NODE_SPACE
-    ]
-]);
-new Map([
-    [
-        INITIAL,
-        INIITAL_MAP
-    ],
-    [
-        TEXT,
-        INIITAL_MAP
-    ],
-    [
-        NODE,
-        NODE_MAP
-    ],
-    [
-        CLOSE_NODE_SLASH,
-        CLOSE_NODE_SLASH_MAP
-    ],
-    [
-        TAGNAME,
-        TAGNAME_MAP
-    ],
-    [
-        CLOSE_TAGNAME,
-        CLOSE_TAGNAME_MAP
-    ],
-    [
-        CLOSE_NODE_SPACE,
-        CLOSE_NODE_SPACE_MAP
-    ],
-    [
-        INDEPENDENT_NODE,
-        INDEPENDENT_NODE_MAP
-    ],
-    [
-        NODE_CLOSED,
-        INIITAL_MAP
-    ],
-    [
-        CLOSE_NODE_CLOSED,
-        INIITAL_MAP
-    ],
-    [
-        INDEPENDENT_NODE_CLOSED,
-        INIITAL_MAP
-    ],
-    [
-        NODE_SPACE,
-        NODE_SPACE_MAP
-    ],
-    [
-        ATTRIBUTE,
-        ATTRIBUTE_MAP
-    ],
-    [
-        ATTRIBUTE_SETTER,
-        ATTRIBUTE_SETTER_MAP
-    ],
-    [
-        ATTRIBUTE_DECLARATION,
-        ATTRIBUTE_DECLARATION_MAP
-    ],
-    [
-        ATTRIBUTE_VALUE,
-        ATTRIBUTE_VALUE_MAP
-    ],
-    [
-        ATTRIBUTE_DECLARATION_CLOSE,
-        ATTRIBUTE_DECLARATION_CLOSE_MAP
-    ]
-]);
-new Map([
-    [
-        ATTRIBUTE_DECLARATION,
-        ATTRIBUTE_INJECTION
-    ],
-    [
-        ATTRIBUTE_VALUE,
-        ATTRIBUTE_INJECTION
-    ],
-    [
-        NODE_SPACE,
-        ATTRIBUTE_MAP_INJECTION
-    ],
-    [
-        ATTRIBUTE_DECLARATION_CLOSE,
-        ATTRIBUTE_MAP_INJECTION
-    ],
-    [
-        TAGNAME,
-        ATTRIBUTE_MAP_INJECTION
-    ],
-    [
-        CLOSE_NODE_CLOSED,
-        DESCENDANT_INJECTION
-    ],
-    [
-        INDEPENDENT_NODE_CLOSED,
-        DESCENDANT_INJECTION
-    ],
-    [
-        INITIAL,
-        DESCENDANT_INJECTION
-    ],
-    [
-        NODE_CLOSED,
-        DESCENDANT_INJECTION
-    ],
-    [
-        TEXT,
-        DESCENDANT_INJECTION
-    ]
-]);
-function insertNode(utils, stack, data, node) {
-    const parentIndex = stack.nodes.length - 2;
-    let parentNode = stack.nodes[parentIndex];
-    if (parentNode === undefined) {
-        data.nodes.push(node);
-    }
-    utils.insertNode(node, parentNode);
-    const nodesLength = stack.nodes.length - 1;
-    stack.nodes[nodesLength] = node;
-    stack.address[nodesLength] += 1;
-}
-function stackLogic(utils, template, stack, step, data) {
-    if (step.type !== "BUILD") return;
-    if (step.state === "TEXT") {
-        const text = getText(template, step.vector);
-        if (text === undefined) return;
-        const node = utils.createTextNode(text);
-        insertNode(utils, stack, data, node);
-    }
-    if (step.state === "TAGNAME") {
-        const tagname = getText(template, step.vector);
-        if (tagname === undefined || tagname === "") return;
-        const node1 = utils.createNode(tagname);
-        insertNode(utils, stack, data, node1);
-    }
-    if (step.state === "NODE_CLOSED") {
-        stack.address.push(-1);
-        stack.nodes.push(undefined);
-    }
-    if (step.state === "CLOSE_NODE_CLOSED") {
-        stack.address.pop();
-        stack.nodes.pop();
-    }
-}
-function injectLogic(stack, step, data) {
-    if (step.type !== "INJECT") return;
-    const { index , state: type  } = step;
-    const injection = {
-        address: stack.address.slice(),
-        index,
-        type
-    };
-    if (type === "DESCENDANT_INJECTION") {
-        data.descendants.push(injection);
-        return;
-    }
-    data.injections.push(injection);
-}
-class Builder {
-    steps = [];
-    push(step) {
-        this.steps.push(step);
-    }
-    build(utils, template) {
-        const stack = {
-            nodes: [
-                undefined
-            ],
-            address: [
-                -1
-            ],
-            attribute: undefined
-        };
-        const data = {
-            nodes: [],
-            injections: [],
-            descendants: []
-        };
-        for (const step of this.steps){
-            if (step.type === "BUILD") {
-                stackLogic(utils, template, stack, step, data);
-            }
-            if (step.type === "INJECT") {
-                injectLogic(stack, step, data);
-            }
-        }
-        return data;
-    }
-}
 class Draw {
     templateStrings;
     injections;
@@ -635,7 +181,7 @@ function createNodesFromSource(utils, render) {
         index += 1;
     }
 }
-function createRender(utils, render, source) {
+function buildRender(utils, render, source) {
     addSource(render, render.root, source);
     addDescToRender(utils, render, render.root);
     createNodesFromSource(utils, render);
@@ -653,7 +199,7 @@ function getDeltas(render, prevRender, delta) {
             const prevDraw = prevRender.draws[prevSource.drawIndex];
             if (prevDraw.templateStrings !== draw.templateStrings) {
                 findTargets(render, delta.addedIndexes, sourceIndex);
-                findTargets(render, delta.removedIndexes, prevSourceIndex);
+                findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
                 delta.remountRoot = true;
             } else {
                 render.builds[sourceIndex] = prevRender.builds[prevSourceIndex];
@@ -663,7 +209,7 @@ function getDeltas(render, prevRender, delta) {
         } else {
             if (prevSource !== source) {
                 findTargets(render, delta.addedIndexes, sourceIndex);
-                findTargets(render, delta.removedIndexes, prevSourceIndex);
+                findTargets(prevRender, delta.removedIndexes, prevSourceIndex);
                 delta.remountRoot = true;
             } else {
                 render.builds[index] = prevRender.builds[index];
@@ -746,9 +292,9 @@ function getDeltas(render, prevRender, delta) {
         }
     }
 }
-function mountRoot(utils, render, parentNode, prevNode) {
+function mountBuilds(utils, render, sourceIndexes, parentNode, prevNode) {
     let prev = prevNode;
-    for (const sourceIndex of render.root){
+    for (const sourceIndex of sourceIndexes){
         const build = render.builds[sourceIndex];
         if (build instanceof Build) {
             for (const node of build.nodes){
@@ -767,66 +313,13 @@ function mountNodes(utils, render, delta) {
     for (const sourceIndex of delta.addedIndexes){
         const source = render.sources[sourceIndex];
         const buildSource = render.builds[sourceIndex];
-        if (!(source instanceof SourceLink && buildSource instanceof Build)) {
-            continue;
-        }
-        const parent = render.parents[source.parentIndex];
-        const node = render.nodes[source.nodeIndex];
-        for(let arrayIndex = 0; arrayIndex < node.length; arrayIndex++){
-            const sourceIndexes = node[arrayIndex];
-            let { node: prev , parentNode  } = buildSource.descendants[arrayIndex];
-            parentNode = parentNode ?? parent;
-            for (const sourceIndex1 of sourceIndexes){
-                const source1 = render.sources[sourceIndex1];
-                const build = render.builds[sourceIndex1];
-                const nodeBuild = utils.getIfNode(build);
-                if (nodeBuild !== undefined) {
-                    utils.insertNode(nodeBuild, parentNode, prev);
-                    prev = node;
-                }
-                if (source1 instanceof SourceLink && build instanceof Build) {
-                    for (const node1 of build.nodes){
-                        utils.insertNode(node1, parentNode, prev);
-                        prev = node1;
-                    }
-                }
-            }
-        }
-    }
-}
-function unmountNodes(utils, render, delta) {
-    for (const sourceIndex of delta.removedIndexes){
-        const build = render.builds[sourceIndex];
-        if (build instanceof Build) {
-            for (const node of build.nodes){
-                utils.removeNode(node);
-            }
-        }
-        const nodeBuild = utils.getIfNode(build);
-        if (nodeBuild !== undefined) {
-            utils.removeNode(nodeBuild);
-        }
-    }
-}
-function unmountChangedAreas(utils, prevRender, delta) {
-    for(let index = 0; index < delta.prevDescIndexes.length; index++){
-        const prevRenderIndex = delta.prevDescIndexes[index];
-        const descArrayIndex = delta.descArrayIndexes[index];
-        const prevSource = prevRender.sources[prevRenderIndex];
-        if (!(prevSource instanceof SourceLink)) continue;
-        prevRender.parents[prevSource.parentIndex];
-        const prevNodes = prevRender.nodes[prevSource.nodeIndex];
-        const prevDescs = prevNodes[descArrayIndex];
-        for (const descIndex of prevDescs){
-            const descBuild = prevRender.builds[descIndex];
-            if (descBuild instanceof Build) {
-                for (const node of descBuild.nodes){
-                    utils.removeNode(node);
-                }
-            }
-            const node1 = utils.getIfNode(descBuild);
-            if (node1 !== undefined) {
-                utils.removeNode(node1);
+        if (source instanceof SourceLink && buildSource instanceof Build) {
+            const parent = render.parents[source.parentIndex];
+            const nodes = render.nodes[source.nodeIndex];
+            for(let arrayIndex = 0; arrayIndex < nodes.length; arrayIndex++){
+                const descs = nodes[arrayIndex];
+                const { node , parentNode  } = buildSource.descendants[arrayIndex];
+                mountBuilds(utils, render, descs, parentNode ?? parent, node);
             }
         }
     }
@@ -834,32 +327,40 @@ function unmountChangedAreas(utils, prevRender, delta) {
 function mountChangedAreas(utils, render, delta) {
     for(let index = 0; index < delta.descIndexes.length; index++){
         const renderIndex = delta.descIndexes[index];
-        const descArrayIndex = delta.descArrayIndexes[index];
         const source = render.sources[renderIndex];
+        if (!(source instanceof SourceLink)) continue;
+        const nodes = render.nodes[source.nodeIndex];
+        const descArrayIndex = delta.descArrayIndexes[index];
+        const descs = nodes[descArrayIndex];
         const build = render.builds[renderIndex];
-        if (source instanceof SourceLink && build instanceof Build) {
-            const nodes = render.nodes[source.nodeIndex];
-            const parent = render.parents[source.parentIndex];
-            const descs = nodes[descArrayIndex];
-            let { node: left , parentNode: descParentNode  } = build.descendants[descArrayIndex];
-            descParentNode = descParentNode ?? parent;
-            for (const descIndex of descs){
-                const source1 = render.sources[descIndex];
-                const descBuild = render.builds[descIndex];
-                if (source1 instanceof SourceLink && descBuild instanceof Build) {
-                    for (const node of descBuild.nodes){
-                        utils.insertNode(node, descParentNode, left);
-                        left = node;
-                    }
-                    continue;
-                }
-                const node1 = utils.getIfNode(descBuild);
-                if (node1 !== undefined) {
-                    utils.insertNode(node1, descParentNode, left);
-                    left = node1;
-                }
+        if (!(build instanceof Build)) continue;
+        const { node , parentNode  } = build.descendants[descArrayIndex];
+        mountBuilds(utils, render, descs, parentNode ?? render.parents[source.parentIndex], node);
+    }
+}
+function unmountBuilds(utils, render, delta, sourceIndexes) {
+    for (const sourceIndex of sourceIndexes){
+        const build = render.builds[sourceIndex];
+        const nodeBuild = utils.getIfNode(build);
+        if (nodeBuild !== undefined) {
+            utils.removeNode(nodeBuild);
+        }
+        if (build instanceof Build) {
+            for (const node of build.nodes){
+                utils.removeNode(node);
             }
         }
+    }
+}
+function unmountChangedAreas(utils, prevRender, delta) {
+    for(let index = 0; index < delta.prevDescIndexes.length; index++){
+        const prevRenderIndex = delta.prevDescIndexes[index];
+        const prevSource = prevRender.sources[prevRenderIndex];
+        if (!(prevSource instanceof SourceLink)) continue;
+        const prevNodes = prevRender.nodes[prevSource.nodeIndex];
+        const descArrayIndex = delta.descArrayIndexes[index];
+        const prevDescs = prevNodes[descArrayIndex];
+        unmountBuilds(utils, prevRender, delta, prevDescs);
     }
 }
 function diff(utils, source, parentNode, leftNode, prevRender) {
@@ -883,7 +384,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         descArrayIndexes: [],
         removedIndexes: []
     };
-    createRender(utils, render, source);
+    buildRender(utils, render, source);
     if (prevRender === undefined) {
         for (const sourceIndex of render.root){
             findTargets(render, delta.addedIndexes, sourceIndex);
@@ -893,16 +394,14 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
     }
     if (prevRender !== undefined) {
         unmountChangedAreas(utils, prevRender, delta);
-    }
-    if (prevRender !== undefined) {
-        unmountNodes(utils, prevRender, delta);
+        unmountBuilds(utils, prevRender, delta, delta.removedIndexes);
     }
     createAddedBuilds(utils, delta, render);
-    if (prevRender === undefined) {
-        mountRoot(utils, render, parentNode, leftNode);
-    }
     if (prevRender !== undefined) {
         mountChangedAreas(utils, render, delta);
+    }
+    if (prevRender === undefined) {
+        mountBuilds(utils, render, render.root, parentNode, leftNode);
     }
     mountNodes(utils, render, delta);
     console.log(delta);
@@ -927,6 +426,5 @@ class Hangar {
     }
 }
 export { Build as Build };
-export { Builder as Builder };
 export { Hangar as Hangar };
 export { draw as draw };
