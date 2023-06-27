@@ -1,4 +1,8 @@
-import type { BuilderDataInterface, UtilsInterface } from "../deps.ts";
+import type {
+  BuilderDataInterface,
+  BuilderInjection,
+  UtilsInterface,
+} from "../deps.ts";
 import type { BuildStep } from "../deps.ts";
 
 import { parse } from "../deps.ts";
@@ -29,6 +33,9 @@ function getBuilder(
 
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
+    const tag = tagname.toLowerCase();
+    if (tag === "script" || tag === "style") return new HTMLUnknownElement();
+
     return document.createElement(tagname);
   }
   createTextNode(text: string) {
@@ -36,23 +43,28 @@ class DOMUtils implements UtilsInterface<Node> {
   }
   insertNode(node: Node, parentNode?: Node, leftNode?: Node) {
     if (parentNode === undefined) return;
-    if (leftNode?.nextSibling === undefined) {
-      parentNode.appendChild(node);
+
+    if (leftNode?.nextSibling !== undefined) {
+      parentNode.insertBefore(node, leftNode.nextSibling);
       return;
     }
-    parentNode.insertBefore(node, leftNode.nextSibling);
+
+    parentNode.appendChild(node);
   }
   removeNode(node: Node, parentNode?: Node, leftNode?: Node) {
     if (parentNode !== undefined) {
       parentNode.removeChild(node);
       return;
     }
-    if (node.parentNode !== null) {
-      node.parentNode.removeChild(node);
-    }
+    node.parentNode?.removeChild(node);
   }
   getIfNode(node: unknown): Node | undefined {
     if (node instanceof Node) {
+      return node;
+    }
+  }
+  getIfTextNode(node: unknown): Node | undefined {
+    if (node instanceof Text) {
       return node;
     }
   }
@@ -66,15 +78,15 @@ class DOMUtils implements UtilsInterface<Node> {
   ) {
     if (address.length === 0) return;
 
-    let currNode = baseTier[address[0]];
-    if (currNode === undefined) return;
+    let node = baseTier[address[0]];
+    if (node === undefined) return;
 
     for (let index = 1; index < depth; index++) {
       const addressIndex = address[index];
-      currNode = currNode.childNodes[addressIndex];
+      node = node.childNodes[addressIndex];
     }
 
-    return currNode;
+    return node;
   }
   getBuilderData(
     template: Readonly<string[]>,
@@ -82,6 +94,22 @@ class DOMUtils implements UtilsInterface<Node> {
     const buildData = getBuilder(this, template);
     console.log("buildData", buildData);
     return buildData;
+  }
+  setAttribute(
+    node: Node,
+    name: string,
+    value: unknown,
+    prevValue: unknown,
+  ) {
+    // disallowed attributess
+    // [form, button, submit] form formaction
+    // autofocus + event
+  }
+  removeAttribute(
+    node: Node,
+    name: string,
+    value: unknown,
+  ) {
   }
 }
 

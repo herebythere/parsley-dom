@@ -7,6 +7,7 @@ export type {
 
 export type {
   BuilderDataInterface,
+  BuilderInjection,
   UtilsInterface,
 } from "../../deno/v0.1/mod.ts";
 

@@ -1,9 +1,11 @@
+import type { BuilderStack } from "../type_flyweight/builder.ts";
 import type {
   BuilderDataInterface,
   BuilderInjection,
-  BuilderStack,
-} from "../type_flyweight/builder.ts";
-import type { BuilderInterface, BuildStep, UtilsInterface } from "../deps.ts";
+  BuilderInterface,
+  BuildStep,
+  UtilsInterface,
+} from "../deps.ts";
 
 import { getText } from "../deps.ts";
 
@@ -30,6 +32,10 @@ function insertNode<N>(
   const nodesLength = stack.nodes.length - 1;
   stack.nodes[nodesLength] = node;
   stack.address[nodesLength] += 1;
+
+  if (!utils.getIfTextNode(node)) {
+    stack.parentAddress[nodesLength] = stack.address[nodesLength];
+  }
 }
 
 function stackLogic<N>(
@@ -59,11 +65,13 @@ function stackLogic<N>(
 
   if (step.state === "NODE_CLOSED") {
     stack.address.push(-1);
+    stack.parentAddress.push(-1);
     stack.nodes.push(undefined);
   }
 
   if (step.state === "CLOSE_NODE_CLOSED") {
     stack.address.pop();
+    stack.parentAddress.pop();
     stack.nodes.pop();
   }
 }
@@ -77,6 +85,7 @@ function injectLogic<N>(
   const { index, state: type } = step;
   const injection = {
     address: stack.address.slice(),
+    parentAddress: stack.parentAddress.slice(),
     index,
     type,
   };
@@ -98,16 +107,23 @@ function createBuilder<N>(
   template: Readonly<string[]>,
   steps: BuildStep[],
 ) {
-  const stack: BuilderStack<N> = {
-    nodes: [undefined],
-    address: [-1],
-    attribute: undefined,
-  };
-
   const data: BuilderDataInterface<N> = {
     nodes: [],
     injections: [],
     descendants: [],
+  };
+
+  // if last step is an error return data
+  if (steps.length === 0 || steps[steps.length - 1].state === "ERROR") {
+    return data;
+  }
+
+  const stack: BuilderStack<N> = {
+    nodes: [undefined],
+    // parent address
+    parentAddress: [-1],
+    address: [-1],
+    attribute: undefined,
   };
 
   for (const step of steps) {

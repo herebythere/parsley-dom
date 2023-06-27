@@ -1,9 +1,9 @@
-# treeshaker
+# Treeshaker
 
 Visit the [quick start](https://herebythere.github.io/treeshaker).
 
-_Treeshaker_ uses [Parsley](https://github.com/herebythere/parsley) to
-deserialize XML data.
+Treeshaker uses [Parsley](https://github.com/herebythere/parsley) to deserialize
+XML data.
 
 ## About
 

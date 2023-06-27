@@ -12,9 +12,9 @@ function cloneNodes(utils, sourceNodes) {
 function createInjections(utils, nodes, builderInjections) {
     const injections = [];
     for (const entry of builderInjections){
-        const { address  } = entry;
+        const { address , parentAddress  } = entry;
         const node = utils.getDescendant(nodes, address);
-        const parentNode = utils.getDescendant(nodes, address, address.length - 1);
+        const parentNode = utils.getDescendant(nodes, parentAddress, parentAddress.length - 1);
         const { index , type  } = entry;
         injections.push({
             index,
@@ -404,8 +404,7 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         mountBuilds(utils, render, render.root, parentNode, leftNode);
     }
     mountNodes(utils, render, delta);
-    console.log(delta);
-    console.log(render);
+    console.log("\n", delta, render);
     return render;
 }
 class Hangar {

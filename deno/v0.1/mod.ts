@@ -1,6 +1,9 @@
 // actual exports
 // intended user interaction
-export type { BuilderDataInterface } from "./type_flyweight/builder.ts";
+export type {
+  BuilderDataInterface,
+  BuilderInjection,
+} from "./type_flyweight/builder.ts";
 export type { BuildInterface } from "./type_flyweight/build.ts";
 export type { DrawInterface } from "./type_flyweight/draw.ts";
 export type { HangarInterface } from "./type_flyweight/hangar.ts";

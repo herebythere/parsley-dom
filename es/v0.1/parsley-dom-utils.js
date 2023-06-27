@@ -473,6 +473,9 @@ function insertNode(utils, stack, data, node) {
     const nodesLength = stack.nodes.length - 1;
     stack.nodes[nodesLength] = node;
     stack.address[nodesLength] += 1;
+    if (!utils.getIfTextNode(node)) {
+        stack.parentAddress[nodesLength] = stack.address[nodesLength];
+    }
 }
 function stackLogic(utils, template, stack, step, data) {
     if (step.type !== "BUILD") return;
@@ -490,10 +493,12 @@ function stackLogic(utils, template, stack, step, data) {
     }
     if (step.state === "NODE_CLOSED") {
         stack.address.push(-1);
+        stack.parentAddress.push(-1);
         stack.nodes.push(undefined);
     }
     if (step.state === "CLOSE_NODE_CLOSED") {
         stack.address.pop();
+        stack.parentAddress.pop();
         stack.nodes.pop();
     }
 }
@@ -502,6 +507,7 @@ function injectLogic(stack, step, data) {
     const { index , state: type  } = step;
     const injection = {
         address: stack.address.slice(),
+        parentAddress: stack.parentAddress.slice(),
         index,
         type
     };
@@ -512,19 +518,23 @@ function injectLogic(stack, step, data) {
     data.injections.push(injection);
 }
 function createBuilder(utils, template, steps) {
+    const data = {
+        nodes: [],
+        injections: [],
+        descendants: []
+    };
+    if (steps.length === 0 || steps[steps.length - 1].state === "ERROR") return data;
     const stack = {
         nodes: [
             undefined
+        ],
+        parentAddress: [
+            -1
         ],
         address: [
             -1
         ],
         attribute: undefined
-    };
-    const data = {
-        nodes: [],
-        injections: [],
-        descendants: []
     };
     for (const step of steps){
         if (step.type === "BUILD") {
@@ -551,6 +561,8 @@ function getBuilder(utils, template) {
 }
 class DOMUtils {
     createNode(tagname) {
+        const tag = tagname.toLowerCase();
+        if (tag === "script" || tag === "style") return new HTMLUnknownElement();
         return document.createElement(tagname);
     }
     createTextNode(text) {
@@ -558,23 +570,26 @@ class DOMUtils {
     }
     insertNode(node, parentNode, leftNode) {
         if (parentNode === undefined) return;
-        if (leftNode?.nextSibling === undefined) {
-            parentNode.appendChild(node);
+        if (leftNode?.nextSibling !== undefined) {
+            parentNode.insertBefore(node, leftNode.nextSibling);
             return;
         }
-        parentNode.insertBefore(node, leftNode.nextSibling);
+        parentNode.appendChild(node);
     }
     removeNode(node, parentNode, leftNode) {
         if (parentNode !== undefined) {
             parentNode.removeChild(node);
             return;
         }
-        if (node.parentNode !== null) {
-            node.parentNode.removeChild(node);
-        }
+        node.parentNode?.removeChild(node);
     }
     getIfNode(node) {
         if (node instanceof Node) {
+            return node;
+        }
+    }
+    getIfTextNode(node) {
+        if (node instanceof Text) {
             return node;
         }
     }
@@ -583,18 +598,20 @@ class DOMUtils {
     }
     getDescendant(baseTier, address, depth = address.length) {
         if (address.length === 0) return;
-        let currNode = baseTier[address[0]];
-        if (currNode === undefined) return;
+        let node = baseTier[address[0]];
+        if (node === undefined) return;
         for(let index = 1; index < depth; index++){
             const addressIndex = address[index];
-            currNode = currNode.childNodes[addressIndex];
+            node = node.childNodes[addressIndex];
         }
-        return currNode;
+        return node;
     }
     getBuilderData(template) {
         const buildData = getBuilder(this, template);
         console.log("buildData", buildData);
         return buildData;
     }
+    setAttribute(node, name, value, prevValue) {}
+    removeAttribute(node, name, value) {}
 }
 export { DOMUtils as DOMUtils };

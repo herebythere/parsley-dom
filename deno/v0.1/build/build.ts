@@ -23,12 +23,12 @@ function createInjections<N>(
 ) {
   const injections = [];
   for (const entry of builderInjections) {
-    const { address } = entry;
+    const { address, parentAddress } = entry;
     const node = utils.getDescendant(nodes, address);
     const parentNode = utils.getDescendant(
       nodes,
-      address,
-      address.length - 1,
+      parentAddress,
+      parentAddress.length - 1,
     );
 
     const { index, type } = entry;

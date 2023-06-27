@@ -98,8 +98,7 @@ function diff<N>(
 
   mountNodes(utils, render, delta);
 
-  console.log(delta);
-  console.log(render);
+  console.log("\n", delta, render);
 
   return render;
 }

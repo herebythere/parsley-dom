@@ -8,6 +8,7 @@ interface UtilsInterface<N> {
   insertNode(node: N, parentNode?: N, leftNode?: N): void;
   removeNode(node: N, parentNode?: N, leftNode?: N): void;
   getIfNode(node: unknown): N | undefined;
+  getIfTextNode(node: unknown): N | undefined;
   cloneTree(node: N): N;
   getDescendant(
     baseTier: N[],
@@ -17,7 +18,8 @@ interface UtilsInterface<N> {
   getBuilderData(
     template: Readonly<string[]>,
   ): BuilderDataInterface<N> | undefined;
-  // setAttribute(node: N, name: string, value: unknown)
+  setAttribute(node: N, name: string, value: unknown, prevValue: unknown): void;
+  removeAttribute(node: N, name: string, value: unknown): void;
 }
 
 export type { UtilsInterface };
