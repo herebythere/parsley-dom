@@ -85,7 +85,7 @@ function injectLogic<N>(
   const { index, state: type } = step;
   const injection = {
     address: stack.address.slice(),
-    parentAddress: stack.parentAddress.slice(),
+    parentAddress: stack.parentAddress.slice(0, stack.parentAddress.length - 1),
     index,
     type,
   };

@@ -37,6 +37,9 @@ const testNodeNested = () => {
 			<div>
 				${testNodeFunc()}
 			</div>
+			<style>
+				this shouldn't fly at all
+      <style>
 		`,
   ];
 };

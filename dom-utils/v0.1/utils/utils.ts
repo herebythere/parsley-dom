@@ -34,7 +34,8 @@ function getBuilder(
 class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
     const tag = tagname.toLowerCase();
-    if (tag === "script" || tag === "style") return new HTMLUnknownElement();
+    // there is no tag named ":unknown" hopefully
+    if (tag === "script" || tag === "style") return document.createElement(":unknown");
 
     return document.createElement(tagname);
   }
@@ -74,14 +75,13 @@ class DOMUtils implements UtilsInterface<Node> {
   getDescendant(
     baseTier: Node[],
     address: number[],
-    depth: number = address.length,
   ) {
     if (address.length === 0) return;
 
     let node = baseTier[address[0]];
     if (node === undefined) return;
 
-    for (let index = 1; index < depth; index++) {
+    for (let index = 1; index < address.length; index++) {
       const addressIndex = address[index];
       node = node.childNodes[addressIndex];
     }

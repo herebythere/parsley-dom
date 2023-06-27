@@ -14,7 +14,7 @@ function createInjections(utils, nodes, builderInjections) {
     for (const entry of builderInjections){
         const { address , parentAddress  } = entry;
         const node = utils.getDescendant(nodes, address);
-        const parentNode = utils.getDescendant(nodes, parentAddress, parentAddress.length - 1);
+        const parentNode = utils.getDescendant(nodes, parentAddress);
         const { index , type  } = entry;
         injections.push({
             index,
@@ -929,7 +929,7 @@ function injectLogic(stack, step, data) {
     const { index , state: type  } = step;
     const injection = {
         address: stack.address.slice(),
-        parentAddress: stack.parentAddress.slice(),
+        parentAddress: stack.parentAddress.slice(0, stack.parentAddress.length - 1),
         index,
         type
     };
@@ -986,7 +986,7 @@ function getBuilder(utils, template) {
 class DOMUtils {
     createNode(tagname) {
         const tag = tagname.toLowerCase();
-        if (tag === "script" || tag === "style") return new HTMLUnknownElement();
+        if (tag === "script" || tag === "style") return document.createElement(":unknown");
         return document.createElement(tagname);
     }
     createTextNode(text) {
@@ -1020,11 +1020,11 @@ class DOMUtils {
     cloneTree(node) {
         return node.cloneNode(true);
     }
-    getDescendant(baseTier, address, depth = address.length) {
+    getDescendant(baseTier, address) {
         if (address.length === 0) return;
         let node = baseTier[address[0]];
         if (node === undefined) return;
-        for(let index = 1; index < depth; index++){
+        for(let index = 1; index < address.length; index++){
             const addressIndex = address[index];
             node = node.childNodes[addressIndex];
         }
@@ -1060,6 +1060,9 @@ const testNodeNested = ()=>{
 			<div>
 				${testNodeFunc()}
 			</div>
+			<style>
+				this shouldn't fly at all
+      <style>
 		`
     ];
 };

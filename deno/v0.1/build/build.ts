@@ -28,7 +28,6 @@ function createInjections<N>(
     const parentNode = utils.getDescendant(
       nodes,
       parentAddress,
-      parentAddress.length - 1,
     );
 
     const { index, type } = entry;

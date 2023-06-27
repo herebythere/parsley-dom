@@ -13,7 +13,6 @@ interface UtilsInterface<N> {
   getDescendant(
     baseTier: N[],
     address: number[],
-    depth?: number,
   ): N | undefined;
   getBuilderData(
     template: Readonly<string[]>,
