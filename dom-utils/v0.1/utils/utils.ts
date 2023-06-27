@@ -35,7 +35,9 @@ class DOMUtils implements UtilsInterface<Node> {
   createNode(tagname: string) {
     const tag = tagname.toLowerCase();
     // there is no tag named ":unknown" hopefully
-    if (tag === "script" || tag === "style") return document.createElement(":unknown");
+    if (tag === "script" || tag === "style") {
+      return document.createElement(":unknown");
+    }
 
     return document.createElement(tagname);
   }
