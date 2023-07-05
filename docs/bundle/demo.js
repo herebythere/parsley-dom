@@ -389,10 +389,9 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         for (const sourceIndex of render.root){
             findTargets(render, delta.addedIndexes, sourceIndex);
         }
-    } else {
-        getDeltas(render, prevRender, delta);
     }
     if (prevRender !== undefined) {
+        getDeltas(render, prevRender, delta);
         unmountChangedAreas(utils, prevRender, delta);
         unmountBuilds(utils, prevRender, delta, delta.removedIndexes);
     }
@@ -939,7 +938,7 @@ function injectLogic(stack, step, data) {
     }
     data.injections.push(injection);
 }
-function createBuilder(utils, template, steps) {
+function createBuilderData(utils, template, steps) {
     const data = {
         nodes: [],
         injections: [],
@@ -976,7 +975,7 @@ function getBuilder(utils, template) {
     if (builderData === undefined) {
         const steps = [];
         parse(template, steps);
-        builderData = createBuilder(utils, template, steps);
+        builderData = createBuilderData(utils, template, steps);
     }
     if (builderData !== undefined) {
         builderDataCache.set(template, builderData);
@@ -986,7 +985,9 @@ function getBuilder(utils, template) {
 class DOMUtils {
     createNode(tagname) {
         const tag = tagname.toLowerCase();
-        if (tag === "script" || tag === "style") return document.createElement(":unknown");
+        if (tag === "script" || tag === "style") {
+            return document.createElement("+UwU+");
+        }
         return document.createElement(tagname);
     }
     createTextNode(text) {

@@ -21,9 +21,16 @@ class Hangar<N, S = unknown> implements HangarInterface<N, S> {
     this.leftNode = leftNode;
   }
 
+  // remove state from argument entirely
+  // parent node left node as arguemnts
+  //
+  // A hangar should hold a render
+  //
+  // A hangar might not even be neccessary
   update(utils: UtilsInterface<N>, state: S) {
     const start = performance.now();
 
+    // pass this instead of render state
     const source = this.renderFunc(state);
     this.render = diff(
       utils,

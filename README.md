@@ -1,18 +1,39 @@
 # Treeshaker
 
-Treeshaker builds trees from XML data.
+Visit the [quick start](https://herebythere.github.io/treeshaker).
 
 ## About
 
-Treeshaker composes structures like DOM and Object Scenes with XML through tag
-template literals.
+Treeshaker composes structures from XML. It provides methods for `retain` mode
+and `immediate` mode interfaces.
 
-// explain what makes it different but short
+Treeshaker itself is angositc to what is composed.
 
-// explain that the rendering target is abstracted from the tree diffing
-algorithm
+It relies on a `Utils` class that provides the most atomic interactions needed
+to maintain a tree of nodes in a given environment.
 
-// so it can maintain any tree structure, dom three js scene, world scenes
+And that makes Treeshaker portable and extendable.
+
+With treeshaker you can:
+
+- create templates from XML
+- build scenes and UIs from XML
+- create custom XML attribute syntaxes
+
+## Typescript
+
+Treeshaker is available in TS via Deno.
+
+It uses [Parsley](https://github.com/herebythere/parsley) to deserialize XML
+data.
+
+DOM-Utils are available (although you can definitely make your own!).
+
+## C#
+
+The C# implementation is being brainstormed (July 2023).
+
+The goal is to provide `TreeShaker` for Godot (and possibly Unity).
 
 ## License
 

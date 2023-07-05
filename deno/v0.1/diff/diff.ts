@@ -5,9 +5,9 @@ import type {
   RenderSource,
 } from "../type_flyweight/render.ts";
 
+import { Build } from "../build/build.ts";
 import { buildRender, createAddedBuilds } from "./build.ts";
 import { findTargets, SourceLink } from "./utils.ts";
-import { Build } from "../build/build.ts";
 import { getDeltas } from "./deltas.ts";
 
 import {
@@ -67,13 +67,12 @@ function diff<N>(
     for (const sourceIndex of render.root) {
       findTargets(render, delta.addedIndexes, sourceIndex);
     }
-  } else {
-    getDeltas(render, prevRender, delta);
   }
 
   // unmount changed areas
   // unmount removed nodes
   if (prevRender !== undefined) {
+    getDeltas(render, prevRender, delta);
     unmountChangedAreas(utils, prevRender, delta);
     unmountBuilds(utils, prevRender, delta, delta.removedIndexes);
   }

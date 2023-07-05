@@ -1,4 +1,3 @@
-import type { BuilderStack } from "../type_flyweight/builder.ts";
 import type {
   BuilderDataInterface,
   BuilderInjection,
@@ -6,6 +5,7 @@ import type {
   BuildStep,
   UtilsInterface,
 } from "../deps.ts";
+import type { BuilderStack } from "../type_flyweight/builder.ts";
 
 import { getText } from "../deps.ts";
 
@@ -102,7 +102,7 @@ function injectLogic<N>(
 
 // Builder becomes associated with utils more specifically
 
-function createBuilder<N>(
+function createBuilderData<N>(
   utils: UtilsInterface<N>,
   template: Readonly<string[]>,
   steps: BuildStep[],
@@ -120,7 +120,6 @@ function createBuilder<N>(
 
   const stack: BuilderStack<N> = {
     nodes: [undefined],
-    // parent address
     parentAddress: [-1],
     address: [-1],
     attribute: undefined,
@@ -140,4 +139,4 @@ function createBuilder<N>(
   return data;
 }
 
-export { createBuilder };
+export { createBuilderData };

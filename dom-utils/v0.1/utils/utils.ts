@@ -6,7 +6,7 @@ import type {
 import type { BuildStep } from "../deps.ts";
 
 import { parse } from "../deps.ts";
-import { createBuilder } from "../builder/builder.ts";
+import { createBuilderData } from "../builder/builder.ts";
 
 const builderDataCache = new WeakMap<
   Readonly<string[]>,
@@ -21,7 +21,7 @@ function getBuilder(
   if (builderData === undefined) {
     const steps: BuildStep[] = [];
     parse(template, steps);
-    builderData = createBuilder(utils, template, steps);
+    builderData = createBuilderData(utils, template, steps);
   }
 
   if (builderData !== undefined) {
@@ -36,7 +36,7 @@ class DOMUtils implements UtilsInterface<Node> {
     const tag = tagname.toLowerCase();
     // there is no tag named ":unknown" hopefully
     if (tag === "script" || tag === "style") {
-      return document.createElement(":unknown");
+      return document.createElement("+UwU+");
     }
 
     return document.createElement(tagname);
