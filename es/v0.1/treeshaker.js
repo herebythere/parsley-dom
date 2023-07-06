@@ -14,7 +14,7 @@ function createInjections(utils, nodes, builderInjections) {
     for (const entry of builderInjections){
         const { address , parentAddress  } = entry;
         const node = utils.getDescendant(nodes, address);
-        const parentNode = utils.getDescendant(nodes, parentAddress, parentAddress.length - 1);
+        const parentNode = utils.getDescendant(nodes, parentAddress);
         const { index , type  } = entry;
         injections.push({
             index,
@@ -389,10 +389,9 @@ function diff(utils, source, parentNode, leftNode, prevRender) {
         for (const sourceIndex of render.root){
             findTargets(render, delta.addedIndexes, sourceIndex);
         }
-    } else {
-        getDeltas(render, prevRender, delta);
     }
     if (prevRender !== undefined) {
+        getDeltas(render, prevRender, delta);
         unmountChangedAreas(utils, prevRender, delta);
         unmountBuilds(utils, prevRender, delta, delta.removedIndexes);
     }

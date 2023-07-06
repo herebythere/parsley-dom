@@ -9,8 +9,8 @@ and `immediate` mode interfaces.
 
 Treeshaker itself is angositc to what is composed.
 
-It relies on a `Utils` class that provides the most atomic interactions needed
-to maintain a tree of nodes in a given environment.
+Treeshaker relies on a `Utils` structure to provide the most atomic interactions
+needed to maintain a tree of nodes in a given environment.
 
 And that makes Treeshaker portable and extendable.
 
@@ -31,9 +31,9 @@ DOM-Utils are available (although you can definitely make your own!).
 
 ## C#
 
-The C# implementation is being brainstormed (July 2023).
+The C# implementation is planned (Dec 2023).
 
-The goal is to provide `TreeShaker` for Godot (and possibly Unity).
+The goal is to provide `TreeShaker` for Godot (or Unity).
 
 ## License
 

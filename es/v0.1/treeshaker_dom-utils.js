@@ -507,7 +507,7 @@ function injectLogic(stack, step, data) {
     const { index , state: type  } = step;
     const injection = {
         address: stack.address.slice(),
-        parentAddress: stack.parentAddress.slice(),
+        parentAddress: stack.parentAddress.slice(0, stack.parentAddress.length - 1),
         index,
         type
     };
@@ -517,13 +517,15 @@ function injectLogic(stack, step, data) {
     }
     data.injections.push(injection);
 }
-function createBuilder(utils, template, steps) {
+function createBuilderData(utils, template, steps) {
     const data = {
         nodes: [],
         injections: [],
         descendants: []
     };
-    if (steps.length === 0 || steps[steps.length - 1].state === "ERROR") return data;
+    if (steps.length === 0 || steps[steps.length - 1].state === "ERROR") {
+        return data;
+    }
     const stack = {
         nodes: [
             undefined
@@ -552,7 +554,7 @@ function getBuilder(utils, template) {
     if (builderData === undefined) {
         const steps = [];
         parse(template, steps);
-        builderData = createBuilder(utils, template, steps);
+        builderData = createBuilderData(utils, template, steps);
     }
     if (builderData !== undefined) {
         builderDataCache.set(template, builderData);
@@ -562,7 +564,9 @@ function getBuilder(utils, template) {
 class DOMUtils {
     createNode(tagname) {
         const tag = tagname.toLowerCase();
-        if (tag === "script" || tag === "style") return new HTMLUnknownElement();
+        if (tag === "script" || tag === "style") {
+            return document.createElement("+UwU+");
+        }
         return document.createElement(tagname);
     }
     createTextNode(text) {
@@ -596,11 +600,11 @@ class DOMUtils {
     cloneTree(node) {
         return node.cloneNode(true);
     }
-    getDescendant(baseTier, address, depth = address.length) {
+    getDescendant(baseTier, address) {
         if (address.length === 0) return;
         let node = baseTier[address[0]];
         if (node === undefined) return;
-        for(let index = 1; index < depth; index++){
+        for(let index = 1; index < address.length; index++){
             const addressIndex = address[index];
             node = node.childNodes[addressIndex];
         }

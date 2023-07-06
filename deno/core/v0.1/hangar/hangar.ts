@@ -8,6 +8,7 @@ import type { UtilsInterface } from "../type_flyweight/utils.ts";
 
 import { diff } from "../diff/diff.ts";
 
+// delete this
 class Hangar<N, S = unknown> implements HangarInterface<N, S> {
   renderFunc: RenderFunc<N>;
   parentNode: N;

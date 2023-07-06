@@ -9,7 +9,7 @@ export type {
   BuilderDataInterface,
   BuilderInjection,
   UtilsInterface,
-} from "../../deno/v0.1/mod.ts";
+} from "../../../deno/core/v0.1/mod.ts";
 
 export {
   ATTRIBUTE,

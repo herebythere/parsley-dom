@@ -1,6 +1,9 @@
-# Treeshaker
+# Deno - Treeshaker
 
 Visit the [quick start](https://herebythere.github.io/treeshaker).
+
+For DOM visit the
+[quick start](https://herebythere.github.io/treeshaker/dom-utils).
 
 Treeshaker uses [Parsley](https://github.com/herebythere/parsley) to deserialize
 XML data.
