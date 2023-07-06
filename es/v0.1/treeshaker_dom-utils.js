@@ -565,7 +565,7 @@ class DOMUtils {
     createNode(tagname) {
         const tag = tagname.toLowerCase();
         if (tag === "script" || tag === "style") {
-            return document.createElement("+UwU+");
+            return document.createElement("UwU");
         }
         return document.createElement(tagname);
     }

@@ -62,6 +62,8 @@ function findTargets(render, targets, sourceIndex) {
     const node = render.nodes[source.nodeIndex];
     for (const descArray of node){
         for (const descIndex of descArray){
+            const descSource = render.sources[descIndex];
+            if (!(descSource instanceof SourceLink)) continue;
             targets.push(descIndex);
         }
     }
@@ -73,6 +75,8 @@ function findTargets(render, targets, sourceIndex) {
         const node1 = render.nodes[source1.nodeIndex];
         for (const descArray1 of node1){
             for (const descIndex1 of descArray1){
+                const descSource1 = render.sources[descIndex1];
+                if (!(descSource1 instanceof SourceLink)) continue;
                 targets.push(descIndex1);
             }
         }

@@ -1,40 +1,27 @@
 # Treeshaker
 
-Visit the [quick start](https://herebythere.github.io/treeshaker).
+DO NOT USE THIS LIBRARY.
+
+It's intuitive and portable. It's nice to use. But there is no support.
+
+_Treeshaker_ is designed for applications and projects at Here By There.
+
+Again, DO NOT USE THIS LIBRARY.
 
 ## About
 
-Treeshaker composes structures from XML. It provides methods for `retain` mode
-and `immediate` mode interfaces.
+_Treeshaker_ composes structures from XML.
 
-Treeshaker itself is angositc to what is composed.
-
-Treeshaker relies on a `Utils` structure to provide the most atomic interactions
-needed to maintain a tree of nodes in a given environment.
-
-And that makes Treeshaker portable and extendable.
-
-With treeshaker you can:
+_Treeshaker_ can:
 
 - create templates from XML
 - build scenes and UIs from XML
-- create custom XML attribute syntaxes
+- utilize custom XML attribute syntaxes
+- use native elements with
 
-## Typescript
-
-Treeshaker is available in TS via Deno.
-
-It uses [Parsley](https://github.com/herebythere/parsley) to deserialize XML
-data.
-
-DOM-Utils are available (although you can definitely make your own!).
-
-## C#
-
-The C# implementation is planned (Dec 2023).
-
-The goal is to provide `TreeShaker` for Godot (or Unity).
+_Treeshaker_ is angositc to what is composed and provides methods for `retain`
+mode and `immediate` mode interfaces.
 
 ## License
 
-BSD 3-Clause License
+_Treeshaker_ is released under the BSD 3-Clause License

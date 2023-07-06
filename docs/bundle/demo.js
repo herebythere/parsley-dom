@@ -62,6 +62,7 @@ function findTargets(render, targets, sourceIndex) {
     const node = render.nodes[source.nodeIndex];
     for (const descArray of node){
         for (const descIndex of descArray){
+            if (!(render.sources[descIndex] instanceof SourceLink)) continue;
             targets.push(descIndex);
         }
     }
@@ -73,6 +74,7 @@ function findTargets(render, targets, sourceIndex) {
         const node1 = render.nodes[source1.nodeIndex];
         for (const descArray1 of node1){
             for (const descIndex1 of descArray1){
+                if (!(render.sources[descIndex1] instanceof SourceLink)) continue;
                 targets.push(descIndex1);
             }
         }
@@ -986,7 +988,7 @@ class DOMUtils {
     createNode(tagname) {
         const tag = tagname.toLowerCase();
         if (tag === "script" || tag === "style") {
-            return document.createElement("+UwU+");
+            return document.createElement("UwU");
         }
         return document.createElement(tagname);
     }
@@ -1062,6 +1064,7 @@ const testNodeNested = ()=>{
 				${testNodeFunc()}
 			</div>
 			<style>
+				let awoo = "awwooo";
 				this shouldn't fly at all
       <style>
 		`

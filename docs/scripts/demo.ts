@@ -38,6 +38,7 @@ const testNodeNested = () => {
 				${testNodeFunc()}
 			</div>
 			<style>
+				let awoo = "awwooo";
 				this shouldn't fly at all
       <style>
 		`,
